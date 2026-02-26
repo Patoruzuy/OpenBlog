@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<section class="notifications-page">
+
+  <header class="page-header">
+    <div class="page-header-main">
+      <h1 class="page-title">Notifications</h1>
+      {% if unread_count > 0 %}
+        <span class="badge badge--unread">{{ unread_count }} unread</span>
+      {% endif %}
+    </div>
+    <div class="filter-pills">
+      <a
+        class="filter-pill {% if not unread_only %}filter-pill--active{% endif %}"
+        href="{{ url_for('notifications.notification_inbox') }}"
+      >All</a>
+      <a
+        class="filter-pill {% if unread_only %}filter-pill--active{% endif %}"
+        href="{{ url_for('notifications.notification_inbox', unread_only=1) }}"
+      >Unread</a>
+    </div>
+  </header>
+
+  {% if notifications %}
+    <ul class="notification-list" aria-live="polite">
+      {% for notif in notifications %}
+        <li
+          class="notification-item{% if not notif.is_read %} notification-item--unread{% endif %}"
+          data-id="{{ notif.id }}"
+        >
+          <div class="notification-body">
+            <p class="notification-title">{{ notif.title }}</p>
+            {% if notif.body %}
+              <p class="notification-text">{{ notif.body }}</p>
+            {% endif %}
+          </div>
+          <div class="notification-meta">
+            <time
+              datetime="{{ notif.created_at.isoformat() }}"
+              title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M UTC') }}"
+            >{{ notif.created_at.strftime('%b %d, %Y') }}</time>
+            {% if not notif.is_read %}
+              <span class="notification-dot" aria-label="Unread"></span>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {# ── Pagination ──────────────────────────────────────────────────────── #}
+    {% if pages > 1 %}
+      <nav class="pagination" aria-label="Notifications pagination">
+        {% if page > 1 %}
+          <a class="pagination__prev" href="{{ url_for('notifications.notification_inbox', page=page - 1, unread_only='1' if unread_only else '0') }}">← Previous</a>
+        {% endif %}
+        <span class="pagination__info">Page {{ page }} of {{ pages }}</span>
+        {% if page < pages %}
+          <a class="pagination__next" href="{{ url_for('notifications.notification_inbox', page=page + 1, unread_only='1' if unread_only else '0') }}">Next →</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <p class="empty-state">
+      {% if unread_only %}
+        No unread notifications. <a href="{{ url_for('notifications.notification_inbox') }}">View all</a>.
+      {% else %}
+        No notifications yet.
+      {% endif %}
+    </p>
+  {% endif %}
+
+</section>
+{% endblock %}

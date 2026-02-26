@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="OpenBlog — where developers share knowledge" />
+    <title>{% block title %}{{ title | default('OpenBlog') }}{% endblock %} — OpenBlog</title>
+
+    <!-- Fonts: Newsreader (body) + JetBrains Mono (code / logo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    {% block head %}{% endblock %}
+  </head>
+
+  <body>
+    <!-- ── Header ─────────────────────────────────────────────────────────── -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="/" class="site-logo">OpenBlog</a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/">Home</a>
+          <a href="{{ url_for('tags.tag_index') }}">Tags</a>
+          {% if current_user %}
+            <a href="{{ url_for('bookmarks.bookmark_list') }}">Bookmarks</a>
+            <a href="{{ url_for('notifications.notification_inbox') }}">
+              Notifications
+              {% if unread_notifications > 0 %}
+                <span class="nav-badge" aria-label="{{ unread_notifications }} unread">{{ unread_notifications }}</span>
+              {% endif %}
+            </a>
+            <a href="{{ url_for('auth.logout') }}">Sign out</a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}">Sign in</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+
+    <!-- ── Main ───────────────────────────────────────────────────────────── -->
+    <main class="site-main">
+      <div class="container">
+        {% block content %}
+        <section class="hero">
+          <h1 class="hero-title">Where developers share knowledge.</h1>
+          <p class="hero-sub">Write. Collaborate. Grow.</p>
+        </section>
+        {% endblock %}
+      </div>
+    </main>
+
+    <!-- ── Footer ─────────────────────────────────────────────────────────── -->
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>Built with <a href="/">OpenBlog</a></span>
+        <span>Open source. Community driven.</span>
+      </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

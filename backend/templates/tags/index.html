@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Tags{% endblock %}
+
+{% block content %}
+<section class="tags-page">
+
+  <header class="page-header">
+    <h1 class="page-title">Tags</h1>
+    <p class="page-subtitle">
+      {{ tags | length }} tag{{ 's' if tags | length != 1 }} — browse by topic
+    </p>
+  </header>
+
+  {% if tags %}
+    <div class="tags-grid">
+      {% for item in tags %}
+        <a
+          class="tag-card"
+          href="{{ url_for('posts.list_posts', tag=item.tag.slug) }}"
+          {% if item.tag.color %}style="--tag-color: {{ item.tag.color }}"{% endif %}
+        >
+          <span class="tag-card__name">#{{ item.tag.slug }}</span>
+          {% if item.tag.description %}
+            <p class="tag-card__desc">{{ item.tag.description }}</p>
+          {% endif %}
+          <span class="tag-card__count">
+            {{ item.post_count }} post{{ '' if item.post_count == 1 else 's' }}
+          </span>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-state">No tags yet. Start writing posts to create tags.</p>
+  {% endif %}
+
+</section>
+{% endblock %}

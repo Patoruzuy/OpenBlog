@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Bookmarks{% endblock %}
+
+{% block content %}
+<section class="bookmarks-page">
+
+  <header class="page-header">
+    <h1 class="page-title">Your Bookmarks</h1>
+    <p class="page-subtitle">
+      {{ total }} saved post{{ 's' if total != 1 }}
+    </p>
+  </header>
+
+  {% if posts %}
+    <div class="post-cards">
+      {% for post in posts %}
+        <article class="post-card">
+          <div class="post-card-header">
+            <a class="post-card-title" href="{{ url_for('posts.post_detail', slug=post.slug) }}">
+              {{ post.title }}
+            </a>
+            <span class="post-card-meta">
+              by <strong>{{ post.author.display_name or post.author.username }}</strong>
+              {% if post.published_at %}
+                &middot;
+                <time datetime="{{ post.published_at.isoformat() }}">
+                  {{ post.published_at.strftime('%b %d, %Y') }}
+                </time>
+              {% endif %}
+              &middot;
+              {{ post.reading_time_minutes }} min read
+            </span>
+          </div>
+          {% if post.tags %}
+            <div class="post-card-tags">
+              {% for tag in post.tags %}
+                <a class="tag-badge" href="{{ url_for('posts.list_posts', tag=tag.slug) }}">#{{ tag.slug }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if post.seo_description %}
+            <p class="post-card-summary">{{ post.seo_description }}</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+
+    {# ── Pagination ──────────────────────────────────────────────────────── #}
+    {% if pages > 1 %}
+      <nav class="pagination" aria-label="Bookmarks pagination">
+        {% if page > 1 %}
+          <a class="pagination__prev" href="{{ url_for('bookmarks.bookmark_list', page=page - 1) }}">← Previous</a>
+        {% endif %}
+        <span class="pagination__info">Page {{ page }} of {{ pages }}</span>
+        {% if page < pages %}
+          <a class="pagination__next" href="{{ url_for('bookmarks.bookmark_list', page=page + 1) }}">Next →</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <p class="empty-state">
+      You haven't bookmarked any posts yet.
+      <a href="{{ url_for('posts.list_posts') }}">Browse posts</a> to save some for later.
+    </p>
+  {% endif %}
+
+</section>
+{% endblock %}
