@@ -110,7 +110,7 @@ class TestTagsPage:
     def test_empty_state_when_no_tags(self, auth_client, db_session):
         resp = auth_client.get("/tags/")
         assert resp.status_code == 200
-        assert b"No tags yet" in resp.data
+        assert b"No topics yet" in resp.data
 
     def test_tag_link_points_to_filtered_posts(self, auth_client, _tags_with_posts):
         resp = auth_client.get("/tags/")

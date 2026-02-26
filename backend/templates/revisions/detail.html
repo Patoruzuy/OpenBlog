@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block title %}Revision #{{ revision.id }}{% if post %} — {{ post.title }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container rev-detail">
+
+  {# ── 1. Revision header ───────────────────────────────────────────────── #}
+  <header class="rev-hd">
+    <nav class="rev-breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ url_for('revisions.revision_list') }}">&larr; Review queue</a>
+      {% if post %}
+        <span aria-hidden="true">/</span>
+        <a href="{{ url_for('posts.post_detail', slug=post.slug) }}">{{ post.title }}</a>
+      {% endif %}
+    </nav>
+
+    <div class="rev-hd-main">
+      <div class="rev-hd-title-row">
+        <h1 class="rev-hd-title">
+          {% if post %}
+            {{ post.title }}
+          {% else %}
+            Revision #{{ revision.id }}
+          {% endif %}
+        </h1>
+        <span class="status-pill status-pill--{{ revision.status.value }}">
+          {{ revision.status.value }}
+        </span>
+      </div>
+
+      <div class="rev-hd-meta">
+        <span class="rev-meta-chip">
+          <span class="rev-meta-chip__label">Proposed by</span>
+          <a href="{{ url_for('users.user_profile', username=revision.author.username) }}"
+             class="rev-meta-chip__val">{{ revision.author.username }}</a>
+        </span>
+        <span class="rev-meta-chip">
+          <span class="rev-meta-chip__label">Submitted</span>
+          <span class="rev-meta-chip__val">{{ revision.created_at.strftime('%b %d, %Y') }}</span>
+        </span>
+        {% if revision.base_version_number %}
+          <span class="rev-meta-chip">
+            <span class="rev-meta-chip__label">Based on</span>
+            <span class="rev-meta-chip__val">v{{ revision.base_version_number }}</span>
+          </span>
+        {% endif %}
+        {% if additions or deletions %}
+          <span class="rev-meta-chip">
+            <span class="rev-meta-chip__label--add">+{{ additions }}</span>
+            <span class="rev-meta-chip__label--del">&minus;{{ deletions }}</span>
+          </span>
+        {% endif %}
+      </div>
+
+      {% if is_stale %}
+        <div class="rev-stale-banner" role="alert">
+          <span class="rev-stale-icon" aria-hidden="true">&#9888;</span>
+          <span>
+            Based on <strong>v{{ revision.base_version_number }}</strong>
+            — post is now <strong>v{{ post.version }}</strong>.
+            Review carefully for merge conflicts.
+          </span>
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  {# ── 2. Change summary ────────────────────────────────────────────────── #}
+  {% if revision.summary %}
+    <section class="rev-summary" aria-label="Revision summary">
+      <div class="rev-summary-label">Revision summary</div>
+      <p class="rev-summary-body">{{ revision.summary }}</p>
+    </section>
+  {% endif %}
+
+  {# ── 3. Diff view ─────────────────────────────────────────────────────── #}
+  <div class="diff-view" id="diff-view" data-view="unified"
+       aria-label="Content diff for revision #{{ revision.id }}">
+
+    <div class="diff-toolbar">
+      <div class="diff-toolbar-left">
+        <span class="diff-filename">content.md</span>
+        {% if additions or deletions %}
+          <span class="diff-stat-add" title="{{ additions }} addition{{ 's' if additions != 1 }}">+{{ additions }}</span>
+          <span class="diff-stat-del" title="{{ deletions }} deletion{{ 's' if deletions != 1 }}">&minus;{{ deletions }}</span>
+        {% endif %}
+      </div>
+      <div class="diff-toolbar-right">
+        <div class="diff-view-toggle" role="group" aria-label="Diff view mode">
+          <button class="diff-view-btn is-active"
+                  data-mode="unified"
+                  id="btn-unified"
+                  type="button">Unified</button>
+          <button class="diff-view-btn"
+                  data-mode="split"
+                  id="btn-split"
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Split view — coming soon">Split</button>
+        </div>
+      </div>
+    </div>
+
+    <table class="diff-table" aria-label="Line-by-line diff">
+      <tbody>
+        {% if diff_lines %}
+          {% for line in diff_lines %}
+            {% if line.is_hunk %}
+              <tr class="diff-hunk-row">
+                <td class="diff-gutter diff-gutter--old" aria-hidden="true"></td>
+                <td class="diff-gutter diff-gutter--new" aria-hidden="true"></td>
+                <td class="diff-gutter diff-gutter--sign" aria-hidden="true"></td>
+                <td class="diff-hunk-cell">
+                  <span class="diff-hunk-expand" aria-hidden="true">&#8943;</span>
+                  <span class="diff-hunk-info">{{ line.content }}</span>
+                </td>
+              </tr>
+            {% else %}
+              <tr class="diff-row diff-row--{{ line.kind }}">
+                <td class="diff-gutter diff-gutter--old" aria-hidden="true">
+                  {%- if line.old_num is not none %}{{ line.old_num }}{% endif -%}
+                </td>
+                <td class="diff-gutter diff-gutter--new" aria-hidden="true">
+                  {%- if line.new_num is not none %}{{ line.new_num }}{% endif -%}
+                </td>
+                <td class="diff-gutter diff-gutter--sign" aria-hidden="true">{{ line.sign }}</td>
+                <td class="diff-code">{{ line.content }}</td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="4" class="diff-empty">
+              No diff data available for this revision.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  {# ── 4a. Review actions (pending revisions) ───────────────────────────── #}
+  {% if can_review and revision.status.value == 'pending' %}
+    <section class="rev-actions" aria-label="Review decision">
+      <header class="rev-actions-hd">
+        <span class="rev-actions-title">Review this revision</span>
+        <span class="rev-actions-sub">Your decision is final and the contributor will be notified.</span>
+      </header>
+
+      <div class="rev-actions-body">
+
+        {# Accept panel #}
+        <div class="rev-action-panel rev-action-panel--accept">
+          <div class="rev-action-panel-header">
+            <span class="rev-action-panel-title">Accept</span>
+            <span class="rev-action-panel-hint">
+              Applies the diff. Post version increments.
+              Contributor is credited in revision history.
+            </span>
+          </div>
+          <form method="POST"
+                action="{{ url_for('revisions.accept_revision', revision_id=revision.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="btn btn-primary rev-action-btn" type="submit">
+              Accept revision
+            </button>
+          </form>
+        </div>
+
+        {# Reject panel #}
+        <div class="rev-action-panel rev-action-panel--reject">
+          <div class="rev-action-panel-header">
+            <span class="rev-action-panel-title">Reject</span>
+            <span class="rev-action-panel-hint">
+              Closes the revision without changes.
+              Leave a note to explain the decision.
+            </span>
+          </div>
+          <form method="POST"
+                action="{{ url_for('revisions.reject_revision', revision_id=revision.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <textarea
+              name="rejection_note"
+              class="rev-rejection-note"
+              placeholder="Awaiting review note (optional)…"
+              rows="3"
+              aria-label="Rejection note"
+            ></textarea>
+            <button class="btn btn-danger rev-action-btn" type="submit">
+              Reject revision
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  {# ── 4b. Decision record (non-pending) ────────────────────────────────── #}
+  {% elif revision.status.value != 'pending' %}
+    <div class="rev-decision rev-decision--{{ revision.status.value }}" role="status">
+      <div class="rev-decision-icon" aria-hidden="true">
+        {% if revision.status.value == 'accepted' %}&#10003;{% else %}&#10005;{% endif %}
+      </div>
+      <div class="rev-decision-body">
+        <span class="rev-decision-text">
+          This revision was
+          <span class="status-pill status-pill--{{ revision.status.value }}">{{ revision.status.value }}</span>
+          {% if revision.reviewed_at %}
+            on {{ revision.reviewed_at.strftime('%B %d, %Y') }}
+          {% endif %}
+          {% if revision.reviewed_by %}
+            by <strong>{{ revision.reviewed_by.username }}</strong>
+          {% endif %}
+        </span>
+        {% if revision.rejection_note %}
+          <p class="rev-decision-note">{{ revision.rejection_note }}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var view = document.getElementById('diff-view');
+  var btnU = document.getElementById('btn-unified');
+  var btnS = document.getElementById('btn-split');
+  if (!view || !btnU) return;
+
+  // Unified/Split toggle — split is future-ready; unified is the only live mode.
+  btnU.addEventListener('click', function () {
+    view.setAttribute('data-view', 'unified');
+    btnU.classList.add('is-active');
+    if (btnS) btnS.classList.remove('is-active');
+  });
+  // btnS is disabled, but wired for when split view is implemented.
+}());
+</script>
+{% endblock %}
+

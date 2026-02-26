@@ -11,22 +11,37 @@
 {% endblock %}
 
 {% block content %}
-<article class="post-detail" itemscope itemtype="https://schema.org/BlogPosting">
+<div class="container post-detail" itemscope itemtype="https://schema.org/BlogPosting">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('posts.list_posts') }}">&larr; All posts</a>
+    {% if post.tags %}
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('posts.list_posts', tag=post.tags[0].slug) }}">#{{ post.tags[0].slug }}</a>
+    {% endif %}
+  </nav>
+
   {# ── Header ──────────────────────────────────────────────────────────── #}
   <header class="post-header">
     <h1 class="post-title" itemprop="headline">{{ post.title }}</h1>
     <div class="post-byline">
       <span itemprop="author">{{ post.author.display_name or post.author.username }}</span>
       {% if post.published_at %}
-        &middot;
+        <span class="post-meta-sep">&middot;</span>
         <time itemprop="datePublished" datetime="{{ post.published_at.isoformat() }}">
           {{ post.published_at.strftime('%B %d, %Y') }}
         </time>
       {% endif %}
-      &middot;
+      <span class="post-meta-sep">&middot;</span>
       <span>{{ post.reading_time_minutes }} min read</span>
+      {% if post.view_count %}
+        <span class="post-meta-sep">&middot;</span>
+        <span>{{ post.view_count }} views</span>
+      {% endif %}
       {% if post.version > 1 %}
-        &middot; <span class="post-version">v{{ post.version }}</span>
+        <span class="post-meta-sep">&middot;</span>
+        <span class="version-badge">v{{ post.version }}</span>
       {% endif %}
     </div>
     {% if post.tags %}
@@ -39,22 +54,43 @@
   </header>
 
   {# ── Body ────────────────────────────────────────────────────────────── #}
-  <div class="post-body prose" itemprop="articleBody">
+  <div class="prose" itemprop="articleBody">
     {{ post_html | safe }}
   </div>
 
-  {# ── Footer ──────────────────────────────────────────────────────────── #}
+  {# ── Post footer ─────────────────────────────────────────────────────── #}
   <footer class="post-footer">
-    <div class="post-actions">
+    <div class="review-buttons">
       {% if current_user and (current_user.id == post.author_id or current_user.role.value in ['admin','editor']) %}
         <a class="btn btn-sm" href="#">Edit post</a>
       {% endif %}
     </div>
-  </footer>
-</article>
 
-{# ── Comments placeholder ────────────────────────────────────────────────── #}
-<section class="comments" id="comments">
+    {# Revision CTA — shown to authenticated non-authors #}
+    {% if current_user and current_user.id != post.author_id %}
+      <div class="revision-cta">
+        <div class="revision-cta-title">Spot something that could be better?</div>
+        <p class="revision-cta-body">
+          OpenBlog is open to community improvement. Suggest a revision and,
+          if accepted, it becomes part of this post's history.
+        </p>
+        <a class="btn btn-sm btn-ghost" href="#">Suggest a revision</a>
+      </div>
+    {% elif not current_user %}
+      <div class="revision-cta">
+        <div class="revision-cta-title">Think this could be improved?</div>
+        <p class="revision-cta-body">
+          <a href="{{ url_for('auth.login') }}">Sign in</a> to suggest a revision.
+          Accepted contributions are credited to you.
+        </p>
+      </div>
+    {% endif %}
+  </footer>
+
+</div>
+
+{# ── Comments ─────────────────────────────────────────────────────────────── #}
+<section class="comments container" id="comments">
   <h2 class="comments-title">Comments</h2>
   {% if post.comments %}
     {% for comment in post.comments %}
@@ -75,7 +111,10 @@
       </div>
     {% endfor %}
   {% else %}
-    <p class="empty-state">No comments yet. Be the first!</p>
+    <div class="empty-state">
+      <span class="empty-state-icon">&#x1F4AC;</span>
+      <p>No comments yet. Be the first!</p>
+    </div>
   {% endif %}
 </section>
 {% endblock %}

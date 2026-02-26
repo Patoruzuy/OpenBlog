@@ -12,6 +12,7 @@ whenever ``Post.markdown_body`` is updated.
 
 from __future__ import annotations
 
+import math
 import re
 
 import bleach
@@ -62,7 +63,6 @@ def render_markdown(text: str) -> str:
 def reading_time_minutes(text: str) -> int:
     """Return estimated reading time in minutes (minimum 1)."""
     word_count = len(re.findall(r"\S+", text))
-    import math
     return max(1, math.ceil(word_count / _WPM))
 
 
@@ -74,7 +74,9 @@ def get_rendered_html(post_id: int, markdown_body: str) -> str:
     if cached:
         return cached
     html = render_markdown(markdown_body)
-    redis.set(key, html)
+    # 24-hour TTL as a backstop in case invalidate_html_cache() is never
+    # called (e.g. a crash between delete and cache invalidation).
+    redis.set(key, html, ex=86400)
     return html
 
 

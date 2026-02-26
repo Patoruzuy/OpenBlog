@@ -3,14 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="OpenBlog — where developers share knowledge" />
+    <meta name="description" content="OpenBlog — practical engineering notes, open to improvement." />
     <title>{% block title %}{{ title | default('OpenBlog') }}{% endblock %} — OpenBlog</title>
 
-    <!-- Fonts: Newsreader (body) + JetBrains Mono (code / logo) -->
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
+
+    <!-- Fonts: Inter (UI) + Newsreader (body) + JetBrains Mono (code / logo) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
@@ -22,12 +25,23 @@
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
     <header class="site-header">
       <div class="container header-inner">
-        <a href="/" class="site-logo">OpenBlog</a>
+        <a href="/" class="site-logo" aria-label="OpenBlog home">
+          <span class="logo-mark" aria-hidden="true">ob<span class="logo-slash">/</span></span>
+          <span class="logo-text">OpenBlog</span>
+        </a>
         <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/">Home</a>
-          <a href="{{ url_for('tags.tag_index') }}">Tags</a>
+          <a href="/"
+             {% if request.endpoint == 'index.index' %}aria-current="page"{% endif %}>Home</a>
+          <a href="{{ url_for('tags.tag_index') }}"
+             {% if request.endpoint and request.endpoint.startswith('tags.') %}aria-current="page"{% endif %}>Topics</a>
+          <a href="{{ url_for('posts.list_posts') }}"
+             {% if request.endpoint and request.endpoint.startswith('posts.') %}aria-current="page"{% endif %}>Writing</a>
+          <a href="{{ url_for('revisions.revision_list') }}"
+             {% if request.endpoint and request.endpoint.startswith('revisions.') %}aria-current="page"{% endif %}>Revisions</a>
           {% if current_user %}
-            <a href="{{ url_for('bookmarks.bookmark_list') }}">Bookmarks</a>
+            {% if current_user.role.value in ['contributor', 'editor', 'admin'] %}
+              <a href="#">Write</a>
+            {% endif %}
             <a href="{{ url_for('notifications.notification_inbox') }}">
               Notifications
               {% if unread_notifications > 0 %}
@@ -42,23 +56,32 @@
       </div>
     </header>
 
+    <!-- ── Flash messages ─────────────────────────────────────────────────── -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container flash-messages">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
     <!-- ── Main ───────────────────────────────────────────────────────────── -->
     <main class="site-main">
-      <div class="container">
-        {% block content %}
-        <section class="hero">
-          <h1 class="hero-title">Where developers share knowledge.</h1>
-          <p class="hero-sub">Write. Collaborate. Grow.</p>
-        </section>
-        {% endblock %}
-      </div>
+      {% block content %}{% endblock %}
     </main>
 
     <!-- ── Footer ─────────────────────────────────────────────────────────── -->
     <footer class="site-footer">
       <div class="container footer-inner">
-        <span>Built with <a href="/">OpenBlog</a></span>
-        <span>Open source. Community driven.</span>
+        <span>
+          <a href="/" class="site-logo site-logo--dim" aria-label="OpenBlog home">
+            <span class="logo-mark" aria-hidden="true">ob<span class="logo-slash">/</span></span>
+            <span class="logo-text">OpenBlog</span>
+          </a>
+        </span>
+        <span class="footer-tagline">Engineering notes, open to improvement.</span>
       </div>
     </footer>
 

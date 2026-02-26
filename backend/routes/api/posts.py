@@ -30,6 +30,7 @@ from backend.services.post_service import PostError, PostService
 from backend.services.vote_service import VoteService
 from backend.utils.auth import api_require_auth, api_require_role, get_current_user
 from backend.utils.markdown import get_rendered_html
+from backend.schemas import CreatePostSchema, PublishPostSchema, UpdatePostSchema, load_json
 
 api_posts_bp = Blueprint("api_posts", __name__, url_prefix="/api/posts")
 csrf.exempt(api_posts_bp)
@@ -141,21 +142,20 @@ def create_post():
     seo_description str  optional
     og_image_url    str  optional
     """
-    data = request.get_json(silent=True) or {}
-    title = (data.get("title") or "").strip()
-    if not title:
-        return jsonify({"error": "title is required."}), 400
+    data, err = load_json(CreatePostSchema())
+    if err:
+        return err
 
     user = get_current_user()
     try:
         post = PostService.create(
             author_id=user.id,
-            title=title,
-            markdown_body=data.get("markdown_body") or "",
-            tags=data.get("tags"),
-            seo_title=data.get("seo_title"),
-            seo_description=data.get("seo_description"),
-            og_image_url=data.get("og_image_url"),
+            title=data["title"].strip(),
+            markdown_body=data["markdown_body"],
+            tags=data["tags"],
+            seo_title=data["seo_title"],
+            seo_description=data["seo_description"],
+            og_image_url=data["og_image_url"],
         )
     except PostError as exc:
         return jsonify({"error": str(exc)}), exc.status_code
@@ -210,16 +210,18 @@ def update_post(slug: str):
     if not _can_edit(post, user):
         return jsonify({"error": "Insufficient permissions."}), 403
 
-    data = request.get_json(silent=True) or {}
+    data, err = load_json(UpdatePostSchema())
+    if err:
+        return err
     try:
         post = PostService.update(
             post,
-            title=data.get("title"),
-            markdown_body=data.get("markdown_body"),
-            tags=data.get("tags"),
-            seo_title=data.get("seo_title"),
-            seo_description=data.get("seo_description"),
-            og_image_url=data.get("og_image_url"),
+            title=data["title"],
+            markdown_body=data["markdown_body"],
+            tags=data["tags"],
+            seo_title=data["seo_title"],
+            seo_description=data["seo_description"],
+            og_image_url=data["og_image_url"],
         )
     except PostError as exc:
         return jsonify({"error": str(exc)}), exc.status_code
@@ -263,12 +265,14 @@ def publish_post(slug: str):
     if post is None:
         return jsonify({"error": "Post not found."}), 404
 
-    data = request.get_json(silent=True) or {}
+    data, err = load_json(PublishPostSchema())
+    if err:
+        return err
     publish_at: datetime | None = None
     if raw := data.get("publish_at"):
         try:
             publish_at = datetime.fromisoformat(raw)
-        except ValueError:
+        except (ValueError, TypeError):
             return jsonify({"error": "publish_at must be an ISO-8601 datetime string."}), 400
 
     try:

@@ -17,74 +17,12 @@ client backed by the live in-memory SQLite database.
 
 from __future__ import annotations
 
+import fakeredis
 import pytest
 from sqlalchemy import text as sa_text
 
 from backend.app import create_app
 from backend.extensions import db as _db
-
-# ── Minimal Redis stub ────────────────────────────────────────────────────────
-
-
-class _FakeRedis:
-    """Dict-backed Redis stub.  Supports the methods used by AuthService."""
-
-    def __init__(self) -> None:
-        self._store: dict[str, str] = {}
-        self._lists: dict[str, list[str]] = {}
-
-    def setex(self, key: str, ttl: int, value: str) -> None:  # noqa: ARG002
-        self._store[key] = value
-
-    def set(self, key: str, value: str) -> None:
-        self._store[key] = value
-
-    def get(self, key: str) -> str | None:
-        return self._store.get(key)
-
-    def exists(self, *keys: str) -> int:
-        return sum(1 for k in keys if k in self._store)
-
-    def delete(self, *keys: str) -> int:
-        count = 0
-        for k in keys:
-            if k in self._store:
-                self._store.pop(k)
-                count += 1
-            if k in self._lists:
-                self._lists.pop(k)
-                count += 1
-        return count
-
-    def ping(self) -> bool:
-        return True
-
-    def from_url(self, *_args, **_kwargs) -> _FakeRedis:  # noqa: ANN001
-        return self
-
-    # ── List operations (used by analytics queue) ────────────────────────
-
-    def rpush(self, key: str, *values: str) -> int:
-        if key not in self._lists:
-            self._lists[key] = []
-        for v in values:
-            self._lists[key].append(v)
-        return len(self._lists[key])
-
-    def lpush(self, key: str, *values: str) -> int:
-        if key not in self._lists:
-            self._lists[key] = []
-        for v in reversed(values):
-            self._lists[key].insert(0, v)
-        return len(self._lists[key])
-
-    def lrange(self, key: str, start: int, end: int) -> list[str]:
-        lst = self._lists.get(key, [])
-        return lst[start:] if end == -1 else lst[start : end + 1]
-
-    def llen(self, key: str) -> int:
-        return len(self._lists.get(key, []))
-
 
 # ── Session-scoped app ────────────────────────────────────────────────────────
 
@@ -108,14 +46,14 @@ def client(app):
 def db_session(app):
     """Provide a live SQLite session with all tables created.
 
-    Replaces ``app.extensions["redis"]`` with _FakeRedis for the duration of
+    Replaces ``app.extensions["redis"]`` with ``fakeredis.FakeRedis`` for the duration of
     the test so that AuthService calls (setex/exists/delete) succeed without
     a running Redis server.
 
     Guarantees a clean schema for each test: creates all tables before yield,
     removes the session and drops all tables after.
     """
-    fake_redis = _FakeRedis()
+    fake_redis = fakeredis.FakeRedis(decode_responses=True)
     original_redis = app.extensions.get("redis")
     app.extensions["redis"] = fake_redis
 

@@ -19,6 +19,7 @@ from backend.models.post import PostStatus
 from backend.models.user import User
 from backend.services.user_service import UserService, UserServiceError
 from backend.utils.auth import api_require_auth, get_current_user
+from backend.schemas import UpdateProfileSchema, load_json
 
 api_users_bp = Blueprint("api_users", __name__, url_prefix="/api/users")
 csrf.exempt(api_users_bp)
@@ -110,13 +111,21 @@ def update_profile(username: str):
     if current.id != user.id:
         return jsonify({"error": "You may only edit your own profile."}), 403
 
-    data = request.get_json(silent=True) or {}
-    editable = {
+    raw = request.get_json(silent=True) or {}
+    data, err = load_json(UpdateProfileSchema(), raw)
+    if err:
+        return err
+    # Only forward keys the caller actually sent; absent fields must not
+    # overwrite existing values (partial update semantics).
+    _profile_fields = {
         "display_name", "bio", "avatar_url",
         "website_url", "github_url", "tech_stack", "location",
     }
-    kwargs = {k: v for k, v in data.items() if k in editable}
-    updated = UserService.update_profile(user, **kwargs)
+    kwargs = {k: data[k] for k in _profile_fields if k in raw}
+    try:
+        updated = UserService.update_profile(user, **kwargs)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
     return jsonify(_user_dict(updated, viewer_id=current.id))
 
 

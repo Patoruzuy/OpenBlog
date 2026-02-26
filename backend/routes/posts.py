@@ -11,6 +11,7 @@ from __future__ import annotations
 from flask import Blueprint, abort, render_template, request
 
 from backend.models.post import PostStatus
+from backend.routes.tags import _TAG_DESCRIPTIONS
 from backend.services.analytics_service import AnalyticsService
 from backend.services.post_service import PostService
 from backend.utils.auth import get_current_user
@@ -38,7 +39,9 @@ def list_posts():
         page=page,
         pages=pages,
         total=total,
+        per_page=_PER_PAGE,
         tag_slug=tag_slug,
+        tag_description=_TAG_DESCRIPTIONS.get(tag_slug) if tag_slug else None,
     )
 
 

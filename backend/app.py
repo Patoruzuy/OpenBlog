@@ -41,6 +41,7 @@ from backend.routes.health import health_bp
 from backend.routes.index import index_bp
 from backend.routes.notifications import ssr_notifications_bp
 from backend.routes.posts import ssr_posts_bp
+from backend.routes.revisions import ssr_revisions_bp
 from backend.routes.search import ssr_search_bp
 from backend.routes.tags import ssr_tags_bp
 from backend.routes.users import ssr_users_bp
@@ -102,6 +103,7 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(api_auth_bp)
     app.register_blueprint(ssr_posts_bp)
     app.register_blueprint(api_posts_bp)
+    app.register_blueprint(ssr_revisions_bp)
     app.register_blueprint(api_comments_bp)
     app.register_blueprint(ssr_search_bp)
     app.register_blueprint(api_search_bp)
@@ -143,9 +145,17 @@ def create_app(config_name: str | None = None) -> Flask:
         unread = 0
         if user is not None:
             try:
-                from backend.services.notification_service import NotificationService
+                redis = app.extensions.get("redis")
+                cache_key = f"notif_unread:{user.id}"
+                cached = redis.get(cache_key) if redis is not None else None
+                if cached is not None:
+                    unread = int(cached)
+                else:
+                    from backend.services.notification_service import NotificationService
 
-                unread = NotificationService.unread_count(user.id)
+                    unread = NotificationService.unread_count(user.id)
+                    if redis is not None:
+                        redis.set(cache_key, unread, ex=30)
             except Exception:
                 unread = 0
         return {"current_user": user, "unread_notifications": unread}

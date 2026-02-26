@@ -14,11 +14,12 @@ GET  /api/auth/me         return the current user (requires Bearer token)
 
 from __future__ import annotations
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from backend.extensions import csrf, limiter
 from backend.services.auth_service import AuthError, AuthService
 from backend.utils.auth import api_require_auth, get_current_user
+from backend.schemas import LoginSchema, LogoutSchema, RefreshSchema, RegisterSchema, load_json
 
 api_auth_bp = Blueprint("api_auth", __name__, url_prefix="/api/auth")
 
@@ -70,14 +71,13 @@ def register():
     password     str  required (min 8 chars)
     display_name str  optional
     """
-    data = request.get_json(silent=True) or {}
-    email = (data.get("email") or "").strip()
-    username = (data.get("username") or "").strip()
-    password = data.get("password") or ""
-    display_name = (data.get("display_name") or "").strip() or None
-
-    if not email or not username or not password:
-        return jsonify({"error": "email, username, and password are required."}), 400
+    data, err = load_json(RegisterSchema())
+    if err:
+        return err
+    email = data["email"].strip()
+    username = data["username"].strip()
+    password = data["password"]
+    display_name = (data["display_name"] or "").strip() or None
 
     try:
         user = AuthService.register(email, username, password, display_name)
@@ -101,12 +101,11 @@ def login():
     email    str  required
     password str  required
     """
-    data = request.get_json(silent=True) or {}
-    email = (data.get("email") or "").strip()
-    password = data.get("password") or ""
-
-    if not email or not password:
-        return jsonify({"error": "email and password are required."}), 400
+    data, err = load_json(LoginSchema())
+    if err:
+        return err
+    email = data["email"].strip()
+    password = data["password"]
 
     try:
         user, access_token, refresh_token = AuthService.login(email, password)
@@ -120,6 +119,7 @@ def login():
 
 
 @api_auth_bp.post("/refresh")
+@limiter.limit("5 per minute")
 def refresh():
     """Rotate the refresh token and return a new token pair.
 
@@ -130,10 +130,10 @@ def refresh():
     -------------------
     refresh_token  str  required
     """
-    data = request.get_json(silent=True) or {}
-    token = (data.get("refresh_token") or "").strip()
-    if not token:
-        return jsonify({"error": "refresh_token is required."}), 400
+    data, err = load_json(RefreshSchema())
+    if err:
+        return err
+    token = data["refresh_token"].strip()
 
     try:
         access_token, refresh_token = AuthService.rotate_refresh_token(token)
@@ -163,10 +163,10 @@ def logout():
     -------------------
     refresh_token  str  required
     """
-    data = request.get_json(silent=True) or {}
-    token = (data.get("refresh_token") or "").strip()
-    if not token:
-        return jsonify({"error": "refresh_token is required."}), 400
+    data, err = load_json(LogoutSchema())
+    if err:
+        return err
+    token = data["refresh_token"].strip()
 
     try:
         payload = AuthService.verify_refresh_token(token)

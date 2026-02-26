@@ -26,7 +26,8 @@ class BaseConfig:
     SECRET_KEY: str | None = os.environ.get("SECRET_KEY")
     SESSION_COOKIE_HTTPONLY: bool = True
     SESSION_COOKIE_SAMESITE: str = "Lax"
-    SESSION_COOKIE_SECURE: bool = False
+    # Default True — only dev/testing configs override this to False.
+    SESSION_COOKIE_SECURE: bool = True
 
     # ── Database ───────────────────────────────────────────────────────────
     DATABASE_URL: str | None = os.environ.get("DATABASE_URL")
@@ -65,6 +66,18 @@ class BaseConfig:
     # and SQLAlchemy event hooks on ephemeral in-memory test databases.
     METRICS_ENABLED: bool = True
 
+    # ── Celery beat schedule ───────────────────────────────────────────────
+    CELERYBEAT_SCHEDULE: ClassVar[dict] = {
+        "publish-scheduled-posts": {
+            "task": "tasks.publish_scheduled_posts",
+            "schedule": 60.0,  # every 60 seconds
+        },
+        "flush-analytics-queue": {
+            "task": "tasks.flush_analytics_queue",
+            "schedule": 30.0,  # every 30 seconds
+        },
+    }
+
     # Required config keys validated on startup (skipped for TestingConfig)
     _REQUIRED: ClassVar[list[str]] = ["SECRET_KEY", "DATABASE_URL", "REDIS_URL"]
 
@@ -89,7 +102,7 @@ class BaseConfig:
 
 class DevelopmentConfig(BaseConfig):
     DEBUG: bool = True
-    SESSION_COOKIE_SECURE: bool = False
+    SESSION_COOKIE_SECURE: bool = False  # allow http in local dev
 
 
 class StagingConfig(BaseConfig):
@@ -109,6 +122,7 @@ class TestingConfig(BaseConfig):
 
     TESTING: bool = True
     DEBUG: bool = True
+    SESSION_COOKIE_SECURE: bool = False  # allow http in test runner
     WTF_CSRF_ENABLED: bool = False
     METRICS_ENABLED: bool = False
 

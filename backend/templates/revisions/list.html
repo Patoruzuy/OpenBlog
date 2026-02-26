@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "macros/cards.html" import revision_row %}
+{% block title %}Revisions{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-block: var(--space-xl)">
+
+  <header class="page-header">
+    <h1 class="page-title">Revision queue</h1>
+    <p class="page-subtitle">
+      Community-proposed improvements to published posts.
+      {{ total }} revision{{ 's' if total != 1 }}.
+    </p>
+  </header>
+
+  {# ── Status filter tabs ───────────────────────────────────────────────── #}
+  <nav class="tab-bar" aria-label="Revision filters">
+    <a class="tab-link {% if status_filter == 'pending' %}active{% endif %}"
+       href="{{ url_for('revisions.revision_list', status='pending') }}">Pending</a>
+    <a class="tab-link {% if status_filter == 'accepted' %}active{% endif %}"
+       href="{{ url_for('revisions.revision_list', status='accepted') }}">Accepted</a>
+    <a class="tab-link {% if status_filter == 'rejected' %}active{% endif %}"
+       href="{{ url_for('revisions.revision_list', status='rejected') }}">Rejected</a>
+    <a class="tab-link {% if status_filter == 'all' %}active{% endif %}"
+       href="{{ url_for('revisions.revision_list', status='all') }}">All</a>
+  </nav>
+
+  {# ── Revision list ────────────────────────────────────────────────────── #}
+  {% if revisions %}
+    <div class="revision-list">
+      {% for rev in revisions %}
+        {{ revision_row(rev) }}
+      {% endfor %}
+    </div>
+
+    {# ── Pagination ───────────────────────────────────────────────────── #}
+    {% if pages > 1 %}
+      <nav class="pagination" aria-label="Revision pagination">
+        {% if page > 1 %}
+          <a class="page-link"
+             href="{{ url_for('revisions.revision_list', status=status_filter, page=page-1) }}">&larr; Prev</a>
+        {% endif %}
+        <span class="page-info">Page {{ page }} of {{ pages }}</span>
+        {% if page < pages %}
+          <a class="page-link"
+             href="{{ url_for('revisions.revision_list', status=status_filter, page=page+1) }}">Next &rarr;</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <span class="empty-state-icon">&#x2713;</span>
+      <p>No {{ status_filter }} revisions.</p>
+      {% if status_filter == 'pending' %}
+        <p>The queue is clear — all caught up.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

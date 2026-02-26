@@ -20,6 +20,7 @@ from sqlalchemy import func, select
 from backend.extensions import db
 from backend.models.post import Post, PostStatus
 from backend.models.tag import Tag
+from backend.models.user import User
 from backend.utils import metrics
 from backend.utils.markdown import invalidate_html_cache, reading_time_minutes
 
@@ -48,13 +49,22 @@ def _slugify(text: str) -> str:
 
 
 def _unique_slug(base: str) -> str:
-    """Return *base* suffixed with -2, -3 … until it is unique in the DB."""
-    slug = base
+    """Return *base* suffixed with -2, -3 … until it is unique in the DB.
+
+    Uses a single prefix-query to fetch all existing slugs matching *base*
+    rather than one round-trip per counter value.
+    """
+    existing = set(
+        db.session.scalars(
+            select(Post.slug).where(Post.slug.like(f"{base}%"))
+        ).all()
+    )
+    if base not in existing:
+        return base
     counter = 2
-    while db.session.scalar(select(func.count()).where(Post.slug == slug)):
-        slug = f"{base}-{counter}"
+    while f"{base}-{counter}" in existing:
         counter += 1
-    return slug
+    return f"{base}-{counter}"
 
 
 # ── Tag helper ─────────────────────────────────────────────────────────────────
@@ -244,11 +254,16 @@ class PostService:
         """Return (posts, total_count) for the requested page of published posts.
 
         When *tag_slug* is supplied only posts tagged with that tag are returned.
-        Results are ordered newest-published-first.
+        Results are ordered newest-published-first.  Shadow-banned authors'
+        posts are always excluded.
         """
         base = (
             select(Post)
-            .where(Post.status == PostStatus.published)
+            .join(User, User.id == Post.author_id)
+            .where(
+                Post.status == PostStatus.published,
+                User.is_shadow_banned.is_(False),
+            )
             .order_by(Post.published_at.desc())
         )
         if tag_slug:
@@ -284,3 +299,52 @@ class PostService:
             ).all()
         )
         return posts, total
+
+    @staticmethod
+    def get_featured() -> Post | None:
+        """Return the featured post, or the most-recently published one as fallback."""
+        featured = db.session.scalar(
+            select(Post)
+            .join(User, User.id == Post.author_id)
+            .where(
+                Post.status == PostStatus.published,
+                Post.is_featured.is_(True),
+                User.is_shadow_banned.is_(False),
+            )
+            .order_by(Post.published_at.desc())
+            .limit(1)
+        )
+        if featured:
+            return featured
+        # Fallback: latest published post.
+        return db.session.scalar(
+            select(Post)
+            .join(User, User.id == Post.author_id)
+            .where(
+                Post.status == PostStatus.published,
+                User.is_shadow_banned.is_(False),
+            )
+            .order_by(Post.published_at.desc())
+            .limit(1)
+        )
+
+    @staticmethod
+    def list_recently_updated(limit: int = 4) -> list[Post]:
+        """Return up to *limit* published posts that have been revised (version > 1).
+
+        Results are ordered by ``updated_at`` descending so the most-recently
+        improved article appears first.
+        """
+        return list(
+            db.session.scalars(
+                select(Post)
+                .join(User, User.id == Post.author_id)
+                .where(
+                    Post.status == PostStatus.published,
+                    Post.version > 1,
+                    User.is_shadow_banned.is_(False),
+                )
+                .order_by(Post.updated_at.desc())
+                .limit(limit)
+            ).all()
+        )

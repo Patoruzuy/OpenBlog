@@ -1,26 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Tags{% endblock %}
+{% block title %}Topics{% endblock %}
 
 {% block content %}
-<section class="tags-page">
+<div class="container tags-page">
 
   <header class="page-header">
-    <h1 class="page-title">Tags</h1>
+    <h1 class="page-title">Topics</h1>
     <p class="page-subtitle">
-      {{ tags | length }} tag{{ 's' if tags | length != 1 }} — browse by topic
+      {{ tags | length }} topic{{ 's' if tags | length != 1 }} — browse by subject area
     </p>
   </header>
 
   {% if tags %}
-    <div class="tags-grid">
+    <div class="tag-grid">
       {% for item in tags %}
         <a
           class="tag-card"
           href="{{ url_for('posts.list_posts', tag=item.tag.slug) }}"
-          {% if item.tag.color %}style="--tag-color: {{ item.tag.color }}"{% endif %}
         >
           <span class="tag-card__name">#{{ item.tag.slug }}</span>
-          {% if item.tag.description %}
+          {% if item.description %}
+            <p class="tag-card__desc">{{ item.description }}</p>
+          {% elif item.tag.description %}
             <p class="tag-card__desc">{{ item.tag.description }}</p>
           {% endif %}
           <span class="tag-card__count">
@@ -30,8 +31,12 @@
       {% endfor %}
     </div>
   {% else %}
-    <p class="empty-state">No tags yet. Start writing posts to create tags.</p>
+    <div class="empty-state">
+      <span class="empty-state-icon">#</span>
+      <p>No topics yet.</p>
+      <p>Start writing posts and add tags to create topics.</p>
+    </div>
   {% endif %}
 
-</section>
+</div>
 {% endblock %}

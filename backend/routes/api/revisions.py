@@ -26,6 +26,7 @@ from backend.models.revision import RevisionStatus
 from backend.services.post_service import PostService
 from backend.services.revision_service import RevisionError, RevisionService
 from backend.utils.auth import api_require_auth, api_require_role, get_current_user
+from backend.schemas import RejectRevisionSchema, SubmitRevisionSchema, load_json
 
 api_revisions_bp = Blueprint("api_revisions", __name__, url_prefix="/api")
 csrf.exempt(api_revisions_bp)
@@ -86,12 +87,11 @@ def submit_revision(slug: str):
     if post is None:
         return jsonify({"error": "Post not found."}), 404
 
-    body = request.get_json(silent=True) or {}
-    proposed_markdown = body.get("proposed_markdown", "")
-    summary = body.get("summary", "")
-
-    if not proposed_markdown:
-        return jsonify({"error": "proposed_markdown is required."}), 400
+    data, err = load_json(SubmitRevisionSchema())
+    if err:
+        return err
+    proposed_markdown = data["proposed_markdown"]
+    summary = data["summary"]
 
     user = get_current_user()
     try:
@@ -213,8 +213,10 @@ def accept_revision(revision_id: int):
 def reject_revision(revision_id: int):
     """Reject a pending revision with an optional note (editor+ only)."""
     user = get_current_user()
-    body = request.get_json(silent=True) or {}
-    note = body.get("note", "")
+    data, err = load_json(RejectRevisionSchema())
+    if err:
+        return err
+    note = data["note"]
 
     try:
         revision = RevisionService.reject(revision_id, reviewer_id=user.id, note=note)

@@ -9,7 +9,7 @@ Rules
 
 from __future__ import annotations
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 
 from backend.extensions import db
@@ -71,11 +71,15 @@ class VoteService:
             db.session.rollback()
             raise VoteError("Already voted.", 409)
 
-        # Reputation fan-out: +1 to post author only (comment votes don't affect rep)
+        # Reputation fan-out: +1 to post author only (comment votes don't affect rep).
+        # Use a SQL-level atomic increment to avoid a read-modify-write race condition
+        # when two upvotes arrive concurrently.
         if target_type == "post":
-            author = db.session.get(User, author_id)
-            if author is not None:
-                author.reputation_score = (author.reputation_score or 0) + 1
+            db.session.execute(
+                update(User)
+                .where(User.id == author_id)
+                .values(reputation_score=User.reputation_score + 1)
+            )
 
         db.session.commit()
         return vote

@@ -128,62 +128,75 @@ class AnalyticsService:
             # Best-effort — analytics loss is preferable to a 500 error.
             pass
 
+    #: Maximum events processed per flush batch to bound memory usage.
+    _FLUSH_BATCH_SIZE: int = 500
+
     @staticmethod
     def flush_queued_events() -> int:
-        """Drain the Redis event queue and bulk-insert to the DB.
+        """Drain the Redis event queue and bulk-insert to the DB in batches.
 
-        Returns the number of events written.  Designed to be called from the
-        Celery task ``flush_analytics_queue``.
+        Returns the total number of events written.  Designed to be called
+        from the Celery task ``flush_analytics_queue``.
 
-        The operation is *at-most-once*: events are deleted from Redis before
-        the DB commit so a crash between deletion and commit loses the batch
+        The operation is *at-most-once* per batch: each batch is removed from
+        Redis before being committed to the DB so a crash loses that batch
         rather than double-counting.  For analytics, occasional loss is
         acceptable; double-counting is worse.
+
+        Batching bounds memory usage: at most ``_FLUSH_BATCH_SIZE`` records
+        are held in Python memory at once.
         """
         from flask import current_app
 
         redis = current_app.extensions["redis"]
+        total_written = 0
 
-        # Read the full queue in one shot.
-        raw_items: list[str] = redis.lrange(_QUEUE_KEY, 0, -1)
-        if not raw_items:
-            return 0
-
-        # Clear the queue atomically before committing — see docstring note.
-        redis.delete(_QUEUE_KEY)
-
-        events: list[AnalyticsEvent] = []
-        for raw in raw_items:
-            try:
-                data = json.loads(raw)
-            except (ValueError, TypeError):
-                continue
-
-            occurred_raw = data.get("occurred_at")
-            occurred_at = (
-                datetime.fromisoformat(occurred_raw)
-                if occurred_raw
-                else datetime.now(UTC)
+        while True:
+            # Read the next batch from the head of the queue.
+            raw_items: list[str] = redis.lrange(
+                _QUEUE_KEY, 0, AnalyticsService._FLUSH_BATCH_SIZE - 1
             )
+            if not raw_items:
+                break
 
-            events.append(
-                AnalyticsEvent(
-                    event_type=data.get("event_type", "unknown"),
-                    post_id=data.get("post_id"),
-                    user_id=data.get("user_id"),
-                    session_id=data.get("session_id"),
-                    referrer=data.get("referrer"),
-                    user_agent_hash=data.get("user_agent_hash"),
-                    country_code=data.get("country_code"),
-                    occurred_at=occurred_at,
+            # Remove exactly the items we just read before committing so that
+            # new events pushed during this flush are not lost.
+            redis.ltrim(_QUEUE_KEY, len(raw_items), -1)
+
+            events: list[AnalyticsEvent] = []
+            for raw in raw_items:
+                try:
+                    data = json.loads(raw)
+                except (ValueError, TypeError):
+                    continue
+
+                occurred_raw = data.get("occurred_at")
+                occurred_at = (
+                    datetime.fromisoformat(occurred_raw)
+                    if occurred_raw
+                    else datetime.now(UTC)
                 )
-            )
 
-        if events:
-            db.session.add_all(events)
-            db.session.commit()
+                events.append(
+                    AnalyticsEvent(
+                        event_type=data.get("event_type", "unknown"),
+                        post_id=data.get("post_id"),
+                        user_id=data.get("user_id"),
+                        session_id=data.get("session_id"),
+                        referrer=data.get("referrer"),
+                        user_agent_hash=data.get("user_agent_hash"),
+                        country_code=data.get("country_code"),
+                        occurred_at=occurred_at,
+                    )
+                )
 
-        return len(events)
+            if events:
+                db.session.add_all(events)
+                db.session.commit()
+
+            total_written += len(events)
+
+        return total_written
 
     # ── Read paths ────────────────────────────────────────────────────────────
 

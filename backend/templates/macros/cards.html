@@ -1,0 +1,96 @@
+{# ─── Post card (full) ────────────────────────────────────────────────────── #}
+{% macro post_card(post, show_summary=True, featured=False) %}
+<article class="post-card{% if featured %} post-card--featured{% endif %}">
+  {% if featured %}
+    <div class="post-card-label">Featured</div>
+  {% endif %}
+  <a class="post-card-title" href="{{ url_for('posts.post_detail', slug=post.slug) }}">
+    {{ post.title }}
+  </a>
+  {% if show_summary and post.seo_description %}
+    <p class="post-card-summary">{{ post.seo_description }}</p>
+  {% endif %}
+  <div class="post-card-meta">
+    <span>{{ post.author.display_name or post.author.username }}</span>
+    {% if post.published_at %}
+      <span class="post-meta-sep">&middot;</span>
+      <time datetime="{{ post.published_at.isoformat() }}">
+        {{ post.published_at.strftime('%b %d, %Y') }}
+      </time>
+    {% endif %}
+    <span class="post-meta-sep">&middot;</span>
+    <span>{{ post.reading_time_minutes }} min read</span>
+    {% if post.version > 1 %}
+      <span class="post-meta-sep">&middot;</span>
+      <span class="version-badge">v{{ post.version }}</span>
+    {% endif %}
+    {% if post.tags %}
+      <span class="post-meta-sep">&middot;</span>
+      {% for tag in post.tags[:3] %}
+        <a class="tag-badge" href="{{ url_for('posts.list_posts', tag=tag.slug) }}">#{{ tag.slug }}</a>
+      {% endfor %}
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}
+
+{# ─── Post row (compact) ──────────────────────────────────────────────────── #}
+{% macro post_row(post) %}
+<a class="post-row" href="{{ url_for('posts.post_detail', slug=post.slug) }}">
+  <div class="post-row-content">
+    <div class="post-row-title">{{ post.title }}</div>
+    <div class="post-row-meta">
+      <span>{{ post.author.display_name or post.author.username }}</span>
+      {% if post.published_at %}
+        <span>&middot;</span>
+        <time datetime="{{ post.published_at.isoformat() }}">
+          {{ post.published_at.strftime('%b %d, %Y') }}
+        </time>
+      {% endif %}
+      {% if post.version > 1 %}
+        <span>&middot;</span>
+        <span class="version-badge">v{{ post.version }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% if post.tags %}
+    <div class="post-row-tags">
+      {% for tag in post.tags[:2] %}
+        <span class="tag-badge">#{{ tag.slug }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+</a>
+{% endmacro %}
+
+{# ─── Tag card ────────────────────────────────────────────────────────────── #}
+{% macro tag_card(tag, post_count, description=None) %}
+<a class="tag-card" href="{{ url_for('posts.list_posts', tag=tag.slug) }}">
+  <span class="tag-card__name">{{ tag.name }}</span>
+  {% if description %}
+    <p class="tag-card__desc">{{ description }}</p>
+  {% elif tag.description %}
+    <p class="tag-card__desc">{{ tag.description }}</p>
+  {% endif %}
+  <span class="tag-card__count">{{ post_count }} post{{ '' if post_count == 1 else 's' }}</span>
+</a>
+{% endmacro %}
+
+{# ─── Revision row ────────────────────────────────────────────────────────── #}
+{% macro revision_row(revision) %}
+<a class="revision-row" href="{{ url_for('revisions.revision_detail', revision_id=revision.id) }}">
+  <div class="revision-row-content">
+    <div class="revision-row-post">{{ revision.post.title }}</div>
+    {% if revision.summary %}
+      <div class="revision-row-summary">{{ revision.summary }}</div>
+    {% endif %}
+  </div>
+  <div class="revision-row-meta">
+    <span class="status-pill status-pill--{{ revision.status.value }}">{{ revision.status.value }}</span>
+    &nbsp;
+    {{ revision.author.username }}
+    &nbsp;&middot;&nbsp;
+    {{ revision.created_at.strftime('%b %d') }}
+  </div>
+</a>
+{% endmacro %}

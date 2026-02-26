@@ -19,6 +19,7 @@ from backend.models.follow import Follow
 from backend.models.notification import Notification
 from backend.models.post import Post, PostStatus
 from backend.models.user import User
+from backend.utils.validation import validate_url
 
 
 class UserServiceError(Exception):
@@ -62,11 +63,11 @@ class UserService:
         if bio is not None:
             user.bio = bio.strip()
         if avatar_url is not None:
-            user.avatar_url = avatar_url.strip()
+            user.avatar_url = validate_url(avatar_url.strip(), field="avatar_url")
         if website_url is not None:
-            user.website_url = website_url.strip()
+            user.website_url = validate_url(website_url.strip(), field="website_url")
         if github_url is not None:
-            user.github_url = github_url.strip()
+            user.github_url = validate_url(github_url.strip(), field="github_url")
         if tech_stack is not None:
             user.tech_stack = tech_stack.strip()
         if location is not None:
