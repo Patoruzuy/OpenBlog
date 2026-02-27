@@ -1,0 +1,180 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Dashboard</h1>
+  <span class="adm-page-subtitle">Platform overview</span>
+</div>
+
+{# ── Content stat cards ──────────────────────────────────────────────────── #}
+<div class="adm-stat-grid">
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Published</span>
+    <span class="adm-stat-card__value">{{ posts_published }}</span>
+    {% if can("manage_content") %}<a href="{{ url_for('admin.posts') }}?status=published" class="adm-stat-card__action">View →</a>{% endif %}
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Drafts</span>
+    <span class="adm-stat-card__value">{{ posts_draft }}</span>
+    {% if can("manage_content") %}<a href="{{ url_for('admin.posts') }}?status=draft" class="adm-stat-card__action">View →</a>{% endif %}
+  </div>
+  {% if posts_scheduled > 0 %}
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Scheduled</span>
+    <span class="adm-stat-card__value adm-stat-card__value--accent">{{ posts_scheduled }}</span>
+    {% if can("manage_content") %}<a href="{{ url_for('admin.posts') }}?status=scheduled" class="adm-stat-card__action">View →</a>{% endif %}
+  </div>
+  {% endif %}
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Pending Revisions</span>
+    <span class="adm-stat-card__value {% if revisions_pending > 0 %}adm-stat-card__value--warn{% endif %}">{{ revisions_pending }}</span>
+    {% if can("manage_content") %}<a href="{{ url_for('admin.revisions') }}?status=pending" class="adm-stat-card__action">Review →</a>{% endif %}
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Flagged Comments</span>
+    <span class="adm-stat-card__value {% if flagged_comments > 0 %}adm-stat-card__value--warn{% endif %}">{{ flagged_comments }}</span>
+    {% if can("moderate") %}<a href="{{ url_for('admin.comments') }}?flagged=1" class="adm-stat-card__action">Review →</a>{% endif %}
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Total Users</span>
+    <span class="adm-stat-card__value">{{ total_users }}</span>
+    {% if can("manage_users") %}<a href="{{ url_for('admin.users') }}" class="adm-stat-card__action">Manage →</a>{% endif %}
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">New Users (7d)</span>
+    <span class="adm-stat-card__value">{{ new_users_7d }}</span>
+    <span class="adm-stat-card__sub">{{ new_users_30d }} in 30d</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Unverified Email</span>
+    <span class="adm-stat-card__value {% if unverified_users > 0 %}adm-stat-card__value--warn{% endif %}">{{ unverified_users }}</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Active Contributors (30d)</span>
+    <span class="adm-stat-card__value">{{ active_contributors_30d }}</span>
+    <span class="adm-stat-card__sub">{{ revisions_recent_accepted }} accepted (7d)</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Comments (7d)</span>
+    <span class="adm-stat-card__value">{{ comments_7d }}</span>
+  </div>
+</div>
+
+{# ── System health strip ──────────────────────────────────────────────────── #}
+<div class="adm-health-strip">
+  {% for svc, label in [('db', 'Database'), ('redis', 'Redis'), ('celery', 'Celery')] %}
+    {% set info = health.get(svc, {}) %}
+    <div class="adm-health-pip {% if info.ok %}adm-health-pip--ok{% else %}adm-health-pip--err{% endif %}"
+         title="{{ info.get('label', '?') }}">
+      <span class="adm-health-pip__dot"></span>
+      <span class="adm-health-pip__name">{{ label }}</span>
+      <span class="adm-health-pip__label">{{ info.get('label', '?') }}</span>
+    </div>
+  {% endfor %}
+</div>
+
+{# ── Page-view sparkline ─────────────────────────────────────────────────── #}
+{% if pv_trend %}
+<section class="adm-section">
+  <h2 class="adm-section-title">
+    Page Views — Last 7 Days
+    <a href="{{ url_for('admin.analytics') }}" class="adm-section-title__more">Full analytics →</a>
+  </h2>
+  <div class="adm-sparkbar">
+    {% set max_pv = pv_trend | map(attribute='views') | max %}
+    {% for row in pv_trend %}
+      {% set pct = (row.views / max_pv * 100) | int if max_pv > 0 else 0 %}
+      <div class="adm-sparkbar__col" title="{{ row.date }}: {{ row.views }} views">
+        <div class="adm-sparkbar__bar" style="height:{{ pct }}%;"></div>
+        <span class="adm-sparkbar__label">{{ row.date[5:] }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<section class="adm-section">
+  <h2 class="adm-section-title">
+    Page Views — Last 7 Days
+    <a href="{{ url_for('admin.analytics') }}" class="adm-section-title__more">Full analytics →</a>
+  </h2>
+  <p class="adm-text-muted">No page-view data recorded yet.</p>
+</section>
+{% endif %}
+
+<div class="adm-two-col">
+
+  {# ── Top posts ─────────────────────────────────────────────────────────── #}
+  <section class="adm-section">
+    <h2 class="adm-section-title">
+      Top Posts (by views)
+      {% if can("manage_content") %}
+      <a href="{{ url_for('admin.posts') }}?sort=views_desc" class="adm-section-title__more">All →</a>
+      {% endif %}
+    </h2>
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th class="adm-table__num">Views</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in top_posts %}
+        <tr>
+          <td>
+            {% if can("manage_content") %}
+            <a href="{{ url_for('admin.post_detail', post_id=post.id) }}">{{ post.title | truncate(50) }}</a>
+            {% else %}
+            {{ post.title | truncate(50) }}
+            {% endif %}
+          </td>
+          <td class="adm-table__num">{{ post.view_count }}</td>
+          <td><span class="adm-badge adm-badge--{{ post.status.value }}">{{ post.status.value }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" class="adm-table__empty">No published posts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  {# ── Recent audit ──────────────────────────────────────────────────────── #}
+  <section class="adm-section">
+    <h2 class="adm-section-title">
+      Recent Activity
+      {% if can("view_audit") %}
+      <a href="{{ url_for('admin.audit') }}" class="adm-section-title__more">All →</a>
+      {% endif %}
+    </h2>
+    <table class="adm-table adm-table--compact">
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Target</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in recent_audit %}
+        <tr>
+          <td class="adm-table__ts" title="{{ entry.created_at.isoformat() }}">
+            {{ entry.created_at.strftime('%m-%d %H:%M') }}
+          </td>
+          <td>
+            {% if entry.actor %}{{ entry.actor.username }}{% else %}<em class="adm-table__muted">system</em>{% endif %}
+          </td>
+          <td><code class="adm-code">{{ entry.action }}</code></td>
+          <td class="adm-table__muted">{{ entry.target_repr | truncate(28) if entry.target_repr }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="adm-table__empty">No activity recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+</div>
+{% endblock %}

@@ -90,6 +90,22 @@ class BookmarkService:
         ) > 0
 
     @staticmethod
+    def bookmarked_set(user_id: int, post_ids: list[int]) -> set[int]:
+        """Return the set of post_ids (from *post_ids*) that *user_id* has bookmarked.
+
+        Fires a single IN-query instead of one query per post.
+        """
+        if not post_ids:
+            return set()
+        rows = db.session.scalars(
+            select(Bookmark.post_id).where(
+                Bookmark.user_id == user_id,
+                Bookmark.post_id.in_(post_ids),
+            )
+        ).all()
+        return set(rows)
+
+    @staticmethod
     def list_for_user(
         user_id: int, page: int = 1, per_page: int = 20
     ) -> tuple[list[Post], int]:

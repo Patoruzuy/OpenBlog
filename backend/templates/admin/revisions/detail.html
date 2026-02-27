@@ -1,0 +1,98 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Revision #{{ revision.id }}{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <div>
+    <a href="{{ url_for('admin.revisions') }}" class="adm-breadcrumb">← Revisions</a>
+    <h1 class="adm-page-title">Revision #{{ revision.id }}</h1>
+  </div>
+  <span class="adm-badge adm-badge--{{ revision.status.value }} adm-badge--lg">{{ revision.status.value }}</span>
+</div>
+
+<div class="adm-two-col adm-two-col--sidebar">
+  <div>
+
+    {# ── Diff ─────────────────────────────────────────────────────────────── #}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Diff</h2>
+      {% if revision.diff_cache %}
+        <pre class="adm-diff">{{ revision.diff_cache }}</pre>
+      {% else %}
+        <p class="adm-text-muted">No diff stored for this revision.</p>
+      {% endif %}
+    </section>
+
+    {# ── Review actions ───────────────────────────────────────────────────── #}
+    {% if revision.status.value == 'pending' %}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Review</h2>
+      <div class="adm-review-grid">
+
+        <form method="post" action="{{ url_for('admin.revision_accept', revision_id=revision.id) }}" class="adm-review-form">
+          <label class="adm-label">Note (optional)</label>
+          <textarea name="note" rows="2" class="adm-textarea" placeholder="Acceptance note…"></textarea>
+          <button class="adm-btn adm-btn--success">✓ Accept</button>
+        </form>
+
+        <form method="post" action="{{ url_for('admin.revision_reject', revision_id=revision.id) }}" class="adm-review-form">
+          <label class="adm-label">Reason (recommended)</label>
+          <textarea name="note" rows="2" class="adm-textarea" placeholder="Rejection reason…"></textarea>
+          <button class="adm-btn adm-btn--danger">✗ Reject</button>
+        </form>
+
+      </div>
+    </section>
+    {% endif %}
+
+    {% if revision.reviewer_note %}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Reviewer Note</h2>
+      <p class="adm-blockquote">{{ revision.reviewer_note }}</p>
+    </section>
+    {% endif %}
+
+  </div>
+
+  {# ── Sidebar metadata ───────────────────────────────────────────────────── #}
+  <aside class="adm-sidebar-panel">
+
+    <dl class="adm-meta">
+      <dt>Post</dt>
+      <dd>
+        {% if revision.post %}
+          <a href="{{ url_for('admin.post_detail', post_id=revision.post_id) }}">{{ revision.post.title | truncate(40) }}</a>
+        {% else %}ID {{ revision.post_id }}{% endif %}
+      </dd>
+
+      <dt>Contributor</dt>
+      <dd>
+        {% if revision.identity_mode and revision.identity_mode.value == 'anonymous' %}
+          <span class="adm-badge adm-badge--ghost">anonymous</span>
+          {% if can("manage_users") and revision.author_id %}
+            <br /><small class="adm-text-muted">(real: <a href="{{ url_for('admin.user_detail', user_id=revision.author_id) }}">{{ revision.author.username if revision.author else revision.author_id }}</a>)</small>
+          {% endif %}
+        {% elif revision.author %}
+          <a href="{{ url_for('admin.user_detail', user_id=revision.author_id) }}">{{ revision.author.username }}</a>
+        {% else %}—{% endif %}
+      </dd>
+
+      <dt>Summary</dt>
+      <dd>{{ revision.summary or '—' }}</dd>
+
+      <dt>Submitted</dt>
+      <dd>{{ revision.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+      {% if revision.reviewed_at %}
+      <dt>Reviewed</dt>
+      <dd>{{ revision.reviewed_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+      {% endif %}
+
+      {% if revision.reviewer %}
+      <dt>Reviewer</dt>
+      <dd>{{ revision.reviewer.username }}</dd>
+      {% endif %}
+    </dl>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Edit — {{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 780px; padding-top: var(--space-xl);">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('posts.post_detail', slug=post.slug) }}">&larr; Back to post</a>
+  </nav>
+
+  <h1 class="page-title" style="margin-bottom: var(--space-lg);">Edit post</h1>
+
+  <form method="post" action="{{ url_for('posts.edit_post', slug=post.slug) }}" novalidate>
+
+    {# ── Title ────────────────────────────────────────────────────────── #}
+    <div class="form-group" style="margin-bottom: var(--space-md);">
+      <label class="form-label" for="title">Title</label>
+      <input
+        id="title"
+        name="title"
+        type="text"
+        class="form-control"
+        value="{{ post.title }}"
+        required
+        maxlength="200"
+        autocomplete="off"
+      />
+    </div>
+
+    {# ── Body ─────────────────────────────────────────────────────────── #}
+    <div class="form-group" style="margin-bottom: var(--space-md);">
+      <label class="form-label" for="markdown_body">Content (Markdown)</label>
+      <textarea
+        id="markdown_body"
+        name="markdown_body"
+        class="form-control"
+        rows="24"
+        style="font-family: var(--font-mono, 'Fira Code', monospace); font-size: .875rem; resize: vertical;"
+        required
+      >{{ post.markdown_body }}</textarea>
+    </div>
+
+    {# ── Tags ─────────────────────────────────────────────────────────── #}
+    <div class="form-group" style="margin-bottom: var(--space-md);">
+      <label class="form-label" for="tags">Tags <span style="opacity:.6;">(comma-separated slugs)</span></label>
+      <input
+        id="tags"
+        name="tags"
+        type="text"
+        class="form-control"
+        value="{{ current_tags }}"
+        placeholder="python, webdev, tutorial"
+        autocomplete="off"
+      />
+    </div>
+
+    {# ── SEO ──────────────────────────────────────────────────────────── #}
+    <details style="margin-bottom: var(--space-lg);">
+      <summary style="cursor: pointer; color: var(--text-muted); font-size: .875rem; margin-bottom: var(--space-sm);">
+        SEO &amp; Open Graph (optional)
+      </summary>
+      <div style="padding: var(--space-sm) 0; display: grid; gap: var(--space-sm);">
+        <div class="form-group">
+          <label class="form-label" for="seo_title">SEO title</label>
+          <input
+            id="seo_title"
+            name="seo_title"
+            type="text"
+            class="form-control"
+            value="{{ post.seo_title or '' }}"
+            maxlength="200"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="seo_description">Meta description</label>
+          <textarea
+            id="seo_description"
+            name="seo_description"
+            class="form-control"
+            rows="2"
+          >{{ post.seo_description or '' }}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="og_image_url">OG image URL</label>
+          <input
+            id="og_image_url"
+            name="og_image_url"
+            type="url"
+            class="form-control"
+            value="{{ post.og_image_url or '' }}"
+          />
+        </div>
+      </div>
+    </details>
+
+    {# ── Actions ──────────────────────────────────────────────────────── #}
+    <div style="display: flex; gap: var(--space-sm); align-items: center;">
+      <button type="submit" class="btn btn-primary">Save changes</button>
+      <a href="{{ url_for('posts.post_detail', slug=post.slug) }}" class="btn btn-ghost">Cancel</a>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

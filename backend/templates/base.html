@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="{{ current_locale }}" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -9,49 +9,163 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
 
-    <!-- Fonts: Inter (UI) + Newsreader (body) + JetBrains Mono (code / logo) -->
+    <!-- Fonts: Inter (UI) + Source Serif 4 (reading) + JetBrains Mono (code / logo) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
     {% block head %}{% endblock %}
+    {# i18n strings exposed to JS #}
+    <script>
+      window._i18n = {
+        posts: "{{ _('Posts') }}",
+        topics: "{{ _('Topics') }}",
+        people: "{{ _('People') }}",
+        seeAll: "{{ _('See all results') }}"
+      };
+    </script>
   </head>
 
   <body>
     <!-- ── Header ─────────────────────────────────────────────────────────── -->
     <header class="site-header">
       <div class="container header-inner">
-        <a href="/" class="site-logo" aria-label="OpenBlog home">
+
+        {# ── Logo (home) ──────────────────────────────────────────────────── #}
+        <a href="{{ url_for('index.index') }}" class="site-logo" aria-label="OpenBlog home">
           <span class="logo-mark" aria-hidden="true">ob<span class="logo-slash">/</span></span>
           <span class="logo-text">OpenBlog</span>
         </a>
-        <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/"
-             {% if request.endpoint == 'index.index' %}aria-current="page"{% endif %}>Home</a>
-          <a href="{{ url_for('tags.tag_index') }}"
-             {% if request.endpoint and request.endpoint.startswith('tags.') %}aria-current="page"{% endif %}>Topics</a>
-          <a href="{{ url_for('posts.list_posts') }}"
-             {% if request.endpoint and request.endpoint.startswith('posts.') %}aria-current="page"{% endif %}>Writing</a>
-          <a href="{{ url_for('revisions.revision_list') }}"
-             {% if request.endpoint and request.endpoint.startswith('revisions.') %}aria-current="page"{% endif %}>Revisions</a>
+
+        {# ── Search icon toggle ───────────────────────────────────────────── #}
+        <div class="nav-search-wrap" role="search">
+          <button
+            id="search-toggle"
+            class="nav-search-toggle"
+            type="button"
+            aria-label="{{ _('Search') }}"
+            aria-expanded="false"
+            aria-controls="search-expand"
+          >
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <div id="search-expand" class="nav-search-expand" hidden>
+            <form class="nav-search-form" method="get" action="{{ url_for('search.search_results') }}" autocomplete="off">
+              <label class="sr-only" for="nav-search-input">{{ _('Search') }}</label>
+              <input
+                id="nav-search-input"
+                class="nav-search-input"
+                type="search"
+                name="q"
+                placeholder="{{ _('Search posts, topics…') }}"
+                aria-label="{{ _('Search posts, topics and people') }}"
+                aria-expanded="false"
+                aria-autocomplete="list"
+                aria-controls="nav-suggest-list"
+                autofocus
+              />
+              <button class="nav-search-btn" type="submit" aria-label="{{ _('Submit search') }}">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+                  <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </form>
+            <div id="nav-suggest-list" class="nav-suggest" role="listbox" aria-label="{{ _('Search suggestions') }}" hidden></div>
+          </div>
+        </div>
+
+        <nav class="site-nav" aria-label="{{ _('Primary navigation') }}">
+
+          {# ── Explore ─────────────────────────────────────────────────── #}
+          <a href="{{ url_for('explore.explore_index') }}"
+             {% if request.endpoint and request.endpoint.startswith('explore.') %}aria-current="page"{% endif %}>{{ _('Explore') }}</a>
+
+          {# ── New post (contributor / editor / admin) ───────────────── #}
+          {% if current_user and current_user.role.value in ['contributor', 'editor', 'admin'] %}
+            <a href="{{ url_for('posts.new_post') }}" class="btn btn-sm btn-primary">{{ _('New post') }}</a>
+          {% endif %}
+
+          {# ── Notifications ────────────────────────────────────────── #}
           {% if current_user %}
-            {% if current_user.role.value in ['contributor', 'editor', 'admin'] %}
-              <a href="#">Write</a>
-            {% endif %}
-            <a href="{{ url_for('notifications.notification_inbox') }}">
-              Notifications
+            <a href="{{ url_for('notifications.notification_inbox') }}"
+               class="nav-icon-link"
+               aria-label="{{ _('Notifications') }}{% if unread_notifications > 0 %} ({{ unread_notifications }} unread){% endif %}">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 1a5 5 0 0 1 5 5v2.5l1 2H2l1-2V6a5 5 0 0 1 5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                <path d="M6.5 13.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
               {% if unread_notifications > 0 %}
-                <span class="nav-badge" aria-label="{{ unread_notifications }} unread">{{ unread_notifications }}</span>
+                <span class="nav-badge" aria-hidden="true">{{ unread_notifications }}</span>
               {% endif %}
             </a>
-            <a href="{{ url_for('auth.logout') }}">Sign out</a>
-          {% else %}
-            <a href="{{ url_for('auth.login') }}">Sign in</a>
           {% endif %}
+
+          {# ── Language switcher (verbatim format preserved) ─────────── #}
+          <div class="lang-switcher" role="group" aria-label="{{ _('Switch language') }}">
+            <a href="{{ url_for('i18n.set_lang', locale='en') }}"
+               class="lang-btn{% if current_locale == 'en' %} is-active{% endif %}"
+               hreflang="en"
+               aria-pressed="{{ 'true' if current_locale == 'en' else 'false' }}">EN</a>
+            <a href="{{ url_for('i18n.set_lang', locale='es') }}"
+               class="lang-btn{% if current_locale == 'es' %} is-active{% endif %}"
+               hreflang="es"
+               aria-pressed="{{ 'true' if current_locale == 'es' else 'false' }}">ES</a>
+          </div>
+
+          {# ── Avatar dropdown (logged-in) / Sign in (logged-out) ────── #}
+          {% if current_user %}
+            <details class="avatar-menu">
+              <summary class="avatar-menu__trigger" aria-haspopup="menu" aria-label="{{ _('Account menu') }}">
+                {% if current_user.avatar_url %}
+                  <img
+                    class="avatar-menu__img"
+                    src="{{ current_user.avatar_url }}"
+                    alt="{{ current_user.display_name or current_user.username }}"
+                    width="28" height="28"
+                    loading="lazy"
+                  />
+                {% else %}
+                  <span class="avatar-menu__initials" aria-hidden="true">
+                    {{ (current_user.display_name or current_user.username)[0] | upper }}
+                  </span>
+                {% endif %}
+                <svg class="avatar-menu__caret" width="10" height="10" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                  <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </summary>
+              <ul class="avatar-menu__dropdown" role="menu">
+                <li class="avatar-menu__item avatar-menu__item--header">
+                  <span class="avatar-menu__display-name">{{ current_user.display_name or current_user.username }}</span>
+                  <span class="avatar-menu__handle">@{{ current_user.username }}</span>
+                </li>
+                <li class="avatar-menu__sep" role="separator"></li>
+                <li role="menuitem">
+                  <a class="avatar-menu__link" href="{{ url_for('users.profile', username=current_user.username) }}">{{ _('My profile') }}</a>
+                </li>
+                <li role="menuitem">
+                  <a class="avatar-menu__link" href="{{ url_for('posts.list_posts') }}?status=draft">{{ _('Drafts') }}</a>
+                </li>
+                <li role="menuitem">
+                  <a class="avatar-menu__link" href="{{ url_for('settings.profile') }}">{{ _('Settings') }}</a>
+                </li>
+                <li class="avatar-menu__sep" role="separator"></li>
+                <li role="menuitem">
+                  <a class="avatar-menu__link avatar-menu__link--danger" href="{{ url_for('auth.logout') }}">{{ _('Sign out') }}</a>
+                </li>
+              </ul>
+            </details>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-ghost">{{ _('Sign in') }}</a>
+          {% endif %}
+
         </nav>
       </div>
     </header>
@@ -67,6 +181,21 @@
       {% endif %}
     {% endwith %}
 
+    <!-- ── Email verification banner ──────────────────────────────────────── -->
+    {% if current_user and not current_user.is_email_verified %}
+      <div class="verify-banner" role="alert">
+        <div class="container verify-banner-inner">
+          <svg class="verify-banner-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>
+            <line x1="8" y1="5" x2="8" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="8" cy="11" r="0.8" fill="currentColor"/>
+          </svg>
+          <span>{{ _('Please verify your email address to unlock posting and commenting.') }}</span>
+          <a class="verify-banner-link" href="{{ url_for('auth.resend_verification') }}">{{ _('Resend email') }}</a>
+        </div>
+      </div>
+    {% endif %}
+
     <!-- ── Main ───────────────────────────────────────────────────────────── -->
     <main class="site-main">
       {% block content %}{% endblock %}
@@ -75,16 +204,41 @@
     <!-- ── Footer ─────────────────────────────────────────────────────────── -->
     <footer class="site-footer">
       <div class="container footer-inner">
-        <span>
+        <div class="footer-brand">
           <a href="/" class="site-logo site-logo--dim" aria-label="OpenBlog home">
             <span class="logo-mark" aria-hidden="true">ob<span class="logo-slash">/</span></span>
             <span class="logo-text">OpenBlog</span>
           </a>
-        </span>
-        <span class="footer-tagline">Engineering notes, open to improvement.</span>
+          <p class="footer-tagline">{{ _('Engineering notes, open to improvement.') }}</p>
+          <p class="footer-copy">&copy; {{ current_year() }} OpenBlog</p>
+        </div>
+
+        <nav class="footer-nav" aria-label="{{ _('Explore') }}">
+          <h3 class="footer-nav-heading">{{ _('Explore') }}</h3>
+          <a href="{{ url_for('index.index') }}">{{ _('Home') }}</a>
+          <a href="{{ url_for('posts.list_posts') }}">{{ _('Writing') }}</a>
+          <a href="{{ url_for('tags.tag_index') }}">{{ _('Topics') }}</a>
+          <a href="{{ url_for('revisions.revision_list') }}">{{ _('Revisions') }}</a>
+          <a href="{{ url_for('search.search_results') }}">{{ _('Search') }}</a>
+        </nav>
+
+        <nav class="footer-nav" aria-label="{{ _('About') }}">
+          <h3 class="footer-nav-heading">{{ _('Company') }}</h3>
+          <a href="{{ url_for('pages.about') }}">{{ _('About') }}</a>
+          <a href="{{ url_for('pages.contact') }}">{{ _('Contact') }}</a>
+          <a href="{{ url_for('pages.editorial_policy') }}">{{ _('Editorial Policy') }}</a>
+          <a href="{{ url_for('pages.changelog') }}">{{ _('Changelog') }}</a>
+          <a href="{{ url_for('pages.privacy') }}">{{ _('Privacy Policy') }}</a>
+          <a href="{{ url_for('pages.terms') }}">{{ _('Terms of Service') }}</a>
+          <a href="{{ url_for('pages.cookies') }}">{{ _('Cookie Policy') }}</a>
+        </nav>
       </div>
     </footer>
 
     {% block scripts %}{% endblock %}
+
+    <!-- ── Search toggle + suggest ───────────────────────────────────────── -->
+    <script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
   </body>
 </html>
+

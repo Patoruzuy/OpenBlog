@@ -19,7 +19,7 @@ class TestRegister:
     def test_success_returns_201_and_tokens(self, auth_client):
         resp = auth_client.post(
             "/api/auth/register",
-            json={"email": "new@example.com", "username": "newuser", "password": "password123"},
+            json={"email": "new@example.com", "username": "newuser", "password": "StrongPass123!!"},
         )
         assert resp.status_code == 201
         data = resp.get_json()
@@ -35,7 +35,7 @@ class TestRegister:
             json={
                 "email": "dn@example.com",
                 "username": "dnuser",
-                "password": "password123",
+                "password": "StrongPass123!!",
                 "display_name": "Display Name",
             },
         )
@@ -43,13 +43,13 @@ class TestRegister:
 
     def test_missing_email_returns_400(self, auth_client):
         resp = auth_client.post(
-            "/api/auth/register", json={"username": "u", "password": "password123"}
+            "/api/auth/register", json={"username": "u", "password": "StrongPass123!!"}
         )
         assert resp.status_code == 400
 
     def test_missing_username_returns_400(self, auth_client):
         resp = auth_client.post(
-            "/api/auth/register", json={"email": "x@y.com", "password": "password123"}
+            "/api/auth/register", json={"email": "x@y.com", "password": "StrongPass123!!"}
         )
         assert resp.status_code == 400
 
@@ -65,10 +65,10 @@ class TestRegister:
             json={"email": "short@example.com", "username": "shortpw", "password": "abc"},
         )
         assert resp.status_code == 400
-        assert "8 characters" in resp.get_json()["error"]
+        assert "15 characters" in resp.get_json()["error"]
 
     def test_duplicate_email_returns_409(self, auth_client):
-        payload = {"email": "dup@example.com", "username": "user1", "password": "password123"}
+        payload = {"email": "dup@example.com", "username": "user1", "password": "StrongPass123!!"}
         auth_client.post("/api/auth/register", json=payload)
         payload["username"] = "user2"
         resp = auth_client.post("/api/auth/register", json=payload)
@@ -77,11 +77,11 @@ class TestRegister:
     def test_duplicate_username_returns_409(self, auth_client):
         auth_client.post(
             "/api/auth/register",
-            json={"email": "a@example.com", "username": "sameuser", "password": "password123"},
+            json={"email": "a@example.com", "username": "sameuser", "password": "StrongPass123!!"},
         )
         resp = auth_client.post(
             "/api/auth/register",
-            json={"email": "b@example.com", "username": "sameuser", "password": "password123"},
+            json={"email": "b@example.com", "username": "sameuser", "password": "StrongPass123!!"},
         )
         assert resp.status_code == 409
 
@@ -98,14 +98,14 @@ class TestLogin:
             json={
                 "email": "login@example.com",
                 "username": "loginuser",
-                "password": "password123",
+                "password": "StrongPass123!!",
             },
         )
 
     def test_success_returns_tokens(self, auth_client):
         resp = auth_client.post(
             "/api/auth/login",
-            json={"email": "login@example.com", "password": "password123"},
+            json={"email": "login@example.com", "password": "StrongPass123!!"},
         )
         assert resp.status_code == 200
         data = resp.get_json()
@@ -116,7 +116,7 @@ class TestLogin:
     def test_email_is_case_insensitive(self, auth_client):
         resp = auth_client.post(
             "/api/auth/login",
-            json={"email": "LOGIN@EXAMPLE.COM", "password": "password123"},
+            json={"email": "LOGIN@EXAMPLE.COM", "password": "StrongPass123!!"},
         )
         assert resp.status_code == 200
 
@@ -135,7 +135,7 @@ class TestLogin:
         assert resp.status_code == 401
 
     def test_missing_email_returns_400(self, auth_client):
-        resp = auth_client.post("/api/auth/login", json={"password": "password123"})
+        resp = auth_client.post("/api/auth/login", json={"password": "StrongPass123!!"})
         assert resp.status_code == 400
 
     def test_missing_password_returns_400(self, auth_client):
@@ -156,11 +156,11 @@ class TestRefreshAndLogout:
         """Register + login, return the token dict."""
         auth_client.post(
             "/api/auth/register",
-            json={"email": "rt@example.com", "username": "rtuser", "password": "password123"},
+            json={"email": "rt@example.com", "username": "rtuser", "password": "StrongPass123!!"},
         )
         resp = auth_client.post(
             "/api/auth/login",
-            json={"email": "rt@example.com", "password": "password123"},
+            json={"email": "rt@example.com", "password": "StrongPass123!!"},
         )
         return resp.get_json()
 
@@ -224,11 +224,11 @@ class TestMe:
     def access_token(self, auth_client):
         auth_client.post(
             "/api/auth/register",
-            json={"email": "me@example.com", "username": "meuser", "password": "password123"},
+            json={"email": "me@example.com", "username": "meuser", "password": "StrongPass123!!"},
         )
         resp = auth_client.post(
             "/api/auth/login",
-            json={"email": "me@example.com", "password": "password123"},
+            json={"email": "me@example.com", "password": "StrongPass123!!"},
         )
         return resp.get_json()["access_token"]
 

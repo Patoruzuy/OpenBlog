@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Email verified{% endblock %}
+
+{% block content %}
+<div class="auth-card auth-card--centered">
+  <div class="token-valid-icon" aria-hidden="true">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="22" stroke="var(--color-success)" stroke-width="2"/>
+      <polyline points="14,24 21,31 34,17" stroke="var(--color-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h1 class="auth-title">Email verified!</h1>
+  <p class="auth-sub">Your email address has been confirmed. You can now post and comment.</p>
+  <a class="btn btn--primary btn--block" href="{{ url_for('index.index') }}">Continue to OpenBlog</a>
+</div>
+{% endblock %}

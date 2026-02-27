@@ -1,0 +1,152 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Privacy{% endblock %}
+
+{% block settings_content %}
+<form
+  class="settings-form"
+  method="post"
+  action="{{ url_for('settings.privacy') }}"
+  novalidate
+>
+
+  {# ── Profile visibility ────────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Profile visibility</h2>
+    <p class="settings-card__desc">
+      Controls who can see your <a href="{{ url_for('users.profile', username=current_user.username) }}">public profile page</a>.
+    </p>
+
+    <div class="radio-group" role="radiogroup" aria-labelledby="visibility-label">
+      <span id="visibility-label" class="sr-only">Profile visibility</span>
+
+      {% for value, label, desc in [
+        ('public',  'Public',       'Anyone on the internet can view your profile.'),
+        ('members', 'Members only', 'Only signed-in users can view your profile.'),
+        ('private', 'Private',      'Your profile is hidden from all visitors. Only you can see it.'),
+      ] %}
+      <label class="radio-option{% if (privacy.profile_visibility or 'public') == value %} radio-option--checked{% endif %}">
+        <input
+          type="radio"
+          name="profile_visibility"
+          value="{{ value }}"
+          {% if (privacy.profile_visibility or 'public') == value %}checked{% endif %}
+        />
+        <span class="radio-option__label">{{ label }}</span>
+        <span class="radio-option__desc">{{ desc }}</span>
+      </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ── Default identity mode ─────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Contribution identity</h2>
+    <p class="settings-card__desc">
+      Choose how your identity appears when you submit revisions and comments.
+      This is captured at the time of submission — changing it later won't alter past contributions.
+    </p>
+
+    <div class="radio-group" role="radiogroup" aria-labelledby="identity-label">
+      <span id="identity-label" class="sr-only">Default identity mode</span>
+
+      {% for value, label, desc in [
+        ('public',        'Public',        'Your display name and avatar are shown.'),
+        ('pseudonymous',  'Pseudonymous',  'A custom alias is shown instead of your real name.'),
+        ('anonymous',     'Anonymous',     'Shown as "Anonymous" with no avatar.'),
+      ] %}
+      <label class="radio-option{% if (privacy.default_identity_mode or 'public') == value %} radio-option--checked{% endif %}">
+        <input
+          type="radio"
+          name="default_identity_mode"
+          value="{{ value }}"
+          {% if (privacy.default_identity_mode or 'public') == value %}checked{% endif %}
+        />
+        <span class="radio-option__label">{{ label }}</span>
+        <span class="radio-option__desc">{{ desc }}</span>
+      </label>
+      {% endfor %}
+    </div>
+
+    <div class="form-field" id="alias-field"
+         style="{{ '' if (privacy.default_identity_mode or 'public') == 'pseudonymous' else 'display:none' }}">
+      <label class="form-label" for="pseudonymous_alias">Pseudonymous alias</label>
+      <input
+        class="form-input"
+        id="pseudonymous_alias"
+        name="pseudonymous_alias"
+        type="text"
+        value="{{ privacy.pseudonymous_alias or '' }}"
+        maxlength="80"
+        placeholder="e.g. curious_coder"
+      />
+      <span class="form-hint">Used when your identity mode is set to Pseudonymous.</span>
+    </div>
+  </section>
+
+  {# ── Fine-grained toggles ──────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Show on public profile</h2>
+    <p class="settings-card__desc">
+      These toggles apply when your profile is visible. They have no effect when your profile is set to Private.
+    </p>
+
+    <div class="toggle-list">
+      {% for field, label in [
+        ('show_avatar',       'Avatar'),
+        ('show_bio',          'Bio'),
+        ('show_location',     'Location'),
+        ('show_social_links', 'Social links'),
+        ('show_repositories', 'Repositories'),
+        ('show_contributions','Contributions'),
+      ] %}
+      <label class="toggle-item">
+        <span class="toggle-item__label">{{ label }}</span>
+        <input
+          class="toggle-item__checkbox sr-only"
+          type="checkbox"
+          name="{{ field }}"
+          {% if privacy[field] is not defined or privacy[field] %}checked{% endif %}
+          role="switch"
+          aria-checked="{{ 'true' if (privacy[field] is not defined or privacy[field]) else 'false' }}"
+        />
+        <span class="toggle-item__switch" aria-hidden="true"></span>
+      </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ── Searchability ─────────────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Discoverability</h2>
+    <label class="toggle-item">
+      <span class="toggle-item__label">
+        Include my profile in search results
+        <span class="toggle-item__desc">When disabled, your profile won't appear in OpenBlog's user search.</span>
+      </span>
+      <input
+        class="toggle-item__checkbox sr-only"
+        type="checkbox"
+        name="searchable_profile"
+        {% if privacy.searchable_profile is not defined or privacy.searchable_profile %}checked{% endif %}
+        role="switch"
+      />
+      <span class="toggle-item__switch" aria-hidden="true"></span>
+    </label>
+  </section>
+
+  <div class="settings-form__actions">
+    <button class="btn btn--primary" type="submit">Save privacy settings</button>
+  </div>
+
+</form>
+
+<script>
+  // Show/hide alias field when pseudonymous is selected
+  const aliasField = document.getElementById('alias-field');
+  document.querySelectorAll('input[name="default_identity_mode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      aliasField.style.display = radio.value === 'pseudonymous' ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

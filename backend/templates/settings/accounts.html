@@ -1,0 +1,95 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Connected accounts{% endblock %}
+
+{% block settings_content %}
+
+{# ── Existing connections ─────────────────────────────────────────────────── #}
+{% if connected_accounts %}
+<section class="settings-card">
+  <h2 class="settings-card__title">Your connected accounts</h2>
+  <ul class="connected-accounts">
+    {% for account in connected_accounts %}
+    <li class="connected-accounts__item">
+      <span class="connected-accounts__icon connected-accounts__icon--{{ account.provider }}">
+        {# Simple letter avatar as fallback #}
+        {{ account.provider[0]|upper }}
+      </span>
+      <div class="connected-accounts__meta">
+        <span class="connected-accounts__provider">{{ account.provider | capitalize }}</span>
+        {% if account.provider_username %}
+          <span class="connected-accounts__handle">@{{ account.provider_username }}</span>
+        {% endif %}
+        {% if account.provider_profile_url %}
+          <a class="connected-accounts__link" href="{{ account.provider_profile_url }}"
+             target="_blank" rel="noopener noreferrer">View profile</a>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('settings.disconnect_account') }}"
+            class="connected-accounts__disconnect"
+            onsubmit="return confirm('Disconnect this account?')">
+        <input type="hidden" name="account_id" value="{{ account.id }}" />
+        <button class="btn btn--ghost btn--sm btn--danger" type="submit">Disconnect</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{# ── Connect a new account ────────────────────────────────────────────────── #}
+<section class="settings-card">
+  <h2 class="settings-card__title">Connect an account</h2>
+  <p class="settings-card__desc">
+    Link your profile on another platform. This lets visitors navigate to your work
+    and enables future automated sync (e.g. repository import from GitHub).
+  </p>
+
+  <form
+    class="settings-form"
+    method="post"
+    action="{{ url_for('settings.connect_account') }}"
+    novalidate
+  >
+
+    <div class="form-field">
+      <label class="form-label" for="provider">Platform</label>
+      <select class="form-input form-select" id="provider" name="provider" required>
+        <option value="">Select a platform…</option>
+        <option value="github">GitHub</option>
+        <option value="gitlab">GitLab</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="provider_username">Username on that platform</label>
+      <input
+        class="form-input"
+        id="provider_username"
+        name="provider_username"
+        type="text"
+        placeholder="your_username"
+        maxlength="200"
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="profile_url">Profile URL</label>
+      <input
+        class="form-input"
+        id="profile_url"
+        name="profile_url"
+        type="url"
+        placeholder="https://github.com/your_username"
+      />
+    </div>
+
+    <div class="settings-form__actions">
+      <button class="btn btn--primary" type="submit">Connect account</button>
+    </div>
+
+  </form>
+</section>
+
+{% endblock %}

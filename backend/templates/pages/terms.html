@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service{% endblock %}
+
+{% block content %}
+<article class="prose container" style="max-width:72ch;padding-top:3rem;padding-bottom:3rem">
+  <h1>Terms of Service</h1>
+  <p class="meta-small">Last updated: January 2025</p>
+
+  <p>By using OpenBlog you agree to these terms. Please read them carefully.</p>
+
+  <h2>Use of the service</h2>
+  <ul>
+    <li>You must be at least 13 years old to create an account.</li>
+    <li>You are responsible for all content you post.</li>
+    <li>You agree not to use the service for spam, harassment, or illegal activity.</li>
+  </ul>
+
+  <h2>Content ownership</h2>
+  <p>You retain ownership of content you create. By posting, you grant OpenBlog a non-exclusive, worldwide licence to display your content on the platform.</p>
+
+  <h2>Contributions and revisions</h2>
+  <p>Revision authors grant the original post author and OpenBlog a licence to incorporate accepted revisions into the post under the post's existing licence.</p>
+
+  <h2>Termination</h2>
+  <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>
+
+  <h2>Warranties and liability</h2>
+  <p>OpenBlog is provided "as is" without warranties of any kind. We are not liable for damages arising from use of the service.</p>
+
+  <h2>Changes</h2>
+  <p>We may update these terms at any time. Continued use of the service constitutes acceptance of the updated terms.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about these terms? <a href="{{ url_for('pages.contact') }}">Contact us</a>.</p>
+</article>
+{% endblock %}

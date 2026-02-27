@@ -1,0 +1,50 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Site Settings</h1>
+  <span class="adm-page-subtitle">Changes take effect immediately.</span>
+</div>
+
+<form method="post" action="{{ url_for('admin.settings') }}">
+
+  {% set ns = namespace(last_group='') %}
+  {% for row in rows %}
+    {% if row.group != ns.last_group %}
+      {% if ns.last_group != '' %}</div></section>{% endif %}
+      <section class="adm-section">
+        <h2 class="adm-section-title">{{ row.group | capitalize | replace('_', ' ') }}</h2>
+        <div class="adm-settings-grid">
+      {% set ns.last_group = row.group %}
+    {% endif %}
+
+    <div class="adm-setting-row">
+      <div class="adm-setting-row__meta">
+        <label class="adm-label" for="setting-{{ row.key }}"><code>{{ row.key }}</code></label>
+        {% if row.description %}
+          <p class="adm-setting-row__desc">{{ row.description }}</p>
+        {% endif %}
+      </div>
+      <div class="adm-setting-row__control">
+        {% set val = current.get(row.key, '') %}
+        {% if val | lower in ('true','false','1','0') or row.key in ('registration_open','require_email_verify','revisions_enabled','comments_enabled','maintenance_mode','analytics_enabled') %}
+          <label class="adm-toggle">
+            <input type="checkbox" name="{{ row.key }}" id="setting-{{ row.key }}" value="true"
+                   {% if val | lower in ('true','1') %}checked{% endif %} />
+            <span class="adm-toggle__track"></span>
+          </label>
+        {% else %}
+          <input type="text" name="{{ row.key }}" id="setting-{{ row.key }}"
+                 value="{{ val }}" class="adm-input" />
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  {% if ns.last_group != '' %}</div></section>{% endif %}
+
+  <div class="adm-form-footer">
+    <button type="submit" class="adm-btn adm-btn--success">Save All Settings</button>
+  </div>
+</form>
+{% endblock %}

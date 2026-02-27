@@ -66,7 +66,7 @@ class TestUpdateProfile:
         )
         assert updated.display_name == "Alice A."
         assert updated.location == "Berlin"
-        assert updated.tech_stack == "Python, Flask"
+        assert updated.tech_stack == "python, flask"
 
     def test_none_kwargs_are_ignored(self, alice, db_session):
         # Pre-set a value, then pass None — should stay unchanged

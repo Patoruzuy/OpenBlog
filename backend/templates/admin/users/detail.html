@@ -1,0 +1,151 @@
+{% extends "admin/_layout.html" %}
+{% block title %}User: {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <div>
+    <a href="{{ url_for('admin.users') }}" class="adm-breadcrumb">← Users</a>
+    <h1 class="adm-page-title">{{ user.username }}</h1>
+  </div>
+  <div class="adm-badge-stack">
+    <span class="adm-badge adm-badge--role--{{ user.role.value }}">{{ user.role.value }}</span>
+    {% if user.is_active %}
+      <span class="adm-badge adm-badge--success">active</span>
+    {% else %}
+      <span class="adm-badge adm-badge--danger">suspended</span>
+    {% endif %}
+    {% if user.is_shadow_banned %}
+      <span class="adm-badge adm-badge--warn">shadow-banned</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="adm-two-col adm-two-col--sidebar">
+  <div>
+
+    {# ── Quick actions ────────────────────────────────────────────────────── #}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Actions</h2>
+      <div class="adm-action-group">
+
+        {% if user.is_active %}
+        <form method="post" action="{{ url_for('admin.user_suspend', user_id=user.id) }}">
+          <button class="adm-btn adm-btn--warn" onclick="return confirm('Suspend {{ user.username }}?')">Suspend</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('admin.user_reactivate', user_id=user.id) }}">
+          <button class="adm-btn adm-btn--success">Reactivate</button>
+        </form>
+        {% endif %}
+
+        {% if not user.is_email_verified %}
+        <form method="post" action="{{ url_for('admin.user_verify_email', user_id=user.id) }}">
+          <button class="adm-btn adm-btn--neutral">Verify Email</button>
+        </form>
+        {% endif %}
+
+        {% if can("manage_users") %}
+        <form method="post" action="{{ url_for('admin.user_shadowban', user_id=user.id) }}">
+          <button class="adm-btn {% if user.is_shadow_banned %}adm-btn--neutral{% else %}adm-btn--warn{% endif %}">
+            {% if user.is_shadow_banned %}Remove Shadow Ban{% else %}Shadow Ban{% endif %}
+          </button>
+        </form>
+        {% endif %}
+
+      </div>
+    </section>
+
+    {# ── Role change ─────────────────────────────────────────────────────── #}
+    {% if can("manage_users") %}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Change Role</h2>
+      <form method="post" action="{{ url_for('admin.user_set_role', user_id=user.id) }}" class="adm-form-inline">
+        <select name="role" class="adm-select">
+          {% for r in ['admin','editor','contributor','reader'] %}
+            <option value="{{ r }}" {% if user.role.value == r %}selected{% endif %}>{{ r | capitalize }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="adm-btn" onclick="return confirm('Change role?')">Save</button>
+      </form>
+    </section>
+    {% endif %}
+
+    {# ── Recent revisions ────────────────────────────────────────────────── #}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Recent Contributions</h2>
+      <table class="adm-table adm-table--compact">
+        <thead>
+          <tr><th>Post</th><th>Status</th><th>Submitted</th></tr>
+        </thead>
+        <tbody>
+          {% for rev in recent_revisions %}
+          <tr>
+            <td><a href="{{ url_for('admin.revision_detail', revision_id=rev.id) }}">{{ rev.post.title | truncate(40) if rev.post else '#' ~ rev.post_id }}</a></td>
+            <td><span class="adm-badge adm-badge--{{ rev.status.value }}">{{ rev.status.value }}</span></td>
+            <td class="adm-table__ts">{{ rev.created_at.strftime('%Y-%m-%d') }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="adm-table__empty">No contributions.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  {# ── Sidebar ────────────────────────────────────────────────────────────── #}
+  <aside class="adm-sidebar-panel">
+    <dl class="adm-meta">
+      <dt>User ID</dt>
+      <dd>{{ user.id }}</dd>
+
+      <dt>Email</dt>
+      <dd>{{ user.email }}</dd>
+
+      <dt>Verified</dt>
+      <dd>{{ '✓ Yes' if user.is_email_verified else '✗ No' }}</dd>
+
+      <dt>Reputation</dt>
+      <dd>{{ user.reputation_score }}</dd>
+
+      <dt>Bio</dt>
+      <dd>{{ user.bio | truncate(80) if user.bio else '—' }}</dd>
+
+      {% if user.oauth_provider %}
+      <dt>OAuth</dt>
+      <dd>{{ user.oauth_provider }}</dd>
+      {% endif %}
+
+      <dt>Joined</dt>
+      <dd>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+      {% if user.last_login_at %}
+      <dt>Last Login</dt>
+      <dd>{{ user.last_login_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+      {% endif %}
+
+      {% if privacy %}
+      <dt>Visibility</dt>
+      <dd>{{ privacy.profile_visibility.value if privacy.profile_visibility else '—' }}</dd>
+
+      <dt>Identity Mode</dt>
+      <dd>{{ privacy.default_identity_mode.value if privacy.default_identity_mode else '—' }}</dd>
+      {% endif %}
+    </dl>
+
+    {% if revision_counts %}
+    <div class="adm-meta-divider"></div>
+    <dl class="adm-meta">
+      {% set total_revs = (revision_counts.pending or 0) + (revision_counts.accepted or 0) + (revision_counts.rejected or 0) %}
+      <dt>Total Revisions</dt>
+      <dd>{{ total_revs }}</dd>
+      <dt>Accepted</dt>
+      <dd>{{ revision_counts.accepted }}</dd>
+      <dt>Rejected</dt>
+      <dd>{{ revision_counts.rejected }}</dd>
+      <dt>Pending</dt>
+      <dd>{{ revision_counts.pending }}</dd>
+    </dl>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

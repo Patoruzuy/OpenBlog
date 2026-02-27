@@ -1,0 +1,210 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Repositories{% endblock %}
+
+{% block settings_content %}
+
+{# ── Existing repositories ────────────────────────────────────────────────── #}
+{% if repositories %}
+<section class="settings-card">
+  <h2 class="settings-card__title">Your repositories</h2>
+  <p class="settings-card__desc">
+    Drag to reorder. Featured repositories are highlighted on your public profile.
+  </p>
+  <ul class="repo-list" id="repo-sortable" data-reorder-url="{{ url_for('settings.reorder_repositories') }}">
+    {% for repo in repositories %}
+    <li class="repo-list__item" data-repo-id="{{ repo.id }}">
+      <span class="repo-list__drag" aria-hidden="true" title="Drag to reorder">⠿</span>
+      <div class="repo-list__meta">
+        <a class="repo-list__name" href="{{ repo.repo_url }}" target="_blank" rel="noopener noreferrer">
+          {{ repo.repo_name }}
+        </a>
+        {% if repo.description %}
+          <p class="repo-list__desc">{{ repo.description }}</p>
+        {% endif %}
+        <div class="repo-list__tags">
+          {% if repo.language %}
+            <span class="tag-chip">{{ repo.language }}</span>
+          {% endif %}
+          {% if repo.stars_cached %}
+            <span class="tag-chip">★ {{ repo.stars_cached }}</span>
+          {% endif %}
+          {% if repo.is_featured %}
+            <span class="tag-chip tag-chip--accent">Featured</span>
+          {% endif %}
+          {% if not repo.is_public %}
+            <span class="tag-chip tag-chip--muted">Hidden</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="repo-list__actions">
+        {# Edit (inline small form via details/summary) #}
+        <details class="repo-edit-details">
+          <summary class="btn btn--ghost btn--sm">Edit</summary>
+          <form class="repo-edit-form" method="post"
+                action="{{ url_for('settings.edit_repository', repo_id=repo.id) }}">
+            <div class="form-field form-field--sm">
+              <label class="form-label" for="repo_name_{{ repo.id }}">Name</label>
+              <input class="form-input" id="repo_name_{{ repo.id }}" name="repo_name"
+                     value="{{ repo.repo_name }}" maxlength="200" required />
+            </div>
+            <div class="form-field form-field--sm">
+              <label class="form-label" for="repo_url_{{ repo.id }}">URL</label>
+              <input class="form-input" id="repo_url_{{ repo.id }}" name="repo_url"
+                     type="url" value="{{ repo.repo_url }}" required />
+            </div>
+            <div class="form-field form-field--sm">
+              <label class="form-label" for="description_{{ repo.id }}">Description</label>
+              <input class="form-input" id="description_{{ repo.id }}" name="description"
+                     value="{{ repo.description or '' }}" />
+            </div>
+            <div class="form-field form-field--sm">
+              <label class="form-label" for="language_{{ repo.id }}">Language</label>
+              <input class="form-input" id="language_{{ repo.id }}" name="language"
+                     value="{{ repo.language or '' }}" maxlength="60" />
+            </div>
+            <div class="form-field form-field--inline">
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_featured" {% if repo.is_featured %}checked{% endif %} />
+                Featured
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_public" {% if repo.is_public %}checked{% endif %} />
+                Public
+              </label>
+            </div>
+            <button class="btn btn--primary btn--sm" type="submit">Save</button>
+          </form>
+        </details>
+
+        <form method="post" action="{{ url_for('settings.delete_repository', repo_id=repo.id) }}"
+              onsubmit="return confirm('Remove this repository?')">
+          <button class="btn btn--ghost btn--sm btn--danger" type="submit">Remove</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{# ── Add a repository ──────────────────────────────────────────────────────── #}
+<section class="settings-card">
+  <h2 class="settings-card__title">Add a repository</h2>
+
+  <form
+    class="settings-form"
+    method="post"
+    action="{{ url_for('settings.add_repository') }}"
+    novalidate
+  >
+
+    <div class="form-field">
+      <label class="form-label" for="repo_name">Name</label>
+      <input
+        class="form-input"
+        id="repo_name"
+        name="repo_name"
+        type="text"
+        placeholder="owner/repository-name"
+        maxlength="200"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="repo_url">Repository URL</label>
+      <input
+        class="form-input"
+        id="repo_url"
+        name="repo_url"
+        type="url"
+        placeholder="https://github.com/owner/repo"
+        required
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="description">Description</label>
+      <input
+        class="form-input"
+        id="description"
+        name="description"
+        type="text"
+        placeholder="One-line description of the project"
+      />
+    </div>
+
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label" for="language">Primary language</label>
+        <input
+          class="form-input"
+          id="language"
+          name="language"
+          type="text"
+          placeholder="Python"
+          maxlength="60"
+        />
+      </div>
+    </div>
+
+    <div class="form-field form-field--inline">
+      <label class="checkbox-label">
+        <input type="checkbox" name="is_featured" />
+        Featured
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" name="is_public" checked />
+        Visible on public profile
+      </label>
+    </div>
+
+    <div class="settings-form__actions">
+      <button class="btn btn--primary" type="submit">Add repository</button>
+    </div>
+
+  </form>
+</section>
+
+<script>
+  // Drag-to-reorder (simple DOM sort — no external dependencies)
+  (function () {
+    const list = document.getElementById('repo-sortable');
+    if (!list) return;
+    let dragged = null;
+
+    list.addEventListener('dragstart', e => {
+      dragged = e.target.closest('[data-repo-id]');
+      dragged && dragged.classList.add('repo-list__item--dragging');
+    });
+    list.addEventListener('dragend', e => {
+      dragged && dragged.classList.remove('repo-list__item--dragging');
+      dragged = null;
+      saveOrder();
+    });
+    list.addEventListener('dragover', e => {
+      e.preventDefault();
+      const target = e.target.closest('[data-repo-id]');
+      if (target && dragged && target !== dragged) {
+        const rect = target.getBoundingClientRect();
+        const after = e.clientY > rect.top + rect.height / 2;
+        list.insertBefore(dragged, after ? target.nextSibling : target);
+      }
+    });
+
+    list.querySelectorAll('[data-repo-id]').forEach(item => {
+      item.setAttribute('draggable', 'true');
+    });
+
+    function saveOrder() {
+      const ids = [...list.querySelectorAll('[data-repo-id]')]
+        .map(el => parseInt(el.dataset.repoId, 10));
+      fetch(list.dataset.reorderUrl, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ids}),
+      }).catch(() => {});
+    }
+  })();
+</script>
+{% endblock %}

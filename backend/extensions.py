@@ -9,15 +9,19 @@ from __future__ import annotations
 
 from celery import Celery, Task
 from flask import Flask
+from flask_babel import Babel
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 from redis import Redis
 
-# ── Extension singletons ──────────────────────────────────────────────────────
+# ── Extension singletons ─────────────────────────────────────────────────────────────
+babel: Babel = Babel()
 db: SQLAlchemy = SQLAlchemy()
 csrf: CSRFProtect = CSRFProtect()
+mail: Mail = Mail()
 limiter: Limiter = Limiter(
     key_func=get_remote_address,
     default_limits=[],
@@ -60,8 +64,25 @@ def _init_redis(app: Flask) -> None:
     client: Redis = Redis.from_url(
         app.config["REDIS_URL"],
         decode_responses=True,
+        socket_timeout=0.5,
+        socket_connect_timeout=1.0,
     )
     app.extensions["redis"] = client
+
+
+def _get_locale() -> str:
+    """Flask-Babel locale selector.  Priority:
+    1. ``session['locale']``     — user-persisted choice
+    2. ``Accept-Language`` best match
+    3. app default (``en``)
+    """
+    from flask import current_app, request, session
+
+    supported: list[str] = current_app.config.get("SUPPORTED_LOCALES", ["en", "es"])
+    saved = session.get("locale")
+    if saved in supported:
+        return saved
+    return request.accept_languages.best_match(supported, default="en")
 
 
 def init_app(app: Flask) -> None:
@@ -69,6 +90,8 @@ def init_app(app: Flask) -> None:
     db.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+    babel.init_app(app, locale_selector=_get_locale)
+    mail.init_app(app)
     _init_redis(app)
     celery_instance = _make_celery(app)
     app.extensions["celery"] = celery_instance

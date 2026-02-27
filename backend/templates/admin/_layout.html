@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="{{ current_locale }}" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Admin{% endblock %} — OpenBlog Admin</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+    {% block head %}{% endblock %}
+  </head>
+  <body class="admin-body">
+
+    {# ── Top bar ─────────────────────────────────────────────────────────── #}
+    <header class="adm-topbar">
+      <div class="adm-topbar__inner">
+        <a href="{{ url_for('admin.dashboard') }}" class="adm-topbar__brand">
+          <span class="logo-mark" aria-hidden="true">ob<span class="logo-slash">/</span></span>
+          <span class="adm-topbar__label">Admin</span>
+        </a>
+
+        <nav class="adm-topbar__nav" aria-label="Admin top navigation">
+          <a href="{{ url_for('index.index') }}" class="adm-topbar__ext-link" target="_blank" rel="noopener">
+            ↗ View site
+          </a>
+        </nav>
+
+        <div class="adm-topbar__user">
+          {% if current_user %}
+            <span class="adm-topbar__username">{{ current_user.username }}</span>
+            <span class="adm-badge adm-badge--{{ current_user.role.value }}">{{ current_user.role.value }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <div class="adm-shell">
+
+      {# ── Sidebar ──────────────────────────────────────────────────────── #}
+      <nav class="adm-sidebar" aria-label="Admin navigation">
+        <div class="adm-sidebar__section">
+          <span class="adm-sidebar__heading">Overview</span>
+          <a href="{{ url_for('admin.dashboard') }}" class="adm-sidebar__link {% if request.endpoint == 'admin.dashboard' %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+            Dashboard
+          </a>
+        </div>
+
+        <div class="adm-sidebar__section">
+          <span class="adm-sidebar__heading">Content</span>
+          {% if can("manage_content") %}
+          <a href="{{ url_for('admin.posts') }}" class="adm-sidebar__link {% if 'admin.post' in request.endpoint %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 3h12M2 6h8M2 9h10M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Posts
+          </a>
+          <a href="{{ url_for('admin.revisions') }}" class="adm-sidebar__link {% if 'admin.revision' in request.endpoint %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Revisions
+            {% if admin_pending_revisions > 0 %}
+              <span class="adm-sidebar__badge">{{ admin_pending_revisions }}</span>
+            {% endif %}
+          </a>
+          <a href="{{ url_for('admin.topics') }}" class="adm-sidebar__link {% if 'admin.topic' in request.endpoint %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Topics
+          </a>
+          {% endif %}
+          {% if can("moderate") %}
+          <a href="{{ url_for('admin.comments') }}" class="adm-sidebar__link {% if 'admin.comment' in request.endpoint %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 2h12v9H2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 14l3-3h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Comments
+          </a>
+          <a href="{{ url_for('admin.reports') }}" class="adm-sidebar__link {% if 'admin.report' in request.endpoint %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2L2 14h12L8 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 7v3M8 12v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Reports
+            {% if admin_open_reports > 0 %}
+              <span class="adm-sidebar__badge">{{ admin_open_reports }}</span>
+            {% endif %}
+          </a>
+          {% endif %}
+        </div>
+
+        {% if can("manage_users") %}
+        <div class="adm-sidebar__section">
+          <span class="adm-sidebar__heading">People</span>
+          <a href="{{ url_for('admin.users') }}" class="adm-sidebar__link {% if 'admin.user' in request.endpoint %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 14c0-3 2.5-5 6-5s6 2 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Users
+          </a>
+        </div>
+        {% endif %}
+
+        {% if can("view_analytics") %}
+        <div class="adm-sidebar__section">
+          <span class="adm-sidebar__heading">Insights</span>
+          <a href="{{ url_for('admin.analytics') }}" class="adm-sidebar__link {% if request.endpoint == 'admin.analytics' %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M1 14l4-5 3 2 4-6 3 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Analytics
+          </a>
+        </div>
+        {% endif %}
+
+        <div class="adm-sidebar__section">
+          <span class="adm-sidebar__heading">System</span>
+          {% if can("view_audit") %}
+          <a href="{{ url_for('admin.audit') }}" class="adm-sidebar__link {% if request.endpoint == 'admin.audit' %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 2h10v12H3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Audit Log
+          </a>
+          {% endif %}
+          {% if can("manage_settings") %}
+          <a href="{{ url_for('admin.settings') }}" class="adm-sidebar__link {% if request.endpoint == 'admin.settings' %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Settings
+          </a>
+          <a href="{{ url_for('admin.system') }}" class="adm-sidebar__link {% if request.endpoint == 'admin.system' %}is-active{% endif %}">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            System
+          </a>
+          {% endif %}
+        </div>
+      </nav>
+
+      {# ── Main content ─────────────────────────────────────────────────── #}
+      <main class="adm-main">
+
+        {# Flash messages #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="adm-flash-stack">
+              {% for cat, msg in messages %}
+                <div class="adm-flash adm-flash--{{ cat }}">{{ msg }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

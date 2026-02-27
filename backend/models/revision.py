@@ -96,6 +96,24 @@ class Revision(db.Model):
     rejection_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # ── Contribution identity snapshot ─────────────────────────────────────
+    # Captured at submission time from the author's then-current privacy
+    # settings.  Allows the public display of revisions to honour the
+    # identity mode that was active when the revision was submitted, even
+    # if the author later changes their settings.
+    public_identity_mode: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Identity mode at submission time: public|pseudonymous|anonymous"
+    )
+    public_display_name_snapshot: Mapped[str | None] = mapped_column(
+        String(200), nullable=True,
+        comment="Display name or pseudonym captured at submission time."
+    )
+    public_avatar_snapshot: Mapped[str | None] = mapped_column(
+        String(512), nullable=True,
+        comment="Avatar URL captured at submission time (may be None for anonymous)."
+    )
+
     # ── Timestamps ─────────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)

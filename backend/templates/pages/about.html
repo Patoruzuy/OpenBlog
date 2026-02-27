@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}About OpenBlog{% endblock %}
+
+{% block content %}
+<article class="prose container" style="max-width:72ch;padding-top:3rem;padding-bottom:3rem">
+  <h1>About OpenBlog</h1>
+  <p class="lead">OpenBlog is an open platform for engineers who believe every piece of technical knowledge is worth preserving — and worth improving.</p>
+
+  <h2>Our mission</h2>
+  <p>Software is collaborative by nature. A tutorial that helped you today may have a subtle error that trips up the next reader. OpenBlog gives every reader the ability to propose revisions — and every author the right to accept them — so the knowledge base gets better over time rather than stale.</p>
+
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>Read</strong> — all published posts are publicly accessible, no account required.</li>
+    <li><strong>Contribute</strong> — create a free account to comment, vote, and propose revisions.</li>
+    <li><strong>Write</strong> — apply for contributor access to publish your own posts.</li>
+    <li><strong>Improve</strong> — spot a mistake? Submit a revision. Authors review and accept or decline.</li>
+  </ul>
+
+  <h2>Technology</h2>
+  <p>OpenBlog is built with Flask, PostgreSQL, and Redis. The source code is available on GitHub under the MIT licence. We eat our own cooking.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or feedback? <a href="{{ url_for('pages.contact') }}">Get in touch</a>.</p>
+</article>
+{% endblock %}

@@ -35,7 +35,8 @@ def search():
     page = max(1, request.args.get("page", 1, type=int))
     per_page = min(100, max(1, request.args.get("per_page", 20, type=int)))
 
-    posts, total = SearchService.search(q, page, per_page)
+    results = SearchService.search(q, page, per_page)
+    posts, total = results.posts, results.post_total
 
     return jsonify(
         {

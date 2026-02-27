@@ -15,8 +15,9 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 
 from backend.extensions import db
 from backend.models.revision import Revision, RevisionStatus
+from backend.services.post_service import PostService
 from backend.services.revision_service import RevisionError, RevisionService
-from backend.utils.auth import get_current_user, require_role
+from backend.utils.auth import get_current_user, require_auth, require_role
 
 ssr_revisions_bp = Blueprint("revisions", __name__, url_prefix="/revisions")
 
@@ -198,3 +199,42 @@ def reject_revision(revision_id: int):
     except RevisionError as exc:
         flash(str(exc), "error")
     return redirect(url_for("revisions.revision_detail", revision_id=revision_id))
+
+
+@ssr_revisions_bp.route("/submit/<slug>", methods=["GET", "POST"])
+@require_auth
+def submit_revision(slug: str):
+    """Submit a revision proposal for a published post."""
+    from backend.models.post import Post, PostStatus
+
+    post = PostService.get_by_slug(slug)
+    if post is None:
+        abort(404)
+
+    user = get_current_user()
+
+    # Authors use the edit page; only non-authors can submit revisions.
+    if user.id == post.author_id:
+        flash("You own this post — use the edit page instead.", "info")
+        return redirect(url_for("posts.edit_post", slug=slug))
+
+    if post.status != PostStatus.published:
+        abort(404)
+
+    if request.method == "POST":
+        proposed_markdown = request.form.get("proposed_markdown", "").strip()
+        summary = request.form.get("summary", "").strip()
+
+        try:
+            revision = RevisionService.submit(
+                post_id=post.id,
+                author_id=user.id,
+                proposed_markdown=proposed_markdown,
+                summary=summary,
+            )
+            flash("Your revision has been submitted for review.", "success")
+            return redirect(url_for("revisions.revision_detail", revision_id=revision.id))
+        except RevisionError as exc:
+            flash(str(exc), "error")
+
+    return render_template("revisions/submit.html", post=post)

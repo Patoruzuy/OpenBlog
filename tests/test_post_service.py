@@ -18,7 +18,7 @@ from backend.utils.markdown import reading_time_minutes, render_markdown
 
 
 def make_author(db_session) -> User:
-    user = AuthService.register("author@example.com", "postauthor", "password123")
+    user = AuthService.register("author@example.com", "postauthor", "StrongPass123!!")
     return db_session.merge(user)
 
 

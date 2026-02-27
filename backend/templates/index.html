@@ -1,22 +1,20 @@
 {% extends "base.html" %}
 {% from "macros/cards.html" import post_card, post_row, tag_card, revision_row %}
-{% block title %}Home{% endblock %}
+{% block title %}{{ _('Home') }}{% endblock %}
 
 {% block content %}
 
 {# ─── 1. Hero ─────────────────────────────────────────────────────────────── #}
 <div class="container">
   <section class="hero">
-    <div class="hero-eyebrow">&gt; engineering notebook</div>
-    <h1 class="hero-title">Software notes<br>that get better over time.</h1>
+    <div class="hero-eyebrow">&gt; {{ _('engineering notebook') }}</div>
+    <h1 class="hero-title">{{ _('Software notes') }}<br>{{ _('that get better over time.') }}</h1>
     <p class="hero-sub">
-      Practical writeups for developers who build real systems — architecture
-      decisions, debugging logs, tooling guides, and the things that actually
-      helped. Every article can be improved through reviewed community revisions.
+      {{ _('Practical writeups for developers who build real systems — architecture decisions, debugging logs, tooling guides, and the things that actually helped. Every article can be improved through reviewed community revisions.') }}
     </p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="{{ url_for('posts.list_posts') }}">Start reading</a>
-      <a class="btn btn-ghost" href="#how-it-works">How it works</a>
+      <a class="btn btn-primary" href="{{ url_for('posts.list_posts') }}">{{ _('Start reading') }}</a>
+      <a class="btn btn-ghost" href="#how-it-works">{{ _('How it works') }}</a>
     </div>
     {# Stats bar: only if at least one stat is non-zero #}
     {% if stats.posts or stats.revisions_accepted or stats.contributors %}
@@ -24,19 +22,19 @@
         {% if stats.posts %}
           <span class="hero-stat">
             <span class="hero-stat-value">{{ stats.posts }}</span>
-            post{{ '' if stats.posts == 1 else 's' }}
+            {{ ngettext('post', 'posts', stats.posts) }}
           </span>
         {% endif %}
         {% if stats.revisions_accepted %}
           <span class="hero-stat">
             <span class="hero-stat-value">{{ stats.revisions_accepted }}</span>
-            revision{{ '' if stats.revisions_accepted == 1 else 's' }} accepted
+            {{ ngettext('revision accepted', 'revisions accepted', stats.revisions_accepted) }}
           </span>
         {% endif %}
         {% if stats.contributors %}
           <span class="hero-stat">
             <span class="hero-stat-value">{{ stats.contributors }}</span>
-            contributor{{ '' if stats.contributors == 1 else 's' }}
+            {{ ngettext('contributor', 'contributors', stats.contributors) }}
           </span>
         {% endif %}
       </div>
@@ -49,8 +47,8 @@
   <div class="container">
     <section class="section">
       <div class="section-header">
-        <span class="section-title">Featured</span>
-        <a class="section-link" href="{{ url_for('posts.list_posts') }}">All writing &rarr;</a>
+        <span class="section-title">{{ _('Featured') }}</span>
+        <a class="section-link" href="{{ url_for('posts.list_posts') }}">{{ _('All writing') }} &rarr;</a>
       </div>
       {{ post_card(featured_post, show_summary=True, featured=True) }}
     </section>
@@ -61,9 +59,9 @@
 <div class="container">
   <section class="section">
     <div class="section-header">
-      <span class="section-title">Latest writing</span>
+      <span class="section-title">{{ _('Latest writing') }}</span>
       {% if recent_posts %}
-        <a class="section-link" href="{{ url_for('posts.list_posts') }}">All posts &rarr;</a>
+        <a class="section-link" href="{{ url_for('posts.list_posts') }}">{{ _('All posts') }} &rarr;</a>
       {% endif %}
     </div>
     {% if recent_posts %}
@@ -72,11 +70,11 @@
       </div>
     {% else %}
       <div class="home-invite">
-        <span class="home-invite-line">Nothing published yet.</span>
+        <span class="home-invite-line">{{ _('Nothing published yet.') }}</span>
         {% if current_user and current_user.role.value in ['contributor', 'editor', 'admin'] %}
-          <span class="home-invite-sub">You have write access — start with a draft.</span>
+          <span class="home-invite-sub">{{ _('You have write access — start with a draft.') }}</span>
         {% else %}
-          <a href="{{ url_for('auth.register') }}" class="home-invite-action">Sign up to contribute &rarr;</a>
+          <a href="{{ url_for('auth.register') }}" class="home-invite-action">{{ _('Sign up to contribute') }} &rarr;</a>
         {% endif %}
       </div>
     {% endif %}
@@ -87,15 +85,13 @@
 <div class="container">
   <section class="section">
     <div class="section-header">
-      <span class="section-title">Recently revised</span>
+      <span class="section-title">{{ _('Recently revised') }}</span>
       {% if updated_posts %}
-        <a class="section-link" href="{{ url_for('revisions.revision_list') }}">Revision log &rarr;</a>
+        <a class="section-link" href="{{ url_for('revisions.revision_list') }}">{{ _('Revision log') }} &rarr;</a>
       {% endif %}
     </div>
     <p class="section-blurb">
-      Articles here are versioned. When a community improvement is accepted by
-      an editor, the post version increments and the contributor is credited in
-      the revision history.
+      {{ _('Articles here are versioned. When a community improvement is accepted by an editor, the post version increments and the contributor is credited in the revision history.') }}
     </p>
     {% if updated_posts %}
       <div class="post-rows">
@@ -103,9 +99,9 @@
       </div>
     {% else %}
       <div class="home-invite">
-        <span class="home-invite-line">No revised articles yet.</span>
-        <span class="home-invite-sub">Pick a post, find something to improve, propose a change.</span>
-        <a href="{{ url_for('posts.list_posts') }}" class="home-invite-action">Browse posts &rarr;</a>
+        <span class="home-invite-line">{{ _('No revised articles yet.') }}</span>
+        <span class="home-invite-sub">{{ _('Pick a post, find something to improve, propose a change.') }}</span>
+        <a href="{{ url_for('posts.list_posts') }}" class="home-invite-action">{{ _('Browse posts') }} &rarr;</a>
       </div>
     {% endif %}
   </section>
@@ -115,9 +111,9 @@
 <div class="container">
   <section class="section">
     <div class="section-header">
-      <span class="section-title">Open revisions</span>
+      <span class="section-title">{{ _('Open revisions') }}</span>
       {% if open_revisions %}
-        <a class="section-link" href="{{ url_for('revisions.revision_list') }}">Review queue &rarr;</a>
+        <a class="section-link" href="{{ url_for('revisions.revision_list') }}">{{ _('Review queue') }} &rarr;</a>
       {% endif %}
     </div>
     {% if open_revisions %}
@@ -126,10 +122,10 @@
       </div>
     {% else %}
       <div class="home-invite home-invite--cta">
-        <span class="home-invite-line">No pending revisions.</span>
-        <span class="home-invite-sub">Found a mistake or something to clarify?</span>
+        <span class="home-invite-line">{{ _('No pending revisions.') }}</span>
+        <span class="home-invite-sub">{{ _('Found a mistake or something to clarify?') }}</span>
         <a href="{{ url_for('posts.list_posts') }}" class="home-invite-action">
-          Find a post to improve &rarr;
+          {{ _('Find a post to improve') }} &rarr;
         </a>
       </div>
     {% endif %}
@@ -140,29 +136,29 @@
 <div class="container">
   <section class="section">
     <div class="section-header">
-      <span class="section-title">Learning paths</span>
-      <a class="section-link" href="{{ url_for('tags.tag_index') }}">All topics &rarr;</a>
+      <span class="section-title">{{ _('Learning paths') }}</span>
+      <a class="section-link" href="{{ url_for('tags.tag_index') }}">{{ _('All topics') }} &rarr;</a>
     </div>
     <div class="track-grid">
       <a class="track-card" href="{{ url_for('posts.list_posts', tag='flask') }}">
         <span class="track-card__num">01</span>
-        <span class="track-card__name">Flask &amp; Backend</span>
-        <p class="track-card__desc">Routing, blueprints, extensions, and production deployment. Building web services with Python.</p>
+        <span class="track-card__name">{{ _('Flask & Backend') }}</span>
+        <p class="track-card__desc">{{ _('Routing, blueprints, extensions, and production deployment. Building web services with Python.') }}</p>
       </a>
       <a class="track-card" href="{{ url_for('posts.list_posts', tag='python') }}">
         <span class="track-card__num">02</span>
-        <span class="track-card__name">Python Tooling</span>
-        <p class="track-card__desc">Dependency management, linting, testing, and packaging. The ecosystem that makes Python production-ready.</p>
+        <span class="track-card__name">{{ _('Python Tooling') }}</span>
+        <p class="track-card__desc">{{ _('Dependency management, linting, testing, and packaging. The ecosystem that makes Python production-ready.') }}</p>
       </a>
       <a class="track-card" href="{{ url_for('posts.list_posts', tag='ai') }}">
         <span class="track-card__num">03</span>
-        <span class="track-card__name">AI &amp; Automation</span>
-        <p class="track-card__desc">LLM integration, prompt engineering, and workflow automation. Practical notes from real implementation.</p>
+        <span class="track-card__name">{{ _('AI & Automation') }}</span>
+        <p class="track-card__desc">{{ _('LLM integration, prompt engineering, and workflow automation. Practical notes from real implementation.') }}</p>
       </a>
       <a class="track-card" href="{{ url_for('posts.list_posts', tag='devtools') }}">
         <span class="track-card__num">04</span>
-        <span class="track-card__name">Dev Tools</span>
-        <p class="track-card__desc">Editor setup, CLI utilities, shell scripts, and the smaller tools that compound over a career.</p>
+        <span class="track-card__name">{{ _('Dev Tools') }}</span>
+        <p class="track-card__desc">{{ _('Editor setup, CLI utilities, shell scripts, and the smaller tools that compound over a career.') }}</p>
       </a>
     </div>
   </section>
@@ -173,8 +169,8 @@
   <div class="container">
     <section class="section">
       <div class="section-header">
-        <span class="section-title">Topics</span>
-        <a class="section-link" href="{{ url_for('tags.tag_index') }}">All topics &rarr;</a>
+        <span class="section-title">{{ _('Topics') }}</span>
+        <a class="section-link" href="{{ url_for('tags.tag_index') }}">{{ _('All topics') }} &rarr;</a>
       </div>
       <div class="tag-grid">
         {% for item in top_tags %}
@@ -189,31 +185,28 @@
 <div class="container" id="how-it-works">
   <section class="section">
     <div class="section-header">
-      <span class="section-title">How it works</span>
+      <span class="section-title">{{ _('How it works') }}</span>
     </div>
     <div class="how-grid">
       <div class="how-step">
         <div class="how-step-num">01</div>
-        <div class="how-step-title">Read a post</div>
+        <div class="how-step-title">{{ _('Read a post') }}</div>
         <p class="how-step-body">
-          Browse engineering notes written in Markdown. Each post carries a
-          version number and a complete revision history.
+          {{ _('Browse engineering notes written in Markdown. Each post carries a version number and a complete revision history.') }}
         </p>
       </div>
       <div class="how-step">
         <div class="how-step-num">02</div>
-        <div class="how-step-title">Propose a change</div>
+        <div class="how-step-title">{{ _('Propose a change') }}</div>
         <p class="how-step-body">
-          Any signed-in reader can submit a targeted diff — correcting an
-          error, clarifying a step, expanding on a topic.
+          {{ _('Any signed-in reader can submit a targeted diff — correcting an error, clarifying a step, expanding on a topic.') }}
         </p>
       </div>
       <div class="how-step">
         <div class="how-step-num">03</div>
-        <div class="how-step-title">Get it merged</div>
+        <div class="how-step-title">{{ _('Get it merged') }}</div>
         <p class="how-step-body">
-          Editors review the diff. If it improves the post, it is accepted:
-          the version increments, the contributor is credited.
+          {{ _('Editors review the diff. If it improves the post, it is accepted: the version increments, the contributor is credited.') }}
         </p>
       </div>
     </div>

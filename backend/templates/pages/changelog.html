@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Changelog{% endblock %}
+
+{% block content %}
+<article class="prose container" style="max-width:72ch;padding-top:3rem;padding-bottom:3rem">
+  <h1>Changelog</h1>
+  <p>A running log of notable changes to the OpenBlog platform.</p>
+
+  <h2>v0.3 — February 2025</h2>
+  <ul>
+    <li>Added global search with Posts and Topics tabs and live suggestions.</li>
+    <li>Added password reset via email with 1-hour expiry tokens.</li>
+    <li>Email verification now gates posting and commenting.</li>
+    <li>NIST-compliant 15-character minimum password requirement.</li>
+    <li>Show/hide toggle on all password fields.</li>
+    <li>Updated footer with navigation links and legal pages.</li>
+  </ul>
+
+  <h2>v0.2 — January 2025</h2>
+  <ul>
+    <li>Full design system overhaul: Inter UI font, Source Serif 4 reading font.</li>
+    <li>Prose typography pass: 18px reading size, improved heading scale.</li>
+    <li>Diff/revision viewer redesign with unified and split modes.</li>
+    <li>Added internationalization (English and Spanish).</li>
+    <li>Docker Nginx configuration fixes for reliable production deployments.</li>
+  </ul>
+
+  <h2>v0.1 — December 2024</h2>
+  <ul>
+    <li>Initial release: posts, revisions, comments, voting, badges.</li>
+    <li>JWT API + session-based SSR authentication.</li>
+    <li>Celery + Redis task queue for scheduled publishing and analytics.</li>
+    <li>Prometheus metrics endpoint.</li>
+  </ul>
+</article>
+{% endblock %}

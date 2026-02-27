@@ -34,6 +34,12 @@ class BaseConfig:
     # Flask-SQLAlchemy reads SQLALCHEMY_DATABASE_URI
     SQLALCHEMY_DATABASE_URI: str | None = os.environ.get("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
+    SQLALCHEMY_ENGINE_OPTIONS: ClassVar[dict] = {
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_pre_ping": True,
+        "pool_recycle": 1800,
+    }
 
     # ── Redis ──────────────────────────────────────────────────────────────
     REDIS_URL: str | None = os.environ.get("REDIS_URL")
@@ -57,6 +63,16 @@ class BaseConfig:
     # ── CSRF ───────────────────────────────────────────────────────────────
     WTF_CSRF_ENABLED: bool = True
 
+    # ── Email (Flask-Mail) ────────────────────────────────────────────────
+    MAIL_SERVER: str = os.environ.get("MAIL_SERVER", "localhost")
+    MAIL_PORT: int = int(os.environ.get("MAIL_PORT", "1025"))
+    MAIL_USE_TLS: bool = os.environ.get("MAIL_USE_TLS", "false").lower() == "true"
+    MAIL_USE_SSL: bool = os.environ.get("MAIL_USE_SSL", "false").lower() == "true"
+    MAIL_USERNAME: str | None = os.environ.get("MAIL_USERNAME")
+    MAIL_PASSWORD: str | None = os.environ.get("MAIL_PASSWORD")
+    MAIL_DEFAULT_SENDER: str = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@openblog.dev")
+    MAIL_SUPPRESS_SEND: bool = False
+
     # ── Flags ──────────────────────────────────────────────────────────────
     DEBUG: bool = False
     TESTING: bool = False
@@ -77,6 +93,12 @@ class BaseConfig:
             "schedule": 30.0,  # every 30 seconds
         },
     }
+
+    # ── Internationalisation (Flask-Babel) ────────────────────────────────
+    BABEL_DEFAULT_LOCALE: str = "en"
+    BABEL_DEFAULT_TIMEZONE: str = "UTC"
+    SUPPORTED_LOCALES: ClassVar[list[str]] = ["en", "es"]
+    # "translations" is Flask-Babel's default directory (relative to app.root_path)
 
     # Required config keys validated on startup (skipped for TestingConfig)
     _REQUIRED: ClassVar[list[str]] = ["SECRET_KEY", "DATABASE_URL", "REDIS_URL"]
@@ -143,6 +165,7 @@ class TestingConfig(BaseConfig):
     # Disable rate limiting in tests — no Redis required.
     RATELIMIT_ENABLED: bool = False  # type: ignore[assignment]
     RATELIMIT_STORAGE_URI: str = "memory://"  # type: ignore[assignment]
+    MAIL_SUPPRESS_SEND: bool = True  # type: ignore[assignment]
 
 
 config_map: dict[str, type[BaseConfig]] = {

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Suggest a revision — {{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 780px; padding-top: var(--space-xl);">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('posts.post_detail', slug=post.slug) }}">&larr; Back to post</a>
+  </nav>
+
+  <h1 class="page-title" style="margin-bottom: var(--space-xs);">Suggest a revision</h1>
+  <p style="color: var(--text-muted); margin-bottom: var(--space-lg);">
+    Propose a change to <strong>{{ post.title }}</strong>. Your revision will be
+    reviewed by an editor before being applied. Edit the content below and explain
+    your change in the summary field.
+  </p>
+
+  <form method="post" action="{{ url_for('revisions.submit_revision', slug=post.slug) }}" novalidate>
+
+    {# ── Summary ──────────────────────────────────────────────────────── #}
+    <div class="form-group" style="margin-bottom: var(--space-md);">
+      <label class="form-label" for="summary">
+        Summary
+        <span style="color: var(--danger);" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="summary"
+        name="summary"
+        type="text"
+        class="form-control"
+        placeholder="Fix typo in introduction / Add missing code example / Clarify step 3 …"
+        required
+        maxlength="300"
+        autocomplete="off"
+      />
+      <p class="form-hint" style="color: var(--text-muted); font-size: .8125rem; margin-top: .25rem;">
+        One-line description of what you changed and why (commit-message style).
+      </p>
+    </div>
+
+    {# ── Proposed markdown ────────────────────────────────────────────── #}
+    <div class="form-group" style="margin-bottom: var(--space-lg);">
+      <label class="form-label" for="proposed_markdown">
+        Revised content (Markdown)
+        <span style="color: var(--danger);" aria-hidden="true">*</span>
+      </label>
+      <textarea
+        id="proposed_markdown"
+        name="proposed_markdown"
+        class="form-control"
+        rows="26"
+        style="font-family: var(--font-mono, 'Fira Code', monospace); font-size: .875rem; resize: vertical;"
+        required
+      >{{ post.markdown_body }}</textarea>
+      <p class="form-hint" style="color: var(--text-muted); font-size: .8125rem; margin-top: .25rem;">
+        The full post body with your changes applied. A diff will be generated automatically.
+      </p>
+    </div>
+
+    {# ── Actions ──────────────────────────────────────────────────────── #}
+    <div style="display: flex; gap: var(--space-sm); align-items: center;">
+      <button type="submit" class="btn btn-primary">Submit for review</button>
+      <a href="{{ url_for('posts.post_detail', slug=post.slug) }}" class="btn btn-ghost">Cancel</a>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

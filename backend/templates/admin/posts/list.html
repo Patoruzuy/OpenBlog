@@ -1,0 +1,86 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Posts{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Posts</h1>
+  <span class="adm-page-subtitle">{{ total }} total</span>
+</div>
+
+{# ── Filter bar ──────────────────────────────────────────────────────────── #}
+<form method="get" class="adm-filter-bar">
+  <input type="search" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search title…" class="adm-input adm-input--sm" />
+
+  <select name="status" class="adm-select adm-select--sm">
+    <option value="">All statuses</option>
+    {% for s in ['published','draft','scheduled','archived'] %}
+      <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s | capitalize }}</option>
+    {% endfor %}
+  </select>
+
+  <label class="adm-filter-bar__check">
+    <input type="checkbox" name="featured" value="1" {% if request.args.get('featured') == '1' %}checked{% endif %} /> Featured
+  </label>
+
+  <select name="sort" class="adm-select adm-select--sm">
+    <option value="newest" {% if request.args.get('sort','newest') == 'newest' %}selected{% endif %}>Newest</option>
+    <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>Oldest</option>
+    <option value="views" {% if request.args.get('sort') == 'views' %}selected{% endif %}>Most viewed</option>
+    <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Title A-Z</option>
+  </select>
+
+  <button type="submit" class="adm-btn adm-btn--sm">Filter</button>
+  <a href="{{ url_for('admin.posts') }}" class="adm-btn adm-btn--sm adm-btn--ghost">Reset</a>
+</form>
+
+{# ── Table ───────────────────────────────────────────────────────────────── #}
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Status</th>
+        <th>Tags</th>
+        <th class="adm-table__num">Views</th>
+        <th>Updated</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for post in posts %}
+      <tr>
+        <td>
+          <a href="{{ url_for('admin.post_detail', post_id=post.id) }}" class="adm-table__primary">{{ post.title | truncate(60) }}</a>
+          {% if post.is_featured %}<span class="adm-badge adm-badge--featured">★ featured</span>{% endif %}
+        </td>
+        <td>{{ post.author.username if post.author else '—' }}</td>
+        <td><span class="adm-badge adm-badge--{{ post.status.value }}">{{ post.status.value }}</span></td>
+        <td class="adm-table__muted">{{ post.tags | map(attribute='name') | join(', ') | truncate(30) }}</td>
+        <td class="adm-table__num">{{ post.view_count }}</td>
+        <td class="adm-table__ts">{{ post.updated_at.strftime('%Y-%m-%d') if post.updated_at else '—' }}</td>
+        <td class="adm-table__actions">
+          <a href="{{ url_for('admin.post_detail', post_id=post.id) }}" class="adm-btn adm-btn--xs">Edit</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="adm-table__empty">No posts match your filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Pagination ──────────────────────────────────────────────────────────── #}
+{% set last_page = ((total - 1) // 30 + 1) if total > 0 else 1 %}
+{% if last_page > 1 %}
+<nav class="adm-pagination" aria-label="Posts pagination">
+  {% if page > 1 %}
+    <a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page-1)) }}" class="adm-pagination__btn">‹ Prev</a>
+  {% endif %}
+  <span class="adm-pagination__info">Page {{ page }} of {{ last_page }}</span>
+  {% if page < last_page %}
+    <a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page+1)) }}" class="adm-pagination__btn">Next ›</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

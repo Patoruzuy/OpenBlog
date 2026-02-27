@@ -68,7 +68,7 @@ def register():
     -------------------
     email        str  required
     username     str  required
-    password     str  required (min 8 chars)
+    password     str  required (min 15 chars)
     display_name str  optional
     """
     data, err = load_json(RegisterSchema())

@@ -1,0 +1,109 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Topics{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Topics</h1>
+  <span class="adm-page-subtitle">{{ total }} total</span>
+</div>
+
+{# ── Filter ──────────────────────────────────────────────────────────────── #}
+<form method="get" class="adm-filter-bar">
+  <input type="search" name="q" value="{{ q }}" placeholder="Search topics…" class="adm-input adm-input--sm" />
+  <button type="submit" class="adm-btn adm-btn--sm">Filter</button>
+  <a href="{{ url_for('admin.topics') }}" class="adm-btn adm-btn--sm adm-btn--ghost">Reset</a>
+</form>
+
+{# ── Table ───────────────────────────────────────────────────────────────── #}
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Slug</th>
+        <th>Description</th>
+        <th>Color</th>
+        <th class="adm-table__num">Posts</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in topics %}
+      <tr>
+        <td class="adm-table__primary">{{ item.tag.name }}</td>
+        <td><code class="adm-code">{{ item.tag.slug }}</code></td>
+        <td class="adm-table__muted">{{ item.tag.description | truncate(55) if item.tag.description else '—' }}</td>
+        <td>
+          {% if item.tag.color %}
+            <span class="adm-color-dot" style="background:{{ item.tag.color }}"></span>
+            <code class="adm-code adm-code--sm">{{ item.tag.color }}</code>
+          {% else %}—{% endif %}
+        </td>
+        <td class="adm-table__num">{{ item.post_count }}</td>
+        <td class="adm-table__actions">
+          {# Inline edit #}
+          <details class="adm-inline-form">
+            <summary class="adm-btn adm-btn--xs">Edit</summary>
+            <form method="post" action="{{ url_for('admin.topic_edit', slug=item.tag.slug) }}" class="adm-inline-form__body">
+              <div class="adm-form-row">
+                <label class="adm-label">Name</label>
+                <input type="text" name="name" value="{{ item.tag.name }}" class="adm-input adm-input--sm" required />
+              </div>
+              <div class="adm-form-row">
+                <label class="adm-label">Description</label>
+                <input type="text" name="description" value="{{ item.tag.description or '' }}" class="adm-input adm-input--sm" />
+              </div>
+              <div class="adm-form-row">
+                <label class="adm-label">Color</label>
+                <input type="text" name="color" value="{{ item.tag.color or '' }}" class="adm-input adm-input--sm" placeholder="#a3e635" />
+              </div>
+              <button type="submit" class="adm-btn adm-btn--sm">Save</button>
+            </form>
+          </details>
+
+          {% if can("manage_users") %}
+          <form method="post" action="{{ url_for('admin.topic_delete', slug=item.tag.slug) }}" style="display:inline">
+            <button class="adm-btn adm-btn--xs adm-btn--danger"
+                    onclick="return confirm('Delete topic « {{ item.tag.name }} »? ({{ item.post_count }} posts will lose it)')">
+              Delete
+            </button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="adm-table__empty">No topics found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% set last_page = ((total - 1) // 50 + 1) if total > 0 else 1 %}
+{% if last_page > 1 %}
+<nav class="adm-pagination">
+  {% if page > 1 %}<a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page-1)) }}" class="adm-pagination__btn">‹ Prev</a>{% endif %}
+  <span class="adm-pagination__info">Page {{ page }} of {{ last_page }}</span>
+  {% if page < last_page %}<a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page+1)) }}" class="adm-pagination__btn">Next ›</a>{% endif %}
+</nav>
+{% endif %}
+
+{# ── Create new topic ────────────────────────────────────────────────────── #}
+<section class="adm-section" style="margin-top:2rem">
+  <h2 class="adm-section-title">Create Topic</h2>
+  <form method="post" action="{{ url_for('admin.topic_create') }}" class="adm-form-inline">
+    <div class="adm-form-row">
+      <label class="adm-label" for="new-name">Name *</label>
+      <input type="text" id="new-name" name="name" class="adm-input" required placeholder="e.g. Machine Learning" />
+    </div>
+    <div class="adm-form-row">
+      <label class="adm-label" for="new-desc">Description</label>
+      <input type="text" id="new-desc" name="description" class="adm-input" placeholder="Short description" />
+    </div>
+    <div class="adm-form-row">
+      <label class="adm-label" for="new-color">Color</label>
+      <input type="text" id="new-color" name="color" class="adm-input adm-input--sm" placeholder="#a3e635" />
+    </div>
+    <button type="submit" class="adm-btn adm-btn--success">Create</button>
+  </form>
+</section>
+{% endblock %}

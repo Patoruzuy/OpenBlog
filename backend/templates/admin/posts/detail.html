@@ -1,0 +1,128 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Post: {{ post.title | truncate(40) }}{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <div>
+    <a href="{{ url_for('admin.posts') }}" class="adm-breadcrumb">← Posts</a>
+    <h1 class="adm-page-title">{{ post.title | truncate(80) }}</h1>
+  </div>
+</div>
+
+<div class="adm-two-col adm-two-col--sidebar">
+
+  {# ── Main ─────────────────────────────────────────────────────────────── #}
+  <div>
+
+    {# Status quick-actions #}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Status Actions</h2>
+      <div class="adm-action-group">
+        {% if post.status.value != 'published' %}
+        <form method="post" action="{{ url_for('admin.post_set_status', post_id=post.id) }}">
+          <input type="hidden" name="status" value="published" />
+          <button class="adm-btn adm-btn--success" onclick="return confirm('Publish this post?')">Publish</button>
+        </form>
+        {% endif %}
+        {% if post.status.value == 'published' %}
+        <form method="post" action="{{ url_for('admin.post_set_status', post_id=post.id) }}">
+          <input type="hidden" name="status" value="draft" />
+          <button class="adm-btn adm-btn--neutral" onclick="return confirm('Revert to draft?')">Unpublish</button>
+        </form>
+        {% endif %}
+        {% if post.status.value != 'archived' %}
+        <form method="post" action="{{ url_for('admin.post_set_status', post_id=post.id) }}">
+          <input type="hidden" name="status" value="archived" />
+          <button class="adm-btn adm-btn--warn" onclick="return confirm('Archive this post?')">Archive</button>
+        </form>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('admin.post_toggle_feature', post_id=post.id) }}">
+          <button class="adm-btn {% if post.is_featured %}adm-btn--warn{% else %}adm-btn--neutral{% endif %}">
+            {% if post.is_featured %}★ Unfeature{% else %}☆ Feature{% endif %}
+          </button>
+        </form>
+
+        {% if can("manage_content") %}
+        <a href="{{ url_for('posts.post_detail', slug=post.slug) }}" class="adm-btn adm-btn--neutral" target="_blank" rel="noopener">View post ↗</a>
+        {% endif %}
+
+        {% if can("manage_users") %}
+        <form method="post" action="{{ url_for('admin.post_delete', post_id=post.id) }}" style="margin-left:auto">
+          <button class="adm-btn adm-btn--danger" onclick="return confirm('Permanently delete this post and all its data? This cannot be undone.')">Delete</button>
+        </form>
+        {% endif %}
+      </div>
+    </section>
+
+    {# Revisions #}
+    <section class="adm-section">
+      <h2 class="adm-section-title">Revisions</h2>
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Summary</th>
+            <th>Contributor</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rev in post.revisions | sort(attribute='created_at', reverse=true) %}
+          <tr>
+            <td>{{ rev.summary | truncate(55) if rev.summary else '<em>No summary</em>' | safe }}</td>
+            <td>{{ rev.author.username if rev.author else '—' }}</td>
+            <td><span class="adm-badge adm-badge--{{ rev.status.value }}">{{ rev.status.value }}</span></td>
+            <td class="adm-table__ts">{{ rev.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="adm-table__actions">
+              <a href="{{ url_for('admin.revision_detail', revision_id=rev.id) }}" class="adm-btn adm-btn--xs">View</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="adm-table__empty">No revisions.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  {# ── Sidebar metadata ─────────────────────────────────────────────────── #}
+  <aside class="adm-sidebar-panel">
+    <dl class="adm-meta">
+      <dt>Status</dt>
+      <dd><span class="adm-badge adm-badge--{{ post.status.value }}">{{ post.status.value }}</span></dd>
+
+      <dt>Author</dt>
+      <dd>
+        {% if post.author %}
+          <a href="{{ url_for('admin.user_detail', user_id=post.author_id) }}">{{ post.author.username }}</a>
+        {% else %}—{% endif %}
+      </dd>
+
+      <dt>Version</dt>
+      <dd>v{{ post.version }}</dd>
+
+      <dt>Views</dt>
+      <dd>{{ post.view_count }}</dd>
+
+      <dt>Tags</dt>
+      <dd>{{ post.tags | map(attribute='name') | join(', ') or '—' }}</dd>
+
+      <dt>Created</dt>
+      <dd>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+      <dt>Updated</dt>
+      <dd>{{ post.updated_at.strftime('%Y-%m-%d %H:%M') if post.updated_at else '—' }}</dd>
+
+      {% if post.published_at %}
+      <dt>Published</dt>
+      <dd>{{ post.published_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+      {% endif %}
+
+      <dt>Featured</dt>
+      <dd>{{ 'Yes' if post.is_featured else 'No' }}</dd>
+    </dl>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,497 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-02-26 12:30+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: backend/routes/tags.py:23
+msgid "Routing, blueprints, deployment, and real-world patterns."
+msgstr ""
+
+#: backend/routes/tags.py:24
+msgid "Language features, tooling, packaging, and ecosystem notes."
+msgstr ""
+
+#: backend/routes/tags.py:25 backend/routes/tags.py:26
+msgid "Queries, indexing, full-text search, and migrations."
+msgstr ""
+
+#: backend/routes/tags.py:27
+msgid "Task queues, beat scheduling, and worker configuration."
+msgstr ""
+
+#: backend/routes/tags.py:28
+msgid "Caching, queuing, pub/sub, and persistence patterns."
+msgstr ""
+
+#: backend/routes/tags.py:29
+msgid "Containerisation, Compose, and production Dockerfiles."
+msgstr ""
+
+#: backend/routes/tags.py:30
+msgid "Shell scripting, system administration, and tooling."
+msgstr ""
+
+#: backend/routes/tags.py:31
+msgid "Branching, rebasing, workflows, and repo management."
+msgstr ""
+
+#: backend/routes/tags.py:32
+msgid "Queries, schema design, indexing, and optimisation."
+msgstr ""
+
+#: backend/routes/tags.py:33
+msgid "REST design, versioning, auth, and documentation."
+msgstr ""
+
+#: backend/routes/tags.py:34
+msgid "Unit tests, integration tests, fixtures, and coverage."
+msgstr ""
+
+#: backend/routes/tags.py:35
+msgid "CI/CD pipelines, infrastructure, and deployment automation."
+msgstr ""
+
+#: backend/routes/tags.py:36
+msgid "Auth patterns, input validation, secrets management."
+msgstr ""
+
+#: backend/routes/tags.py:37
+msgid "Language models, embeddings, retrieval, and practical ML."
+msgstr ""
+
+#: backend/routes/tags.py:38
+msgid "Browser JS, tooling, and small scripting patterns."
+msgstr ""
+
+#: backend/routes/tags.py:39
+msgid "Type safety, configuration, and real-world usage."
+msgstr ""
+
+#: backend/routes/tags.py:40
+msgid "System design, service boundaries, and trade-offs."
+msgstr ""
+
+#: backend/templates/base.html:34 backend/templates/index.html:3
+msgid "Home"
+msgstr ""
+
+#: backend/templates/base.html:36 backend/templates/index.html:172
+#: backend/templates/tags/index.html:2 backend/templates/tags/index.html:8
+msgid "Topics"
+msgstr ""
+
+#: backend/templates/base.html:38
+msgid "Writing"
+msgstr ""
+
+#: backend/templates/base.html:40 backend/templates/revisions/list.html:3
+msgid "Revisions"
+msgstr ""
+
+#: backend/templates/base.html:43
+msgid "Write"
+msgstr ""
+
+#: backend/templates/base.html:46
+msgid "Notifications"
+msgstr ""
+
+#: backend/templates/base.html:48
+#, python-format
+msgid "%(count)s unread"
+msgid_plural "%(count)s unread"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/base.html:51
+msgid "Sign out"
+msgstr ""
+
+#: backend/templates/base.html:53
+msgid "Sign in"
+msgstr ""
+
+#: backend/templates/base.html:57
+msgid "Switch language"
+msgstr ""
+
+#: backend/templates/base.html:96
+msgid "Engineering notes, open to improvement."
+msgstr ""
+
+#: backend/templates/index.html:10
+msgid "engineering notebook"
+msgstr ""
+
+#: backend/templates/index.html:11
+msgid "Software notes"
+msgstr ""
+
+#: backend/templates/index.html:11
+msgid "that get better over time."
+msgstr ""
+
+#: backend/templates/index.html:13
+msgid ""
+"Practical writeups for developers who build real systems — architecture "
+"decisions, debugging logs, tooling guides, and the things that actually "
+"helped. Every article can be improved through reviewed community "
+"revisions."
+msgstr ""
+
+#: backend/templates/index.html:16
+msgid "Start reading"
+msgstr ""
+
+#: backend/templates/index.html:17 backend/templates/index.html:188
+msgid "How it works"
+msgstr ""
+
+#: backend/templates/index.html:25 backend/templates/macros/cards.html:75
+#: backend/templates/tags/index.html:28
+msgid "post"
+msgid_plural "posts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/index.html:31
+msgid "revision accepted"
+msgid_plural "revisions accepted"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/index.html:37
+msgid "contributor"
+msgid_plural "contributors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/index.html:50 backend/templates/macros/cards.html:5
+msgid "Featured"
+msgstr ""
+
+#: backend/templates/index.html:51
+msgid "All writing"
+msgstr ""
+
+#: backend/templates/index.html:62
+msgid "Latest writing"
+msgstr ""
+
+#: backend/templates/index.html:64
+msgid "All posts"
+msgstr ""
+
+#: backend/templates/index.html:73
+msgid "Nothing published yet."
+msgstr ""
+
+#: backend/templates/index.html:75
+msgid "You have write access — start with a draft."
+msgstr ""
+
+#: backend/templates/index.html:77
+msgid "Sign up to contribute"
+msgstr ""
+
+#: backend/templates/index.html:88
+msgid "Recently revised"
+msgstr ""
+
+#: backend/templates/index.html:90
+msgid "Revision log"
+msgstr ""
+
+#: backend/templates/index.html:94
+msgid ""
+"Articles here are versioned. When a community improvement is accepted by "
+"an editor, the post version increments and the contributor is credited in"
+" the revision history."
+msgstr ""
+
+#: backend/templates/index.html:102
+msgid "No revised articles yet."
+msgstr ""
+
+#: backend/templates/index.html:103
+msgid "Pick a post, find something to improve, propose a change."
+msgstr ""
+
+#: backend/templates/index.html:104
+msgid "Browse posts"
+msgstr ""
+
+#: backend/templates/index.html:114
+msgid "Open revisions"
+msgstr ""
+
+#: backend/templates/index.html:116 backend/templates/revisions/detail.html:10
+msgid "Review queue"
+msgstr ""
+
+#: backend/templates/index.html:125
+msgid "No pending revisions."
+msgstr ""
+
+#: backend/templates/index.html:126
+msgid "Found a mistake or something to clarify?"
+msgstr ""
+
+#: backend/templates/index.html:128
+msgid "Find a post to improve"
+msgstr ""
+
+#: backend/templates/index.html:139
+msgid "Learning paths"
+msgstr ""
+
+#: backend/templates/index.html:140 backend/templates/index.html:173
+msgid "All topics"
+msgstr ""
+
+#: backend/templates/index.html:145
+msgid "Flask & Backend"
+msgstr ""
+
+#: backend/templates/index.html:146
+msgid ""
+"Routing, blueprints, extensions, and production deployment. Building web "
+"services with Python."
+msgstr ""
+
+#: backend/templates/index.html:150
+msgid "Python Tooling"
+msgstr ""
+
+#: backend/templates/index.html:151
+msgid ""
+"Dependency management, linting, testing, and packaging. The ecosystem "
+"that makes Python production-ready."
+msgstr ""
+
+#: backend/templates/index.html:155
+msgid "AI & Automation"
+msgstr ""
+
+#: backend/templates/index.html:156
+msgid ""
+"LLM integration, prompt engineering, and workflow automation. Practical "
+"notes from real implementation."
+msgstr ""
+
+#: backend/templates/index.html:160
+msgid "Dev Tools"
+msgstr ""
+
+#: backend/templates/index.html:161
+msgid ""
+"Editor setup, CLI utilities, shell scripts, and the smaller tools that "
+"compound over a career."
+msgstr ""
+
+#: backend/templates/index.html:193
+msgid "Read a post"
+msgstr ""
+
+#: backend/templates/index.html:195
+msgid ""
+"Browse engineering notes written in Markdown. Each post carries a version"
+" number and a complete revision history."
+msgstr ""
+
+#: backend/templates/index.html:200
+msgid "Propose a change"
+msgstr ""
+
+#: backend/templates/index.html:202
+msgid ""
+"Any signed-in reader can submit a targeted diff — correcting an error, "
+"clarifying a step, expanding on a topic."
+msgstr ""
+
+#: backend/templates/index.html:207
+msgid "Get it merged"
+msgstr ""
+
+#: backend/templates/index.html:209
+msgid ""
+"Editors review the diff. If it improves the post, it is accepted: the "
+"version increments, the contributor is credited."
+msgstr ""
+
+#: backend/templates/macros/cards.html:22
+msgid "min read"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:33
+msgid "Proposed by"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:38
+msgid "Submitted"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:43
+msgid "Based on"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:71
+msgid "Revision summary"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:94
+msgid "Unified"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:102
+msgid "Split view"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:102
+msgid "Split"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:137
+msgid "No diff data available for this revision."
+msgstr ""
+
+#: backend/templates/revisions/detail.html:149
+msgid "Review this revision"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:150
+msgid "Your decision is final and the contributor will be notified."
+msgstr ""
+
+#: backend/templates/revisions/detail.html:158
+msgid "Accept"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:160
+msgid ""
+"Applies the diff. Post version increments. Contributor is credited in "
+"revision history."
+msgstr ""
+
+#: backend/templates/revisions/detail.html:167
+msgid "Accept revision"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:175
+msgid "Reject"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:177
+msgid "Closes the revision without changes. Leave a note to explain the decision."
+msgstr ""
+
+#: backend/templates/revisions/detail.html:186
+msgid "Rejection note (optional)"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:188
+msgid "Rejection note"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:191
+msgid "Reject revision"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:227
+#, python-format
+msgid "Show %(n)s unchanged line"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:228
+#, python-format
+msgid "Show %(n)s unchanged lines"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:229
+msgid "Collapse unchanged lines"
+msgstr ""
+
+#: backend/templates/revisions/list.html:9
+msgid "Revision queue"
+msgstr ""
+
+#: backend/templates/revisions/list.html:11
+msgid "Community-proposed improvements to published posts."
+msgstr ""
+
+#: backend/templates/revisions/list.html:12
+msgid "revision"
+msgid_plural "revisions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/revisions/list.html:19
+msgid "Pending"
+msgstr ""
+
+#: backend/templates/revisions/list.html:21
+msgid "Accepted"
+msgstr ""
+
+#: backend/templates/revisions/list.html:23
+msgid "Rejected"
+msgstr ""
+
+#: backend/templates/revisions/list.html:25
+msgid "All"
+msgstr ""
+
+#: backend/templates/revisions/list.html:41
+msgid "Prev"
+msgstr ""
+
+#: backend/templates/revisions/list.html:43
+#, python-format
+msgid "Page %(page)s of %(total)s"
+msgstr ""
+
+#: backend/templates/revisions/list.html:46
+msgid "Next"
+msgstr ""
+
+#: backend/templates/revisions/list.html:54
+#, python-format
+msgid "No %(status)s revisions."
+msgstr ""
+
+#: backend/templates/revisions/list.html:56
+msgid "The queue is clear — all caught up."
+msgstr ""
+
+#: backend/templates/tags/index.html:10
+msgid "topic"
+msgid_plural "topics"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/tags/index.html:10
+msgid "browse by subject area"
+msgstr ""
+
+#: backend/templates/tags/index.html:36
+msgid "No topics yet."
+msgstr ""
+
+#: backend/templates/tags/index.html:37
+msgid "Start writing posts and add tags to create topics."
+msgstr ""
+

@@ -1,0 +1,407 @@
+# Spanish translations for OpenBlog.
+# Copyright (C) 2026 OpenBlog
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: OpenBlog 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-26 12:30+0000\n"
+"PO-Revision-Date: 2026-02-26 12:30+0000\n"
+"Last-Translator: OpenBlog\n"
+"Language: es\n"
+"Language-Team: Spanish\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "Topics"
+msgstr "Temas"
+
+msgid "Writing"
+msgstr "Artículos"
+
+msgid "Revisions"
+msgstr "Revisiones"
+
+msgid "Write"
+msgstr "Escribir"
+
+msgid "Notifications"
+msgstr "Notificaciones"
+
+#, python-format
+msgid "%(count)s unread"
+msgid_plural "%(count)s unread"
+msgstr[0] "%(count)s sin leer"
+msgstr[1] "%(count)s sin leer"
+
+msgid "Sign out"
+msgstr "Cerrar sesión"
+
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+msgid "Switch language"
+msgstr "Cambiar idioma"
+
+msgid "Engineering notes, open to improvement."
+msgstr "Notas de ingeniería, abiertas a mejora."
+
+msgid "engineering notebook"
+msgstr "cuaderno de ingeniería"
+
+msgid "Software notes"
+msgstr "Notas de software"
+
+msgid "that get better over time."
+msgstr "que mejoran con el tiempo."
+
+msgid ""
+"Practical writeups for developers who build real systems — architecture "
+"decisions, debugging logs, tooling guides, and the things that actually "
+"helped. Every article can be improved through reviewed community "
+"revisions."
+msgstr ""
+"Artículos prácticos para desarrolladores que construyen sistemas reales — "
+"decisiones de arquitectura, registros de depuración, guías de herramientas y "
+"todo lo que realmente ayuda. Cada artículo puede mejorarse mediante revisiones "
+"comunitarias supervisadas."
+
+msgid "Start reading"
+msgstr "Empezar a leer"
+
+msgid "How it works"
+msgstr "Cómo funciona"
+
+msgid "post"
+msgid_plural "posts"
+msgstr[0] "publicación"
+msgstr[1] "publicaciones"
+
+msgid "revision accepted"
+msgid_plural "revisions accepted"
+msgstr[0] "revisión aceptada"
+msgstr[1] "revisiones aceptadas"
+
+msgid "contributor"
+msgid_plural "contributors"
+msgstr[0] "colaborador"
+msgstr[1] "colaboradores"
+
+msgid "Featured"
+msgstr "Destacado"
+
+msgid "All writing"
+msgstr "Todo lo publicado"
+
+msgid "Latest writing"
+msgstr "Últimas publicaciones"
+
+msgid "All posts"
+msgstr "Todos los artículos"
+
+msgid "Nothing published yet."
+msgstr "Nada publicado aún."
+
+msgid "You have write access — start with a draft."
+msgstr "Tienes acceso de escritura — empieza con un borrador."
+
+msgid "Sign up to contribute"
+msgstr "Regístrate para contribuir"
+
+msgid "Recently revised"
+msgstr "Revisados recientemente"
+
+msgid "Revision log"
+msgstr "Historial de revisiones"
+
+msgid ""
+"Articles here are versioned. When a community improvement is accepted by "
+"an editor, the post version increments and the contributor is credited in"
+" the revision history."
+msgstr ""
+"Los artículos aquí son versionados. Cuando una mejora comunitaria es aceptada "
+"por un editor, la versión del artículo se incrementa y el colaborador queda "
+"acreditado en el historial de revisiones."
+
+msgid "No revised articles yet."
+msgstr "Aún no hay artículos revisados."
+
+msgid "Pick a post, find something to improve, propose a change."
+msgstr "Elige un artículo, encuentra algo que mejorar, propón un cambio."
+
+msgid "Browse posts"
+msgstr "Explorar artículos"
+
+msgid "Open revisions"
+msgstr "Revisiones abiertas"
+
+msgid "Review queue"
+msgstr "Cola de revisión"
+
+msgid "No pending revisions."
+msgstr "No hay revisiones pendientes."
+
+msgid "Found a mistake or something to clarify?"
+msgstr "¿Encontraste un error o algo que clarificar?"
+
+msgid "Find a post to improve"
+msgstr "Encuentra un artículo para mejorar"
+
+msgid "Learning paths"
+msgstr "Rutas de aprendizaje"
+
+msgid "All topics"
+msgstr "Todos los temas"
+
+msgid "Flask & Backend"
+msgstr "Flask y Backend"
+
+msgid ""
+"Routing, blueprints, extensions, and production deployment. Building web "
+"services with Python."
+msgstr ""
+"Enrutamiento, blueprints, extensiones y despliegue en producción. Construyendo "
+"servicios web con Python."
+
+msgid "Python Tooling"
+msgstr "Herramientas Python"
+
+msgid ""
+"Dependency management, linting, testing, and packaging. The ecosystem "
+"that makes Python production-ready."
+msgstr ""
+"Gestión de dependencias, linting, testing y empaquetado. El ecosistema que "
+"hace a Python apto para producción."
+
+msgid "AI & Automation"
+msgstr "IA y Automatización"
+
+msgid ""
+"LLM integration, prompt engineering, and workflow automation. Practical "
+"notes from real implementation."
+msgstr ""
+"Integración con LLMs, ingeniería de prompts y automatización de flujos. Notas "
+"prácticas de implementaciones reales."
+
+msgid "Dev Tools"
+msgstr "Herramientas Dev"
+
+msgid ""
+"Editor setup, CLI utilities, shell scripts, and the smaller tools that "
+"compound over a career."
+msgstr ""
+"Configuración de editor, utilidades CLI, scripts de shell y las herramientas "
+"más pequeñas que se acumulan a lo largo de una carrera."
+
+msgid "Read a post"
+msgstr "Lee un artículo"
+
+msgid ""
+"Browse engineering notes written in Markdown. Each post carries a version"
+" number and a complete revision history."
+msgstr ""
+"Explora notas de ingeniería escritas en Markdown. Cada artículo lleva un "
+"número de versión y un historial de revisiones completo."
+
+msgid "Propose a change"
+msgstr "Propón un cambio"
+
+msgid ""
+"Any signed-in reader can submit a targeted diff — correcting an error, "
+"clarifying a step, expanding on a topic."
+msgstr ""
+"Cualquier lector autenticado puede enviar un diff concreto — corregir un "
+"error, aclarar un paso, ampliar un tema."
+
+msgid "Get it merged"
+msgstr "Consigue que se integre"
+
+msgid ""
+"Editors review the diff. If it improves the post, it is accepted: the "
+"version increments, the contributor is credited."
+msgstr ""
+"Los editores revisan el diff. Si mejora el artículo, se acepta: la versión se "
+"incrementa y el colaborador queda acreditado."
+
+msgid "min read"
+msgstr "min de lectura"
+
+msgid "Proposed by"
+msgstr "Propuesto por"
+
+msgid "Submitted"
+msgstr "Enviado"
+
+msgid "Based on"
+msgstr "Basado en"
+
+msgid "Revision summary"
+msgstr "Resumen de la revisión"
+
+msgid "Unified"
+msgstr "Unificado"
+
+msgid "Split view"
+msgstr "Vista dividida"
+
+msgid "Split"
+msgstr "Dividido"
+
+msgid "No diff data available for this revision."
+msgstr "No hay datos de diff disponibles para esta revisión."
+
+msgid "Review this revision"
+msgstr "Revisar esta revisión"
+
+msgid "Your decision is final and the contributor will be notified."
+msgstr "Tu decisión es definitiva y el colaborador será notificado."
+
+msgid "Accept"
+msgstr "Aceptar"
+
+msgid ""
+"Applies the diff. Post version increments. Contributor is credited in "
+"revision history."
+msgstr ""
+"Aplica el diff. La versión del artículo se incrementa. El colaborador queda "
+"acreditado en el historial de revisiones."
+
+msgid "Accept revision"
+msgstr "Aceptar revisión"
+
+msgid "Reject"
+msgstr "Rechazar"
+
+msgid "Closes the revision without changes. Leave a note to explain the decision."
+msgstr "Cierra la revisión sin cambios. Deja una nota para explicar la decisión."
+
+msgid "Rejection note (optional)"
+msgstr "Nota de rechazo (opcional)"
+
+msgid "Rejection note"
+msgstr "Nota de rechazo"
+
+msgid "Reject revision"
+msgstr "Rechazar revisión"
+
+#, python-format
+msgid "Show %(n)s unchanged line"
+msgstr "Mostrar %(n)s línea sin cambios"
+
+#, python-format
+msgid "Show %(n)s unchanged lines"
+msgstr "Mostrar %(n)s líneas sin cambios"
+
+msgid "Collapse unchanged lines"
+msgstr "Contraer líneas sin cambios"
+
+msgid "Revision queue"
+msgstr "Cola de revisión"
+
+msgid "Community-proposed improvements to published posts."
+msgstr "Mejoras propuestas por la comunidad a artículos publicados."
+
+msgid "revision"
+msgid_plural "revisions"
+msgstr[0] "revisión"
+msgstr[1] "revisiones"
+
+msgid "Pending"
+msgstr "Pendiente"
+
+msgid "Accepted"
+msgstr "Aceptado"
+
+msgid "Rejected"
+msgstr "Rechazado"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Prev"
+msgstr "Anterior"
+
+#, python-format
+msgid "Page %(page)s of %(total)s"
+msgstr "Página %(page)s de %(total)s"
+
+msgid "Next"
+msgstr "Siguiente"
+
+#, python-format
+msgid "No %(status)s revisions."
+msgstr "No hay revisiones %(status)s."
+
+msgid "The queue is clear — all caught up."
+msgstr "La cola está vacía — todo al día."
+
+msgid "topic"
+msgid_plural "topics"
+msgstr[0] "tema"
+msgstr[1] "temas"
+
+msgid "browse by subject area"
+msgstr "explorar por área temática"
+
+msgid "No topics yet."
+msgstr "Aún no hay temas."
+
+msgid "Start writing posts and add tags to create topics."
+msgstr "Empieza a escribir artículos y añade etiquetas para crear temas."
+
+msgid "Routing, blueprints, deployment, and real-world patterns."
+msgstr "Enrutamiento, blueprints, despliegue y patrones del mundo real."
+
+msgid "Language features, tooling, packaging, and ecosystem notes."
+msgstr "Características del lenguaje, herramientas, empaquetado y notas del ecosistema."
+
+msgid "Queries, indexing, full-text search, and migrations."
+msgstr "Consultas, indexación, búsqueda de texto completo y migraciones."
+
+msgid "Task queues, beat scheduling, and worker configuration."
+msgstr "Colas de tareas, programación beat y configuración de workers."
+
+msgid "Caching, queuing, pub/sub, and persistence patterns."
+msgstr "Caché, colas, pub/sub y patrones de persistencia."
+
+msgid "Containerisation, Compose, and production Dockerfiles."
+msgstr "Contenedores, Compose y Dockerfiles de producción."
+
+msgid "Shell scripting, system administration, and tooling."
+msgstr "Scripting de shell, administración de sistemas y herramientas."
+
+msgid "Branching, rebasing, workflows, and repo management."
+msgstr "Ramificación, rebase, flujos de trabajo y gestión de repositorios."
+
+msgid "Queries, schema design, indexing, and optimisation."
+msgstr "Consultas, diseño de esquemas, indexación y optimización."
+
+msgid "REST design, versioning, auth, and documentation."
+msgstr "Diseño REST, versionado, autenticación y documentación."
+
+msgid "Unit tests, integration tests, fixtures, and coverage."
+msgstr "Tests unitarios, tests de integración, fixtures y cobertura."
+
+msgid "CI/CD pipelines, infrastructure, and deployment automation."
+msgstr "Pipelines CI/CD, infraestructura y automatización del despliegue."
+
+msgid "Auth patterns, input validation, secrets management."
+msgstr "Patrones de autenticación, validación de entrada, gestión de secretos."
+
+msgid "Language models, embeddings, retrieval, and practical ML."
+msgstr "Modelos de lenguaje, embeddings, recuperación y ML práctico."
+
+msgid "Browser JS, tooling, and small scripting patterns."
+msgstr "JS de navegador, herramientas y patrones de scripting."
+
+msgid "Type safety, configuration, and real-world usage."
+msgstr "Seguridad de tipos, configuración y uso en el mundo real."
+
+msgid "System design, service boundaries, and trade-offs."
+msgstr "Diseño de sistemas, límites de servicios y compensaciones."

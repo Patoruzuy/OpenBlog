@@ -124,21 +124,21 @@ class TestAuthMetrics:
         before = _val("openblog_user_registrations_total")
         from backend.services.auth_service import AuthService
 
-        AuthService.register("reg_metrics@example.com", "reg_metrics_user", "pass1234")
+        AuthService.register("reg_metrics@example.com", "reg_metrics_user", "StrongPass123!!")
         assert _val("openblog_user_registrations_total") == before + 1
 
     def test_successful_login_increments_success_counter(self, db_session):
         from backend.services.auth_service import AuthService
 
-        AuthService.register("login_ok@example.com", "login_ok_user", "pass1234")
+        AuthService.register("login_ok@example.com", "login_ok_user", "StrongPass123!!")
         before = _val("openblog_user_logins_total", {"outcome": "success"})
-        AuthService.login("login_ok@example.com", "pass1234")
+        AuthService.login("login_ok@example.com", "StrongPass123!!")
         assert _val("openblog_user_logins_total", {"outcome": "success"}) == before + 1
 
     def test_wrong_password_increments_failure_counter(self, db_session):
         from backend.services.auth_service import AuthError, AuthService
 
-        AuthService.register("login_fail@example.com", "login_fail_user", "pass1234")
+        AuthService.register("login_fail@example.com", "login_fail_user", "StrongPass123!!")
         before = _val("openblog_user_logins_total", {"outcome": "failure"})
         with pytest.raises(AuthError):
             AuthService.login("login_fail@example.com", "wrongpassword")
@@ -149,7 +149,7 @@ class TestAuthMetrics:
 
         before = _val("openblog_user_logins_total", {"outcome": "failure"})
         with pytest.raises(AuthError):
-            AuthService.login("nobody@example.com", "pass1234")
+            AuthService.login("nobody@example.com", "StrongPass123!!")
         assert _val("openblog_user_logins_total", {"outcome": "failure"}) == before + 1
 
 

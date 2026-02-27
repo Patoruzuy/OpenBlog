@@ -1,0 +1,14 @@
+{% extends "admin/_layout.html" %}
+{% block title %}403 Forbidden{% endblock %}
+
+{% block content %}
+<div class="adm-error-page">
+  <span class="adm-error-page__code">403</span>
+  <h1 class="adm-error-page__title">Access Denied</h1>
+  <p class="adm-error-page__body">
+    You don't have permission to access this section.
+    {% if required %} Required capability: <code>{{ required }}</code>.{% endif %}
+  </p>
+  <a href="{{ url_for('admin.dashboard') }}" class="adm-btn">← Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -14,7 +14,7 @@ from backend.services.search_service import SearchService
 
 
 def make_author():
-    return AuthService.register("author@search.com", "srchauthor", "password123")
+    return AuthService.register("author@search.com", "srchauthor", "StrongPass123!!")
 
 
 def make_post(author_id: int, title: str, body: str = "", tags: list[str] | None = None):
@@ -27,11 +27,11 @@ def make_post(author_id: int, title: str, body: str = "", tags: list[str] | None
 
 class TestSearchEmpty:
     def test_empty_string_returns_nothing(self, db_session):  # noqa: ARG002
-        posts, total = SearchService.search("")
+        _r = SearchService.search(""); posts, total = _r.posts, _r.post_total
         assert posts == [] and total == 0
 
     def test_whitespace_only_returns_nothing(self, db_session):  # noqa: ARG002
-        posts, total = SearchService.search("   ")
+        _r = SearchService.search("   "); posts, total = _r.posts, _r.post_total
         assert posts == [] and total == 0
 
 
@@ -42,26 +42,26 @@ class TestSearchTitle:
     def test_exact_title_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Flask Tutorial", "Learn Flask today.")
-        posts, total = SearchService.search("Flask Tutorial")
+        _r = SearchService.search("Flask Tutorial"); posts, total = _r.posts, _r.post_total
         assert total == 1
         assert posts[0].title == "Flask Tutorial"
 
     def test_partial_title_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Advanced Python Tips")
-        posts, total = SearchService.search("Python")
+        _r = SearchService.search("Python"); posts, total = _r.posts, _r.post_total
         assert total == 1
 
     def test_case_insensitive_title(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Docker Compose Guide")
-        posts, total = SearchService.search("docker")
+        _r = SearchService.search("docker"); posts, total = _r.posts, _r.post_total
         assert total == 1
 
     def test_no_match_returns_empty(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Unrelated Post")
-        posts, total = SearchService.search("kubernetes")
+        _r = SearchService.search("kubernetes"); posts, total = _r.posts, _r.post_total
         assert total == 0 and posts == []
 
 
@@ -72,13 +72,13 @@ class TestSearchBody:
     def test_body_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "My Post", "This covers async/await in depth.")
-        posts, total = SearchService.search("async")
+        _r = SearchService.search("async"); posts, total = _r.posts, _r.post_total
         assert total == 1
 
     def test_body_no_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "My Post", "Completely unrelated content.")
-        posts, total = SearchService.search("microservices")
+        _r = SearchService.search("microservices"); posts, total = _r.posts, _r.post_total
         assert total == 0
 
 
@@ -89,13 +89,13 @@ class TestSearchTags:
     def test_tag_name_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "A Post About Stuff", tags=["python", "flask"])
-        posts, total = SearchService.search("flask")
+        _r = SearchService.search("flask"); posts, total = _r.posts, _r.post_total
         assert total == 1
 
     def test_tag_slug_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Another Post", tags=["machine-learning"])
-        posts, total = SearchService.search("machine")
+        _r = SearchService.search("machine"); posts, total = _r.posts, _r.post_total
         assert total == 1
 
 
@@ -107,13 +107,13 @@ class TestSearchDraftExclusion:
         author = make_author()
         # Create but do NOT publish
         PostService.create(author.id, "Secret Draft Post", "Draft content here")
-        posts, total = SearchService.search("Secret Draft")
+        _r = SearchService.search("Secret Draft"); posts, total = _r.posts, _r.post_total
         assert total == 0 and posts == []
 
     def test_published_returned(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Public Article", "Visible content")
-        posts, total = SearchService.search("Public Article")
+        _r = SearchService.search("Public Article"); posts, total = _r.posts, _r.post_total
         assert total == 1
 
 
@@ -125,7 +125,7 @@ class TestSearchPagination:
         author = make_author()
         for i in range(5):
             make_post(author.id, f"Python Post {i}", "Python content here")
-        posts, total = SearchService.search("Python", page=1, per_page=3)
+        _r = SearchService.search("Python", page=1, per_page=3); posts, total = _r.posts, _r.post_total
         assert total == 5
         assert len(posts) == 3
 
@@ -133,15 +133,15 @@ class TestSearchPagination:
         author = make_author()
         for i in range(4):
             make_post(author.id, f"Go Post {i}", "Go content here")
-        _, total = SearchService.search("Go", page=1, per_page=2)
-        posts_p2, _ = SearchService.search("Go", page=2, per_page=2)
+        total = SearchService.search("Go", page=1, per_page=2).post_total
+        posts_p2 = SearchService.search("Go", page=2, per_page=2).posts
         assert total == 4
         assert len(posts_p2) == 2
 
     def test_per_page_clamped_to_100(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Rust Post", "Rust content")
-        _, total = SearchService.search("Rust", per_page=9999)
+        total = SearchService.search("Rust", per_page=9999).post_total
         assert total == 1
 
 

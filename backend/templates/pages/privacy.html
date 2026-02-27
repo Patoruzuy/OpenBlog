@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy{% endblock %}
+
+{% block content %}
+<article class="prose container" style="max-width:72ch;padding-top:3rem;padding-bottom:3rem">
+  <h1>Privacy Policy</h1>
+  <p class="meta-small">Last updated: January 2025</p>
+
+  <p>Your privacy matters to us. This policy explains what data we collect, how we use it, and what rights you have.</p>
+
+  <h2>Data we collect</h2>
+  <ul>
+    <li><strong>Account data</strong> — email address, username, and hashed password when you register.</li>
+    <li><strong>Content data</strong> — posts, comments, and revisions you create.</li>
+    <li><strong>Usage data</strong> — server logs including IP addresses and page views for security and analytics.</li>
+  </ul>
+
+  <h2>How we use your data</h2>
+  <ul>
+    <li>To provide and operate the OpenBlog service.</li>
+    <li>To send transactional emails (password resets, notifications) you've requested.</li>
+    <li>To detect and prevent abuse.</li>
+  </ul>
+
+  <h2>Data sharing</h2>
+  <p>We do not sell or share your personal data with third parties for marketing purposes. We may share data when required by law.</p>
+
+  <h2>Data retention</h2>
+  <p>Account data is retained for as long as your account is active. You may request deletion of your account by contacting us.</p>
+
+  <h2>Cookies</h2>
+  <p>We use session cookies for authentication. See our <a href="{{ url_for('pages.cookies') }}">Cookie Policy</a>.</p>
+
+  <h2>Contact</h2>
+  <p>For privacy-related requests, email <a href="mailto:privacy@openblog.dev">privacy@openblog.dev</a>.</p>
+</article>
+{% endblock %}

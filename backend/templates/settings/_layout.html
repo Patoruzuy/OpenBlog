@@ -1,0 +1,85 @@
+{#
+  settings/_layout.html
+  ─────────────────────
+  Shared layout for all /settings/* pages.
+  Child templates extend this with:
+
+    {% extends "settings/_layout.html" %}
+    {% block settings_title %}Profile{% endblock %}
+    {% block settings_content %}…{% endblock %}
+#}
+{% extends "base.html" %}
+
+{% block title %}{{ self.settings_title() }} – Settings{% endblock %}
+
+{% block content %}
+<div class="settings-shell">
+
+  {# ── Side-nav ──────────────────────────────────────────────────────────── #}
+  <aside class="settings-nav" aria-label="Settings navigation">
+    <div class="settings-nav__header">
+      {% if current_user and current_user.avatar_url %}
+        <img
+          class="settings-nav__avatar"
+          src="{{ current_user.avatar_url }}"
+          alt="{{ current_user.username }}"
+          width="40" height="40"
+        />
+      {% else %}
+        <div class="settings-nav__avatar settings-nav__avatar--placeholder" aria-hidden="true">
+          {{ (current_user.display_name or current_user.username)[0]|upper if current_user else '?' }}
+        </div>
+      {% endif %}
+      <div class="settings-nav__user">
+        <span class="settings-nav__display-name">{{ current_user.display_name or current_user.username }}</span>
+        <span class="settings-nav__username">@{{ current_user.username }}</span>
+      </div>
+    </div>
+
+    <nav aria-label="Settings sections">
+      <ul class="settings-nav__list">
+        {% set nav_items = [
+          ('settings.profile',       'Profile',        'profile'),
+          ('settings.privacy',       'Privacy',        'privacy'),
+          ('settings.security',      'Security',       'security'),
+          ('settings.accounts',      'Accounts',       'accounts'),
+          ('settings.repositories',  'Repositories',   'repositories'),
+          ('settings.contributions', 'Contributions',  'contributions'),
+        ] %}
+        {% for endpoint, label, section in nav_items %}
+          <li>
+            <a
+              href="{{ url_for(endpoint) }}"
+              class="settings-nav__link{% if active_section == section %} settings-nav__link--active{% endif %}"
+              {% if active_section == section %}aria-current="page"{% endif %}
+            >{{ label }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </aside>
+
+  {# ── Main content ──────────────────────────────────────────────────────── #}
+  <main class="settings-main" id="main-content">
+    <header class="settings-main__header">
+      <h1 class="settings-main__title">{% block settings_title %}Settings{% endblock %}</h1>
+    </header>
+
+    {# ── Flash messages ──────────────────────────────────────────────────── #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="settings-flash" role="alert" aria-live="polite">
+          {% for category, message in messages %}
+            <div class="alert alert--{{ 'success' if category == 'success' else 'error' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block settings_content %}{% endblock %}
+  </main>
+
+</div>
+{% endblock %}

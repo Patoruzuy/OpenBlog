@@ -1,4 +1,5 @@
-.PHONY: up down build test test-integration lint format shell logs migrate
+.PHONY: up down build test test-integration lint format shell logs migrate \
+        i18n-extract i18n-update i18n-compile i18n
 
 # ─── Docker ───────────────────────────────────────────────────────────────────
 
@@ -43,3 +44,24 @@ shell:
 migrate:
 	@echo "Running Alembic migrations..."
 	poetry run alembic upgrade head
+
+# ─── i18n ─────────────────────────────────────────────────────────────────────
+
+PYBABEL := pybabel
+
+## Extract translatable strings → messages.pot
+i18n-extract:
+	$(PYBABEL) extract -F babel.cfg -k lazy_gettext -k _l \
+	    -o backend/translations/messages.pot .
+
+## Update all locale .po files from the current .pot
+i18n-update: i18n-extract
+	$(PYBABEL) update -i backend/translations/messages.pot \
+	    -d backend/translations
+
+## Compile .po → .mo (run after editing translations)
+i18n-compile:
+	$(PYBABEL) compile -d backend/translations
+
+## Full round-trip: extract → update → compile
+i18n: i18n-update i18n-compile

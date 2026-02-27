@@ -112,7 +112,7 @@ def make_user_token(app, db_session):  # noqa: ARG002
         username: str | None = None,
         *,
         role: str = "reader",
-        password: str = "password123",
+        password: str = "StrongPass123!!",
     ):
         _counter["n"] += 1
         n = _counter["n"]

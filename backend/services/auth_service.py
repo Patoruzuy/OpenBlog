@@ -20,6 +20,7 @@ import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from flask import current_app
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from backend.extensions import db
@@ -54,11 +55,11 @@ class AuthService:
 
         Raises
         ------
-        AuthError(400)  password too short (< 8 chars).
+        AuthError(400)  password too short (< 15 chars).
         AuthError(409)  email or username already taken.
         """
-        if len(password) < 8:
-            raise AuthError("Password must be at least 8 characters.", 400)
+        if len(password) < 15:
+            raise AuthError("Password must be at least 15 characters.", 400)
 
         user = User(
             email=email.lower().strip(),
@@ -86,7 +87,7 @@ class AuthService:
         ------
         AuthError(401)  invalid credentials or deactivated account.
         """
-        user = db.session.query(User).filter_by(email=email.lower().strip()).first()
+        user = db.session.scalar(select(User).where(User.email == email.lower().strip()))
         if user is None:
             metrics.user_logins.labels(outcome="failure").inc()
             raise AuthError("Invalid email or password.")
@@ -107,9 +108,39 @@ class AuthService:
             user.password_hash = _ph.hash(password)
             db.session.commit()
 
+        # Update last login timestamp.
+        user.last_login_at = datetime.now(UTC)
+        db.session.commit()
+
         access_token, refresh_token = AuthService.issue_tokens(user)
         metrics.user_logins.labels(outcome="success").inc()
         return user, access_token, refresh_token
+
+    # ── Password helpers ──────────────────────────────────────────────────────
+
+    @staticmethod
+    def verify_password(user: User, password: str) -> bool:
+        """Return ``True`` if *password* matches the user's current hash."""
+        if not user.password_hash:
+            return False
+        try:
+            _ph.verify(user.password_hash, password)
+            return True
+        except VerifyMismatchError:
+            return False
+
+    @staticmethod
+    def change_password(user: User, new_password: str) -> None:
+        """Update *user*'s password hash.
+
+        Raises
+        ------
+        AuthError(400)  if *new_password* is shorter than 15 characters.
+        """
+        if len(new_password) < 15:
+            raise AuthError("Password must be at least 15 characters.", 400)
+        user.password_hash = _ph.hash(new_password)
+        db.session.commit()
 
     # ── Token issuance ────────────────────────────────────────────────────────
 
@@ -232,3 +263,90 @@ class AuthService:
         """Remove the JTI from Redis (immediate server-side logout)."""
         redis_client = current_app.extensions["redis"]
         redis_client.delete(f"rt:{jti}")
+
+    # ── Password reset ────────────────────────────────────────────────────────
+
+    _RESET_SALT = "pw-reset-salt-v1"
+    _VERIFY_SALT = "email-verify-salt-v1"
+    _TOKEN_MAX_AGE = 3600  # 1 hour
+
+    @staticmethod
+    def _get_serializer() -> object:
+        from itsdangerous import URLSafeTimedSerializer  # noqa: PLC0415
+
+        return URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+
+    @staticmethod
+    def generate_password_reset_token(user: User) -> str:
+        """Return a signed, time-limited password-reset token for *user*."""
+        s = AuthService._get_serializer()
+        return s.dumps(user.email, salt=AuthService._RESET_SALT)  # type: ignore[union-attr]
+
+    @staticmethod
+    def confirm_password_reset_token(token: str) -> User:
+        """Validate *token* and return the associated User.
+
+        Raises ``AuthError(400)`` if the token is invalid or expired.
+        """
+        from itsdangerous import BadSignature, SignatureExpired  # noqa: PLC0415
+
+        s = AuthService._get_serializer()
+        try:
+            email = s.loads(  # type: ignore[union-attr]
+                token, salt=AuthService._RESET_SALT, max_age=AuthService._TOKEN_MAX_AGE
+            )
+        except SignatureExpired:
+            raise AuthError("Password reset link has expired.", 400)
+        except BadSignature:
+            raise AuthError("Invalid or tampered password reset link.", 400)
+
+        user = db.session.scalar(select(User).where(User.email == email))
+        if user is None:
+            raise AuthError("No account found for this link.", 400)
+        return user
+
+    @staticmethod
+    def set_new_password(user: User, password: str) -> None:
+        """Hash and store *password* for *user*.
+
+        Raises ``AuthError(400)`` if the password is too short.
+        """
+        if len(password) < 15:
+            raise AuthError("Password must be at least 15 characters.", 400)
+        user.password_hash = _ph.hash(password)
+        db.session.commit()
+
+    # ── Email verification ────────────────────────────────────────────────────
+
+    @staticmethod
+    def generate_email_verification_token(user: User) -> str:
+        """Return a signed, time-limited email-verification token for *user*."""
+        s = AuthService._get_serializer()
+        return s.dumps(user.email, salt=AuthService._VERIFY_SALT)  # type: ignore[union-attr]
+
+    @staticmethod
+    def confirm_email_verification_token(token: str) -> User:
+        """Validate *token* and mark the user's email as verified.
+
+        Raises ``AuthError(400)`` if the token is invalid or expired.
+        """
+        from itsdangerous import BadSignature, SignatureExpired  # noqa: PLC0415
+
+        s = AuthService._get_serializer()
+        try:
+            email = s.loads(  # type: ignore[union-attr]
+                token, salt=AuthService._VERIFY_SALT, max_age=AuthService._TOKEN_MAX_AGE
+            )
+        except SignatureExpired:
+            raise AuthError("Verification link has expired.", 400)
+        except BadSignature:
+            raise AuthError("Invalid or tampered verification link.", 400)
+
+        user = db.session.scalar(select(User).where(User.email == email))
+        if user is None:
+            raise AuthError("No account found for this link.", 400)
+        if not user.is_email_verified:
+            user.is_email_verified = True
+            db.session.commit()
+        return user
+

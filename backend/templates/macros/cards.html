@@ -2,7 +2,7 @@
 {% macro post_card(post, show_summary=True, featured=False) %}
 <article class="post-card{% if featured %} post-card--featured{% endif %}">
   {% if featured %}
-    <div class="post-card-label">Featured</div>
+    <div class="post-card-label">{{ _('Featured') }}</div>
   {% endif %}
   <a class="post-card-title" href="{{ url_for('posts.post_detail', slug=post.slug) }}">
     {{ post.title }}
@@ -19,7 +19,7 @@
       </time>
     {% endif %}
     <span class="post-meta-sep">&middot;</span>
-    <span>{{ post.reading_time_minutes }} min read</span>
+    <span>{{ post.reading_time_minutes }} {{ _('min read') }}</span>
     {% if post.version > 1 %}
       <span class="post-meta-sep">&middot;</span>
       <span class="version-badge">v{{ post.version }}</span>
@@ -72,7 +72,7 @@
   {% elif tag.description %}
     <p class="tag-card__desc">{{ tag.description }}</p>
   {% endif %}
-  <span class="tag-card__count">{{ post_count }} post{{ '' if post_count == 1 else 's' }}</span>
+  <span class="tag-card__count">{{ post_count }} {{ ngettext('post', 'posts', post_count) }}</span>
 </a>
 {% endmacro %}
 

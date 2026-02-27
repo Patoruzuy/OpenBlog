@@ -1,0 +1,74 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Comments{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Comments</h1>
+  <span class="adm-page-subtitle">{{ total }} matching</span>
+</div>
+
+<form method="get" class="adm-filter-bar">
+  <input type="search" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search comments…" class="adm-input adm-input--sm" />
+  <label class="adm-filter-bar__check">
+    <input type="checkbox" name="flagged" value="1" {% if flagged_only %}checked{% endif %} /> Flagged only
+  </label>
+  <button type="submit" class="adm-btn adm-btn--sm">Filter</button>
+  <a href="{{ url_for('admin.comments') }}" class="adm-btn adm-btn--sm adm-btn--ghost">Reset</a>
+</form>
+
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Post</th>
+        <th>Author</th>
+        <th>Comment</th>
+        <th>Flags</th>
+        <th>Posted</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for comment in comments %}
+      <tr {% if comment.is_flagged %}class="adm-table__row--warn"{% endif %}>
+        <td>
+          {% if comment.post %}
+            <a href="{{ url_for('admin.post_detail', post_id=comment.post_id) }}">{{ comment.post.title | truncate(35) }}</a>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ comment.author.username if comment.author else '—' }}</td>
+        <td class="adm-table__body">{{ comment.body | truncate(100) }}</td>
+        <td>
+          {% if comment.is_flagged %}<span class="adm-badge adm-badge--danger">flagged</span>{% endif %}
+          {% if comment.is_deleted %}<span class="adm-badge adm-badge--ghost">hidden</span>{% endif %}
+        </td>
+        <td class="adm-table__ts">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="adm-table__actions">
+          {% if not comment.is_deleted %}
+          <form method="post" action="{{ url_for('admin.comment_hide', comment_id=comment.id) }}" style="display:inline">
+            <button class="adm-btn adm-btn--xs adm-btn--warn" onclick="return confirm('Hide this comment?')">Hide</button>
+          </form>
+          {% endif %}
+          {% if comment.is_flagged %}
+          <form method="post" action="{{ url_for('admin.comment_unflag', comment_id=comment.id) }}" style="display:inline">
+            <button class="adm-btn adm-btn--xs">Unflag</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="adm-table__empty">No comments found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% set last_page = ((total - 1) // 30 + 1) if total > 0 else 1 %}
+{% if last_page > 1 %}
+<nav class="adm-pagination">
+  {% if page > 1 %}<a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page-1)) }}" class="adm-pagination__btn">‹ Prev</a>{% endif %}
+  <span class="adm-pagination__info">Page {{ page }} of {{ last_page }}</span>
+  {% if page < last_page %}<a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page+1)) }}" class="adm-pagination__btn">Next ›</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

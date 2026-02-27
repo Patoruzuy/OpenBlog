@@ -141,3 +141,37 @@ class VoteService:
             )
             or 0
         )
+
+    @staticmethod
+    def vote_counts(target_type: str, ids: list[int]) -> dict[int, int]:
+        """Return a mapping {target_id: upvote_count} for each id in *ids*.
+
+        Fires a single IN-query instead of one query per item.
+        """
+        if not ids:
+            return {}
+        rows = db.session.execute(
+            select(Vote.target_id, func.count(Vote.id).label("cnt"))
+            .where(Vote.target_type == target_type, Vote.target_id.in_(ids))
+            .group_by(Vote.target_id)
+        ).all()
+        result = {row.target_id: row.cnt for row in rows}
+        # Ensure every requested id is present (missing → 0)
+        return {i: result.get(i, 0) for i in ids}
+
+    @staticmethod
+    def voted_set(user_id: int, target_type: str, ids: list[int]) -> set[int]:
+        """Return the set of target_ids (from *ids*) that *user_id* has voted on.
+
+        Fires a single IN-query instead of one query per item.
+        """
+        if not ids:
+            return set()
+        rows = db.session.scalars(
+            select(Vote.target_id).where(
+                Vote.user_id == user_id,
+                Vote.target_type == target_type,
+                Vote.target_id.in_(ids),
+            )
+        ).all()
+        return set(rows)

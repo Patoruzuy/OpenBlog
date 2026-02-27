@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.extensions import db
@@ -46,6 +46,20 @@ class Comment(db.Model):
         nullable=False,
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
+    )
+
+    # ── Contribution identity snapshot ──────────────────────────
+    public_identity_mode: Mapped[str | None] = mapped_column(
+        String(20), nullable=True,
+        comment="Identity mode at post time: public|pseudonymous|anonymous"
+    )
+    public_display_name_snapshot: Mapped[str | None] = mapped_column(
+        String(200), nullable=True,
+        comment="Display name or pseudonym captured at post time."
+    )
+    public_avatar_snapshot: Mapped[str | None] = mapped_column(
+        String(512), nullable=True,
+        comment="Avatar URL captured at post time (may be None for anonymous)."
     )
 
     # ── Relationships ──────────────────────────────────────────────────────

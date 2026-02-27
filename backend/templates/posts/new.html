@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}{{ _('New post') }}{% endblock %}
+
+{% block head %}
+  <script src="{{ url_for('static', filename='js/editor.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="container compose-page">
+
+  <header class="compose-header">
+    <h1 style="font-size:1.125rem;font-weight:600;color:var(--text-muted);margin-bottom:var(--space-sm)">
+      {{ _('New post') }}
+    </h1>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+      <div class="flash flash--{{ category }}" style="margin-bottom:var(--space-md)">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('posts.new_post') }}" id="post-compose-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    {# ── Title ────────────────────────────────────────────────────────────── #}
+    <input
+      id="post-title"
+      name="title"
+      type="text"
+      class="compose-title-input"
+      placeholder="{{ _('Post title…') }}"
+      value="{{ form_data.title if form_data else '' }}"
+      autocomplete="off"
+      required
+    />
+
+    <div class="compose-layout">
+
+      {# ── Main editor ────────────────────────────────────────────────────── #}
+      <div class="compose-main">
+        {# Write / Preview tab bar #}
+        <div class="write-preview-tabs tab-bar" role="tablist" aria-label="{{ _('Editor mode') }}">
+          <button
+            type="button"
+            class="tab-link tab-link--active"
+            role="tab"
+            aria-selected="true"
+            data-tab-target="write"
+            id="tab-write"
+          >{{ _('Write') }}</button>
+          <button
+            type="button"
+            class="tab-link"
+            role="tab"
+            aria-selected="false"
+            data-tab-target="preview"
+            id="tab-preview"
+          >{{ _('Preview') }}</button>
+        </div>
+
+        {# Toolbar + textarea wrapped in md-editor container #}
+        <div data-md-editor>
+          <div class="md-toolbar" data-md-toolbar role="toolbar" aria-label="{{ _('Formatting') }}">
+            <button type="button" class="md-toolbar__btn" data-action="bold"   title="{{ _('Bold') }}">B</button>
+            <button type="button" class="md-toolbar__btn" data-action="italic" title="{{ _('Italic') }}"><em>i</em></button>
+            <button type="button" class="md-toolbar__btn" data-action="code"   title="{{ _('Inline code') }}">`</button>
+            <span class="md-toolbar__sep" aria-hidden="true"></span>
+            <button type="button" class="md-toolbar__btn" data-action="h2"    title="{{ _('Heading 2') }}">H2</button>
+            <button type="button" class="md-toolbar__btn" data-action="h3"    title="{{ _('Heading 3') }}">H3</button>
+            <span class="md-toolbar__sep" aria-hidden="true"></span>
+            <button type="button" class="md-toolbar__btn" data-action="ul"    title="{{ _('Unordered list') }}">&#8226; List</button>
+            <button type="button" class="md-toolbar__btn" data-action="ol"    title="{{ _('Ordered list') }}">1. List</button>
+            <button type="button" class="md-toolbar__btn" data-action="blockquote" title="{{ _('Blockquote') }}">&ldquo;</button>
+            <span class="md-toolbar__sep" aria-hidden="true"></span>
+            <button type="button" class="md-toolbar__btn" data-action="codeblock" title="{{ _('Code block') }}">```</button>
+            <button type="button" class="md-toolbar__btn" data-action="link"   title="{{ _('Link') }}">Link</button>
+            <button type="button" class="md-toolbar__btn" data-action="hr"     title="{{ _('Horizontal rule') }}">&mdash;</button>
+          </div>
+
+          {# Write panel #}
+          <div id="panel-write" role="tabpanel" aria-labelledby="tab-write">
+            <textarea
+              id="post-body"
+              name="markdown_body"
+              data-md-input
+              rows="24"
+              placeholder="{{ _('Write in Markdown…') }}"
+              aria-label="{{ _('Post body') }}"
+            >{{ form_data.markdown_body if form_data else '' }}</textarea>
+          </div>
+
+          {# Preview panel (hidden until Preview tab clicked) #}
+          <div id="panel-preview" role="tabpanel" aria-labelledby="tab-preview" hidden>
+            <div class="md-preview prose" data-md-preview>
+              <p style="color:var(--text-muted);font-style:italic">{{ _('Preview will appear here after you click Preview…') }}</p>
+            </div>
+          </div>
+        </div>{# /data-md-editor #}
+      </div>{# /compose-main #}
+
+      {# ── Sidebar ────────────────────────────────────────────────────────── #}
+      <aside class="compose-sidebar">
+
+        <div>
+          <label for="post-slug">{{ _('Slug') }}</label>
+          <input
+            id="post-slug"
+            name="slug"
+            type="text"
+            placeholder="{{ _('auto-generated') }}"
+            value="{{ form_data.slug if form_data else '' }}"
+            autocomplete="off"
+            pattern="[a-z0-9\-]+"
+            title="{{ _('Lowercase letters, numbers, and hyphens only.') }}"
+          />
+          <small style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;display:block">
+            /posts/<span id="slug-preview">{{ form_data.slug if form_data else '…' }}</span>
+          </small>
+        </div>
+
+        <div>
+          <label for="post-tags">{{ _('Tags') }}</label>
+          <input
+            id="post-tags"
+            name="tags"
+            type="text"
+            placeholder="{{ _('flask, python, devops') }}"
+            value="{{ form_data.tags if form_data else '' }}"
+          />
+          <small style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem;display:block">
+            {{ _('Comma-separated. New tags are created automatically.') }}
+          </small>
+        </div>
+
+        <div>
+          <label for="post-excerpt">{{ _('Excerpt') }}</label>
+          <textarea
+            id="post-excerpt"
+            name="seo_description"
+            rows="3"
+            placeholder="{{ _('Brief description for search engines and social previews…') }}"
+          >{{ form_data.seo_description if form_data else '' }}</textarea>
+        </div>
+
+        <div class="compose-actions">
+          <button
+            type="submit"
+            name="action"
+            value="draft"
+            class="btn btn-ghost"
+          >{{ _('Save draft') }}</button>
+          <button
+            type="submit"
+            name="action"
+            value="publish"
+            class="btn btn-primary"
+          >{{ _('Publish') }}</button>
+        </div>
+
+      </aside>
+    </div>{# /compose-layout #}
+  </form>
+
+</div>
+{% endblock %}

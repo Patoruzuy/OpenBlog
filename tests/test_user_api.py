@@ -118,7 +118,7 @@ class TestUpdateProfile:
         data = resp.get_json()
         assert data["display_name"] == "Alice A."
         assert data["location"] == "Berlin"
-        assert data["tech_stack"] == "Python,Flask"
+        assert data["tech_stack"] == "python, flask"
 
     def test_unknown_fields_ignored(self, auth_client, alice, db_session):
         user, tok = alice

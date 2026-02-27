@@ -1,0 +1,163 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Reports</h1>
+  <span class="adm-page-subtitle">{{ total }} matching</span>
+</div>
+
+{# ── Filter bar ───────────────────────────────────────────────────────────── #}
+<form method="get" class="adm-filter-bar">
+  <select name="status" class="adm-input adm-input--sm">
+    <option value="open"      {% if status == 'open'      %}selected{% endif %}>Open</option>
+    <option value="resolved"  {% if status == 'resolved'  %}selected{% endif %}>Resolved</option>
+    <option value="dismissed" {% if status == 'dismissed' %}selected{% endif %}>Dismissed</option>
+    <option value="all"       {% if status == 'all'       %}selected{% endif %}>All</option>
+  </select>
+  <select name="target_type" class="adm-input adm-input--sm">
+    <option value="">All types</option>
+    <option value="post"    {% if target_type == 'post'    %}selected{% endif %}>Posts</option>
+    <option value="comment" {% if target_type == 'comment' %}selected{% endif %}>Comments</option>
+  </select>
+  <button type="submit" class="adm-btn adm-btn--sm">Filter</button>
+  <a href="{{ url_for('admin.reports') }}" class="adm-btn adm-btn--sm adm-btn--ghost">Reset</a>
+</form>
+
+{# ── Table ────────────────────────────────────────────────────────────────── #}
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Type</th>
+        <th>Target</th>
+        <th>Reason</th>
+        <th>Reporter</th>
+        <th>Note</th>
+        <th>Status</th>
+        <th>Reported</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for report in reports %}
+      <tr {% if report.status == 'open' %}class="adm-table__row--warn"{% endif %}>
+        <td>{{ report.id }}</td>
+
+        {# ── Target type badge ─────────────────────────────────────────── #}
+        <td>
+          <span class="adm-badge adm-badge--ghost">{{ report.target_type }}</span>
+        </td>
+
+        {# ── Target link ───────────────────────────────────────────────── #}
+        <td>
+          {% if report.target_type == 'post' %}
+            {% set post = posts_by_id.get(report.target_id) %}
+            {% if post %}
+              <a href="{{ url_for('admin.post_detail', post_id=post.id) }}" title="{{ post.title }}">
+                {{ post.title | truncate(40) }}
+              </a>
+              <a href="{{ url_for('posts.post_detail', slug=post.slug) }}"
+                 class="adm-table__ext" target="_blank" rel="noopener"
+                 title="View live post" aria-label="View live post">↗</a>
+            {% else %}
+              <span class="adm-table__muted">post #{{ report.target_id }} (deleted)</span>
+            {% endif %}
+          {% elif report.target_type == 'comment' %}
+            {% set comment = comments_by_id.get(report.target_id) %}
+            {% if comment %}
+              <a href="{{ url_for('admin.comments') }}">comment #{{ report.target_id }}</a>
+              {% if comment.post_id %}
+                <a href="{{ url_for('posts.post_detail', slug=comment.post.slug) }}#comment-{{ comment.id }}"
+                   class="adm-table__ext" target="_blank" rel="noopener"
+                   title="Jump to comment" aria-label="Jump to comment">↗</a>
+              {% endif %}
+            {% else %}
+              <span class="adm-table__muted">comment #{{ report.target_id }} (deleted)</span>
+            {% endif %}
+          {% else %}
+            {{ report.target_type }} #{{ report.target_id }}
+          {% endif %}
+        </td>
+
+        {# ── Reason ────────────────────────────────────────────────────── #}
+        <td>{{ report.reason | replace('_', ' ') | title }}</td>
+
+        {# ── Reporter ──────────────────────────────────────────────────── #}
+        <td>
+          {% if report.reporter %}
+            <a href="{{ url_for('admin.user_detail', user_id=report.reporter_id) }}">
+              {{ report.reporter.username }}
+            </a>
+          {% else %}—{% endif %}
+        </td>
+
+        {# ── Note ──────────────────────────────────────────────────────── #}
+        <td class="adm-table__body">
+          {% if report.note %}
+            <span title="{{ report.note }}">{{ report.note | truncate(60) }}</span>
+          {% else %}—{% endif %}
+        </td>
+
+        {# ── Status badge ──────────────────────────────────────────────── #}
+        <td>
+          {% if report.status == 'open' %}
+            <span class="adm-badge adm-badge--danger">open</span>
+          {% elif report.status == 'resolved' %}
+            <span class="adm-badge adm-badge--success">resolved</span>
+            {% if report.resolver %}
+              <span class="adm-table__muted">by {{ report.resolver.username }}</span>
+            {% endif %}
+          {% else %}
+            <span class="adm-badge adm-badge--ghost">dismissed</span>
+            {% if report.resolver %}
+              <span class="adm-table__muted">by {{ report.resolver.username }}</span>
+            {% endif %}
+          {% endif %}
+        </td>
+
+        {# ── Timestamp ─────────────────────────────────────────────────── #}
+        <td class="adm-table__ts">{{ report.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+
+        {# ── Actions (open reports only) ───────────────────────────────── #}
+        <td class="adm-table__actions">
+          {% if report.status == 'open' %}
+            <form method="post" action="{{ url_for('admin.report_resolve', report_id=report.id) }}" style="display:inline">
+              <button class="adm-btn adm-btn--xs adm-btn--success"
+                      onclick="return confirm('Mark this report as resolved?')">
+                Resolve
+              </button>
+            </form>
+            <form method="post" action="{{ url_for('admin.report_dismiss', report_id=report.id) }}" style="display:inline">
+              <button class="adm-btn adm-btn--xs adm-btn--ghost"
+                      onclick="return confirm('Dismiss this report?')">
+                Dismiss
+              </button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="9" class="adm-table__empty">No reports found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ── Pagination ────────────────────────────────────────────────────────────── #}
+{% set last_page = ((total - 1) // per_page + 1) if total > 0 else 1 %}
+{% if last_page > 1 %}
+<nav class="adm-pagination">
+  {% if page > 1 %}
+    <a href="?status={{ status }}&target_type={{ target_type or '' }}&page={{ page - 1 }}"
+       class="adm-pagination__btn">‹ Prev</a>
+  {% endif %}
+  <span class="adm-pagination__info">Page {{ page }} of {{ last_page }}</span>
+  {% if page < last_page %}
+    <a href="?status={{ status }}&target_type={{ target_type or '' }}&page={{ page + 1 }}"
+       class="adm-pagination__btn">Next ›</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

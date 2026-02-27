@@ -1,0 +1,47 @@
+FFFF................F................................................... [  8%]
+........................................................................ [ 16%]
+........................................................................ [ 25%]
+........................................................................ [ 33%]
+...........F.F.......................................................... [ 41%]
+........................................FFF............................. [ 50%]
+........................................................................ [ 58%]
+........................................................................ [ 67%]
+........................................................................ [ 75%]
+........................................................................ [ 83%]
+.......F................................................................ [ 92%]
+..................................................................       [100%]
+================================== FAILURES ===================================
+E:\Work\OpenBlog\tests\integration\test_readyz_integration.py:44: AssertionError: Expected 200 but got 503. Ensure 'make up' has been run and all services are healthy.
+E:\Work\OpenBlog\tests\integration\test_readyz_integration.py:53: AssertionError: DB check failed: {'db': 'error', 'redis': 'error', 'status': 'degraded'}
+E:\Work\OpenBlog\tests\integration\test_readyz_integration.py:59: AssertionError: Redis check failed: {'db': 'error', 'redis': 'error', 'status': 'degraded'}
+E:\Work\OpenBlog\tests\integration\test_readyz_integration.py:65: AssertionError: Overall status degraded: {'db': 'error', 'redis': 'error', 'status': 'degraded'}
+C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\werkzeug\routing\map.py:924: werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'posts.post_detail' with values ['slug']. Did you mean 'admin.post_detail' instead?
+C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\werkzeug\routing\map.py:924: werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'posts.post_detail' with values ['slug']. Did you mean 'admin.post_detail' instead?
+C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\werkzeug\routing\map.py:924: werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'posts.post_detail' with values ['slug']. Did you mean 'admin.post_detail' instead?
+E:\Work\OpenBlog\tests\test_metrics.py:275: assert 404 == 200
+E:\Work\OpenBlog\tests\test_metrics.py:279: AssertionError: assert 'text/plain' in 'text/html; charset=utf-8'
+E:\Work\OpenBlog\tests\test_metrics.py:284: AssertionError: assert 'openblog_posts_created_total' in '<!doctype html>\n<html lang=en>\n<title>404 Not Found</title>\n<h1>Not Found</h1>\n<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>\n'
+C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\werkzeug\routing\map.py:924: werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'posts.post_detail' with values ['slug']. Did you mean 'admin.post_detail' instead?
+============================== warnings summary ===============================
+C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\dateutil\tz\tz.py:37
+  C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\dateutil\tz\tz.py:37: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    EPOCH = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_contribution_graph_service.py: 12 warnings
+  E:\Work\OpenBlog\tests\test_contribution_graph_service.py:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    published_at = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/integration/test_readyz_integration.py::test_readyz_live_returns_200
+FAILED tests/integration/test_readyz_integration.py::test_readyz_live_db_ok
+FAILED tests/integration/test_readyz_integration.py::test_readyz_live_redis_ok
+FAILED tests/integration/test_readyz_integration.py::test_readyz_live_overall_status_ok
+FAILED tests/test_admin.py::TestAdminPosts::test_post_detail_renders - werkze...
+FAILED tests/test_bookmarks_ssr.py::TestBookmarksPage::test_shows_bookmarked_post_title
+FAILED tests/test_bookmarks_ssr.py::TestBookmarksPage::test_shows_total_count
+FAILED tests/test_metrics.py::TestMetricsEndpoint::test_metrics_endpoint_returns_200
+FAILED tests/test_metrics.py::TestMetricsEndpoint::test_metrics_endpoint_content_type
+FAILED tests/test_metrics.py::TestMetricsEndpoint::test_metrics_output_contains_openblog_metrics
+FAILED tests/test_search_api.py::TestSearchSsr::test_search_page_with_query
+11 failed, 847 passed, 13 warnings in 200.65s (0:03:20)

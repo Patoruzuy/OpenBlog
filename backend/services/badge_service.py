@@ -62,6 +62,24 @@ _DEFAULT_BADGES: list[dict] = [
         "description": "One of your posts reached 50 upvotes.",
         "icon_url": None,
     },
+    {
+        "key": "first_post",
+        "name": "First Post",
+        "description": "Published your very first post.",
+        "icon_url": None,
+    },
+    {
+        "key": "consistent_contributor",
+        "name": "Consistent Contributor",
+        "description": "Published 10 or more posts.",
+        "icon_url": None,
+    },
+    {
+        "key": "topic_contributor",
+        "name": "Topic Contributor",
+        "description": "Published posts across 3 or more distinct topics.",
+        "icon_url": None,
+    },
 ]
 
 

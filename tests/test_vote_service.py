@@ -172,7 +172,7 @@ class TestQueries:
         from backend.services.auth_service import AuthService
 
         carol_user = AuthService.register(
-            email="carol_vote@example.com", username="carol_vote", password="Password1!"
+            email="carol_vote@example.com", username="carol_vote", password="StrongPass123!!"
         )
         VoteService.upvote(bob.id, "post", published_post.id)
         VoteService.upvote(carol_user.id, "post", published_post.id)

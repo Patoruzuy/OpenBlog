@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Cookie Policy{% endblock %}
+
+{% block content %}
+<article class="prose container" style="max-width:72ch;padding-top:3rem;padding-bottom:3rem">
+  <h1>Cookie Policy</h1>
+  <p class="meta-small">Last updated: January 2025</p>
+
+  <p>This page explains how OpenBlog uses cookies and similar technologies.</p>
+
+  <h2>What are cookies?</h2>
+  <p>Cookies are small text files stored by your browser. They allow websites to remember information between requests.</p>
+
+  <h2>Cookies we use</h2>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Purpose</th><th>Duration</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>session</code></td>
+        <td>Keeps you signed in and stores CSRF tokens.</td>
+        <td>Session / 7 days</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Third-party cookies</h2>
+  <p>We do not set third-party tracking cookies. Embedded content (e.g., GitHub Gists) may set their own cookies, subject to those services' policies.</p>
+
+  <h2>Controlling cookies</h2>
+  <p>You can disable cookies in your browser settings. Note that disabling cookies will prevent you from signing in to OpenBlog.</p>
+
+  <h2>Contact</h2>
+  <p><a href="{{ url_for('pages.contact') }}">Contact us</a> with any cookie-related questions.</p>
+</article>
+{% endblock %}

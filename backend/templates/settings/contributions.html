@@ -1,0 +1,76 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Contributions{% endblock %}
+
+{% block settings_content %}
+<section class="settings-card">
+  <h2 class="settings-card__title">Your revision history</h2>
+  <p class="settings-card__desc">
+    Shows how your identity appeared <em>at the time you submitted each revision</em>.
+    Changing your identity mode now won't alter past contributions.
+  </p>
+
+  {% if revisions %}
+  <div class="contributions-list">
+    {% for revision in revisions %}
+    {% set identity = revision_identities[revision.id] %}
+    <article class="contribution-item">
+      <div class="contribution-item__identity">
+        {% if identity.avatar_url and not identity.is_anonymous %}
+          <img
+            class="contribution-item__avatar"
+            src="{{ identity.avatar_url }}"
+            alt="{{ identity.display_name }}"
+            width="32" height="32"
+            loading="lazy"
+          />
+        {% else %}
+          <div class="contribution-item__avatar contribution-item__avatar--placeholder" aria-hidden="true">
+            {{ identity.display_name[0]|upper if identity.display_name else '?' }}
+          </div>
+        {% endif %}
+        <div>
+          <span class="contribution-item__name">{{ identity.display_name or 'Anonymous' }}</span>
+          <span class="contribution-item__mode badge badge--{{ 'muted' if identity.is_anonymous else 'info' if identity.is_pseudonymous else 'success' }}">
+            {{ identity.mode | capitalize }}
+          </span>
+        </div>
+      </div>
+
+      <div class="contribution-item__content">
+        <a class="contribution-item__summary" href="{{ url_for('revisions.revision_detail', revision_id=revision.id) }}">
+          {{ revision.summary }}
+        </a>
+        <div class="contribution-item__meta">
+          <span>{{ revision.status.value | capitalize }}</span>
+          <span>·</span>
+          <time datetime="{{ revision.created_at.isoformat() }}">
+            {{ revision.created_at.strftime('%d %b %Y') }}
+          </time>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+    <p class="empty-state">You haven't submitted any revisions yet.</p>
+  {% endif %}
+</section>
+
+<section class="settings-card">
+  <h2 class="settings-card__title">About contribution identities</h2>
+  <p>
+    When you submit a revision or comment, OpenBlog snapshots your current
+    <a href="{{ url_for('settings.privacy') }}">identity mode</a>. This means:
+  </p>
+  <ul>
+    <li><strong>Public</strong> — your display name and avatar are shown.</li>
+    <li><strong>Pseudonymous</strong> — your alias is shown instead of your real name.</li>
+    <li><strong>Anonymous</strong> — shown as "Anonymous" with no identifying information.</li>
+  </ul>
+  <p>
+    Changing your identity mode affects <em>future</em> contributions only.
+    You can update your pseudonymous alias on the
+    <a href="{{ url_for('settings.privacy') }}">Privacy settings</a> page.
+  </p>
+</section>
+{% endblock %}

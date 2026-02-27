@@ -17,7 +17,7 @@ from backend.services.post_service import PostService
 
 
 def make_user(email: str, username: str):
-    return AuthService.register(email, username, "password123")
+    return AuthService.register(email, username, "StrongPass123!!")
 
 
 def make_published_post(author_id: int, title: str = "Test Post") -> Post:

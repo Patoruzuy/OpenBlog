@@ -9,76 +9,120 @@
     <h1 class="search-title">Search</h1>
     <form class="search-form" method="get" action="{{ url_for('search.search_results') }}" role="search">
       <div class="search-input-group">
-        <label class="sr-only" for="search-input">Search posts</label>
+        <label class="sr-only" for="search-input">Search posts and topics</label>
         <input
           id="search-input"
           class="search-input"
           type="search"
           name="q"
           value="{{ query | e }}"
-          placeholder="Search posts, tags…"
+          placeholder="Search posts, topics…"
           autofocus
           autocomplete="off"
           aria-label="Search query"
         >
-        <button class="search-btn" type="submit" aria-label="Submit search">&#128269;</button>
+        <button class="search-btn" type="submit" aria-label="Submit search">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
       </div>
     </form>
   </div>
 
-  {# ── Results ─────────────────────────────────────────────────────────────── #}
   {% if query %}
-    <p class="search-meta">
-      {% if total %}
-        {{ total }} result{{ 's' if total != 1 }} for <strong>{{ query | e }}</strong>
-      {% else %}
-        No results for <strong>{{ query | e }}</strong>
-      {% endif %}
-    </p>
 
-    {% if posts %}
-      <div class="search-results">
-        {% for post in posts %}
-          <article class="search-result">
-            <a class="result-title" href="{{ url_for('posts.post_detail', slug=post.slug) }}">
-              {{ post.title }}
-            </a>
-            <p class="result-meta">
-              by <strong>{{ post.author.display_name or post.author.username }}</strong>
-              &middot;
-              {{ post.published_at.strftime('%b %d, %Y') if post.published_at }}
-              &middot;
-              {{ post.reading_time_minutes }} min read
-            </p>
-            {% if post.tags %}
-              <div class="result-tags">
-                {% for tag in post.tags %}
-                  <a class="tag-badge" href="{{ url_for('posts.list_posts', tag=tag.slug) }}">#{{ tag.slug }}</a>
-                {% endfor %}
-              </div>
+    {# ── Tab bar ──────────────────────────────────────────────────────────── #}
+    <nav class="search-tabs" aria-label="Search result types">
+      <a class="search-tab{% if tab == 'posts' %} search-tab--active{% endif %}"
+         href="{{ url_for('search.search_results', q=query, tab='posts') }}">
+        Posts
+        {% if post_total %}<span class="tab-count">{{ post_total }}</span>{% endif %}
+      </a>
+      <a class="search-tab{% if tab == 'topics' %} search-tab--active{% endif %}"
+         href="{{ url_for('search.search_results', q=query, tab='topics') }}">
+        Topics
+        {% if tag_total %}<span class="tab-count">{{ tag_total }}</span>{% endif %}
+      </a>
+    </nav>
+
+    {# ── Posts tab ────────────────────────────────────────────────────────── #}
+    {% if tab == 'posts' %}
+      {% if posts %}
+        <div class="search-results">
+          {% for post in posts %}
+            <article class="search-result">
+              <a class="result-title" href="{{ url_for('posts.post_detail', slug=post.slug) }}">
+                {{ highlight(post.title | e, query) | safe }}
+              </a>
+              <p class="result-meta">
+                by <strong>{{ post.author.display_name or post.author.username }}</strong>
+                &middot;
+                {{ post.published_at.strftime('%b %d, %Y') if post.published_at }}
+                &middot;
+                {{ post.reading_time_minutes }} min read
+              </p>
+              {% if post.tags %}
+                <div class="result-tags">
+                  {% for tag in post.tags %}
+                    <a class="tag-badge" href="{{ url_for('tags.tag_detail', slug=tag.slug) }}">#{{ tag.slug }}</a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              <p class="result-excerpt">{{ excerpt(post.markdown_body or '', query) }}</p>
+            </article>
+          {% endfor %}
+        </div>
+
+        {# ── Pagination ────────────────────────────────────────────────────── #}
+        {% if pages > 1 %}
+          <nav class="pagination" aria-label="Search result pages">
+            {% if page > 1 %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='posts', page=page-1) }}">&larr; Prev</a>
             {% endif %}
-            <p class="result-excerpt">{{ excerpt(post.markdown_body or '', query) }}</p>
-          </article>
-        {% endfor %}
-      </div>
+            <span class="page-info">Page {{ page }} of {{ pages }}</span>
+            {% if page < pages %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='posts', page=page+1) }}">Next &rarr;</a>
+            {% endif %}
+          </nav>
+        {% endif %}
 
-      {# ── Pagination ──────────────────────────────────────────────────────── #}
-      {% if pages > 1 %}
-        <nav class="pagination" aria-label="Search result pages">
-          {% if page > 1 %}
-            <a class="page-link" href="{{ url_for('search.search_results', q=query, page=page-1) }}">&larr; Prev</a>
+      {% else %}
+        <div class="empty-state">
+          <p>No posts found for <strong>{{ query | e }}</strong>.</p>
+          {% if tag_total %}
+            <p><a href="{{ url_for('search.search_results', q=query, tab='topics') }}">View {{ tag_total }} matching topic{{ 's' if tag_total != 1 }}</a> instead.</p>
+          {% else %}
+            <p>Try different keywords or browse <a href="{{ url_for('posts.list_posts') }}">all posts</a>.</p>
           {% endif %}
-          <span class="page-info">Page {{ page }} of {{ pages }}</span>
-          {% if page < pages %}
-            <a class="page-link" href="{{ url_for('search.search_results', q=query, page=page+1) }}">Next &rarr;</a>
-          {% endif %}
-        </nav>
+        </div>
       {% endif %}
+    {% endif %}
 
-    {% else %}
-      <p class="empty-state">
-        Try different keywords or browse <a href="{{ url_for('posts.list_posts') }}">all posts</a>.
-      </p>
+    {# ── Topics tab ────────────────────────────────────────────────────────── #}
+    {% if tab == 'topics' %}
+      {% if tags %}
+        <div class="tag-grid">
+          {% for tag in tags %}
+            <a class="tag-card" href="{{ url_for('tags.tag_detail', slug=tag.slug) }}">
+              <span class="tag-card-name">{{ highlight(tag.name | e, query) | safe }}</span>
+              {% if tag.description %}
+                <span class="tag-card-desc">{{ tag.description | truncate(72) }}</span>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <p>No topics found for <strong>{{ query | e }}</strong>.</p>
+          {% if post_total %}
+            <p><a href="{{ url_for('search.search_results', q=query, tab='posts') }}">View {{ post_total }} matching post{{ 's' if post_total != 1 }}</a> instead.</p>
+          {% else %}
+            <p>Try different keywords or browse <a href="{{ url_for('tags.list_tags') }}">all topics</a>.</p>
+          {% endif %}
+        </div>
+      {% endif %}
     {% endif %}
 
   {% endif %}

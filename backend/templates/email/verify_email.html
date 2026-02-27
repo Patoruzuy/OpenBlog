@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/></head>
+<body style="font-family:system-ui,sans-serif;background:#0d0d0d;color:#e0e0e0;margin:0;padding:32px 16px">
+  <div style="max-width:480px;margin:0 auto;background:#1a1a1a;border-radius:8px;padding:32px">
+    <p style="font-family:monospace;font-weight:700;font-size:1.1rem;margin:0 0 24px">ob/ OpenBlog</p>
+    <h1 style="font-size:1.25rem;font-weight:600;margin:0 0 12px">Verify your email address</h1>
+    <p style="color:#a8a8a8;margin:0 0 24px">Click the button below to confirm your email. This link expires in <strong style="color:#e0e0e0">1 hour</strong>.</p>
+    <a href="{{ verify_url }}" style="display:inline-block;background:#4fafff;color:#000;font-weight:600;padding:12px 24px;border-radius:6px;text-decoration:none">Verify email</a>
+    <p style="color:#666;font-size:0.8rem;margin:24px 0 0">Or copy this URL into your browser:<br/><a href="{{ verify_url }}" style="color:#4fafff;word-break:break-all">{{ verify_url }}</a></p>
+    <hr style="border:none;border-top:1px solid #2a2a2a;margin:24px 0"/>
+    <p style="color:#666;font-size:0.8rem;margin:0">If you didn't create an OpenBlog account, you can safely ignore this email.</p>
+  </div>
+</body>
+</html>

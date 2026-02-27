@@ -35,14 +35,44 @@ from backend.schemas import CreatePostSchema, PublishPostSchema, UpdatePostSchem
 api_posts_bp = Blueprint("api_posts", __name__, url_prefix="/api/posts")
 csrf.exempt(api_posts_bp)
 
-_EDITOR_ROLES = {UserRole.admin.value, UserRole.editor.value}
-_AUTHOR_ROLES = {UserRole.admin.value, UserRole.editor.value, UserRole.contributor.value}
+# Role sets are defined centrally on UserRole; local aliases for readability.
+_EDITOR_ROLES = UserRole.EDITOR_SET
+_AUTHOR_ROLES = UserRole.AUTHOR_SET
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
-def _post_dict(post, *, include_body: bool = False, viewer_id: int | None = None) -> dict:
+def _post_dict(
+    post,
+    *,
+    include_body: bool = False,
+    viewer_id: int | None = None,
+    # Pre-fetched batch data — supplied by list_posts() to avoid N+1 queries.
+    # Single-post endpoints leave these as None and fall back to per-post queries.
+    _comment_counts: dict[int, int] | None = None,
+    _vote_counts: dict[int, int] | None = None,
+    _voted_ids: set[int] | None = None,
+    _bookmarked_ids: set[int] | None = None,
+) -> dict:
+    comment_count = (
+        _comment_counts.get(post.id, 0)
+        if _comment_counts is not None
+        else (
+            db.session.scalar(
+                select(func.count(Comment.id)).where(
+                    Comment.post_id == post.id,
+                    Comment.is_deleted.is_(False),
+                )
+            )
+            or 0
+        )
+    )
+    vote_count = (
+        _vote_counts[post.id]
+        if _vote_counts is not None
+        else VoteService.vote_count("post", post.id)
+    )
     d: dict = {
         "id": post.id,
         "slug": post.slug,
@@ -52,14 +82,8 @@ def _post_dict(post, *, include_body: bool = False, viewer_id: int | None = None
         "is_featured": bool(post.is_featured),
         "reading_time_minutes": post.reading_time_minutes,
         "view_count": post.view_count,
-        "comment_count": db.session.scalar(
-            select(func.count(Comment.id)).where(
-                Comment.post_id == post.id,
-                Comment.is_deleted.is_(False),
-            )
-        )
-        or 0,
-        "vote_count": VoteService.vote_count("post", post.id),
+        "comment_count": comment_count,
+        "vote_count": vote_count,
         "author": {
             "id": post.author_id,
             "username": post.author.username,
@@ -77,8 +101,16 @@ def _post_dict(post, *, include_body: bool = False, viewer_id: int | None = None
         "updated_at": post.updated_at.isoformat(),
     }
     if viewer_id is not None:
-        d["has_voted"] = VoteService.has_voted(viewer_id, "post", post.id)
-        d["has_bookmarked"] = BookmarkService.has_bookmarked(viewer_id, post.id)
+        d["has_voted"] = (
+            post.id in _voted_ids
+            if _voted_ids is not None
+            else VoteService.has_voted(viewer_id, "post", post.id)
+        )
+        d["has_bookmarked"] = (
+            post.id in _bookmarked_ids
+            if _bookmarked_ids is not None
+            else BookmarkService.has_bookmarked(viewer_id, post.id)
+        )
     if include_body:
         d["markdown_body"] = post.markdown_body
         d["rendered_html"] = get_rendered_html(post.id, post.markdown_body)
@@ -88,6 +120,33 @@ def _post_dict(post, *, include_body: bool = False, viewer_id: int | None = None
 def _can_edit(post, user) -> bool:
     """True if *user* is the author or has editor/admin role."""
     return post.author_id == user.id or user.role.value in _EDITOR_ROLES
+
+
+# ── Preview (markdown → HTML) ─────────────────────────────────────────────────
+
+
+@api_posts_bp.post("/preview")
+@api_require_auth
+def preview_markdown():
+    """Render a markdown snippet to HTML without saving anything.
+
+    Request body (JSON)
+    -------------------
+    markdown  str  required
+
+    Response
+    --------
+    {"html": "<p>...</p>"}
+    """
+    data = request.get_json(silent=True) or {}
+    markdown_body = data.get("markdown", "")
+    if not isinstance(markdown_body, str):
+        return jsonify({"error": "markdown must be a string"}), 400
+
+    from backend.utils.markdown import render_markdown  # noqa: PLC0415
+
+    html = render_markdown(markdown_body)
+    return jsonify({"html": html})
 
 
 # ── List ──────────────────────────────────────────────────────────────────────
@@ -114,9 +173,46 @@ def list_posts():
         posts, total = PostService.list_published(page, per_page, tag_slug)
 
     viewer_id = user.id if user is not None else None
+
+    # ── Batch pre-fetch to eliminate N+1 queries ──────────────────────────────
+    post_ids = [p.id for p in posts]
+    comment_counts: dict[int, int] = {}
+    if post_ids:
+        rows = db.session.execute(
+            select(Comment.post_id, func.count(Comment.id).label("cnt"))
+            .where(
+                Comment.post_id.in_(post_ids),
+                Comment.is_deleted.is_(False),
+            )
+            .group_by(Comment.post_id)
+        ).all()
+        comment_counts = {row.post_id: row.cnt for row in rows}
+    vote_counts_map = VoteService.vote_counts("post", post_ids)
+    voted_ids: set[int] = (
+        VoteService.voted_set(viewer_id, "post", post_ids)
+        if viewer_id is not None
+        else set()
+    )
+    bookmarked_ids: set[int] = (
+        BookmarkService.bookmarked_set(viewer_id, post_ids)
+        if viewer_id is not None
+        else set()
+    )
+    # ─────────────────────────────────────────────────────────────────────────
+
     return jsonify(
         {
-            "posts": [_post_dict(p, viewer_id=viewer_id) for p in posts],
+            "posts": [
+                _post_dict(
+                    p,
+                    viewer_id=viewer_id,
+                    _comment_counts=comment_counts,
+                    _vote_counts=vote_counts_map,
+                    _voted_ids=voted_ids,
+                    _bookmarked_ids=bookmarked_ids,
+                )
+                for p in posts
+            ],
             "page": page,
             "per_page": per_page,
             "total": total,

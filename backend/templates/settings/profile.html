@@ -1,0 +1,164 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Profile{% endblock %}
+
+{% block settings_content %}
+<form
+  class="settings-form"
+  method="post"
+  action="{{ url_for('settings.profile') }}"
+  enctype="multipart/form-data"
+  novalidate
+>
+  {{ csrf_token_input() if csrf_token_input is defined }}
+
+  {# ── Avatar ──────────────────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Avatar</h2>
+    <div class="avatar-upload">
+      {% if profile_user.avatar_url %}
+        <img
+          class="avatar-upload__preview"
+          src="{{ profile_user.avatar_url }}"
+          alt="{{ profile_user.username }}"
+          id="avatar-preview"
+          width="80" height="80"
+        />
+      {% else %}
+        <div
+          class="avatar-upload__preview avatar-upload__preview--placeholder"
+          id="avatar-preview"
+          aria-hidden="true"
+        >
+          {{ (profile_user.display_name or profile_user.username)[0]|upper }}
+        </div>
+      {% endif %}
+      <div class="avatar-upload__controls">
+        <label class="btn btn--secondary btn--sm" for="avatar-input">
+          Choose image
+          <input
+            id="avatar-input"
+            type="file"
+            name="avatar"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            class="sr-only"
+          />
+        </label>
+        <p class="avatar-upload__hint">
+          JPEG, PNG, GIF or WebP · max 2 MiB
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {# ── Identity ──────────────────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Public identity</h2>
+
+    <div class="form-field">
+      <label class="form-label" for="display_name">Display name</label>
+      <input
+        class="form-input"
+        id="display_name"
+        name="display_name"
+        type="text"
+        value="{{ profile_user.display_name or '' }}"
+        maxlength="128"
+        placeholder="{{ profile_user.username }}"
+      />
+      <span class="form-hint">Shown on posts and comments. Defaults to your username.</span>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="headline">Headline</label>
+      <input
+        class="form-input"
+        id="headline"
+        name="headline"
+        type="text"
+        value="{{ profile_user.headline or '' }}"
+        maxlength="200"
+        placeholder="e.g. Senior engineer at Acme · open-source maintainer"
+      />
+      <span class="form-hint">Short tagline shown under your name. 200 characters max.</span>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="bio">Bio</label>
+      <textarea
+        class="form-input form-textarea"
+        id="bio"
+        name="bio"
+        rows="4"
+        placeholder="Tell the community about yourself…"
+      >{{ profile_user.bio or '' }}</textarea>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="location">Location</label>
+      <input
+        class="form-input"
+        id="location"
+        name="location"
+        type="text"
+        value="{{ profile_user.location or '' }}"
+        maxlength="128"
+        placeholder="City, Country"
+      />
+    </div>
+  </section>
+
+  {# ── Links ────────────────────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Links</h2>
+
+    <div class="form-field">
+      <label class="form-label" for="website_url">Website</label>
+      <input
+        class="form-input"
+        id="website_url"
+        name="website_url"
+        type="url"
+        value="{{ profile_user.website_url or '' }}"
+        placeholder="https://example.com"
+      />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="github_url">GitHub profile</label>
+      <input
+        class="form-input"
+        id="github_url"
+        name="github_url"
+        type="url"
+        value="{{ profile_user.github_url or '' }}"
+        placeholder="https://github.com/username"
+      />
+    </div>
+  </section>
+
+  {# ── Tech stack ───────────────────────────────────────────────────────── #}
+  <section class="settings-card">
+    <h2 class="settings-card__title">Tech stack</h2>
+    <div class="form-field">
+      <label class="form-label" for="tech_stack">Technologies</label>
+      <input
+        class="form-input"
+        id="tech_stack"
+        name="tech_stack"
+        type="text"
+        value="{{ profile_user.tech_stack or '' }}"
+        placeholder="Python, Flask, PostgreSQL, React"
+      />
+      <span class="form-hint">Comma-separated list of technologies you work with.</span>
+    </div>
+  </section>
+
+  <div class="settings-form__actions">
+    <button class="btn btn--primary" type="submit">Save profile</button>
+    <a href="{{ url_for('users.profile', username=profile_user.username) }}" class="btn btn--ghost">
+      View public profile
+    </a>
+  </div>
+
+</form>
+{% endblock %}

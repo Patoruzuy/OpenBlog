@@ -1,0 +1,77 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Revisions{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Revision Queue</h1>
+  <span class="adm-page-subtitle">{{ total }} matching</span>
+</div>
+
+{# ── Status tabs ─────────────────────────────────────────────────────────── #}
+<div class="adm-tab-bar">
+  {% for s in ['', 'pending', 'accepted', 'rejected'] %}
+    <a href="{{ url_for('admin.revisions') }}{% if s %}?status={{ s }}{% endif %}"
+       class="adm-tab {% if (current_status or '') == s %}is-active{% endif %}">
+      {{ s | capitalize or 'All' }}
+      {% if s == 'pending' and admin_pending_revisions > 0 %}
+        <span class="adm-tab__badge">{{ admin_pending_revisions }}</span>
+      {% endif %}
+    </a>
+  {% endfor %}
+</div>
+
+{# ── Filter bar ──────────────────────────────────────────────────────────── #}
+<form method="get" class="adm-filter-bar">
+  {% if current_status %}<input type="hidden" name="status" value="{{ current_status }}" />{% endif %}
+  <input type="search" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search summary…" class="adm-input adm-input--sm" />
+  <button type="submit" class="adm-btn adm-btn--sm">Filter</button>
+  <a href="{{ url_for('admin.revisions') }}" class="adm-btn adm-btn--sm adm-btn--ghost">Reset</a>
+</form>
+
+{# ── Table ───────────────────────────────────────────────────────────────── #}
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>Post</th>
+        <th>Contributor</th>
+        <th>Summary</th>
+        <th>Status</th>
+        <th>Submitted</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rev in revisions %}
+      <tr {% if rev.status.value == 'pending' %}class="adm-table__row--highlight"{% endif %}>
+        <td><a href="{{ url_for('admin.post_detail', post_id=rev.post_id) }}">{{ rev.post.title | truncate(40) if rev.post else rev.post_id }}</a></td>
+        <td>
+          {% if rev.identity_mode and rev.identity_mode.value == 'anonymous' %}
+            <span class="adm-badge adm-badge--ghost">anonymous</span>
+          {% else %}
+            {{ rev.author.username if rev.author else '—' }}
+          {% endif %}
+        </td>
+        <td>{{ rev.summary | truncate(55) if rev.summary else '—' }}</td>
+        <td><span class="adm-badge adm-badge--{{ rev.status.value }}">{{ rev.status.value }}</span></td>
+        <td class="adm-table__ts">{{ rev.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="adm-table__actions">
+          <a href="{{ url_for('admin.revision_detail', revision_id=rev.id) }}" class="adm-btn adm-btn--xs">Review</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="adm-table__empty">No revisions found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% set last_page = ((total - 1) // 30 + 1) if total > 0 else 1 %}
+{% if last_page > 1 %}
+<nav class="adm-pagination">
+  {% if page > 1 %}<a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page-1)) }}" class="adm-pagination__btn">‹ Prev</a>{% endif %}
+  <span class="adm-pagination__info">Page {{ page }} of {{ last_page }}</span>
+  {% if page < last_page %}<a href="?{{ request.query_string.decode() | replace('page=' ~ page, 'page=' ~ (page+1)) }}" class="adm-pagination__btn">Next ›</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

@@ -134,7 +134,8 @@ class TestSearchSsr:
         _make_published_post(auth_client, token, "SSR Search Post", body="SSR content")
         resp = auth_client.get("/search/?q=SSR+Search")
         assert resp.status_code == 200
-        assert b"SSR Search Post" in resp.data
+        # title is wrapped in <mark> tags by highlight(); check slug URL instead
+        assert b"ssr-search-post" in resp.data
 
     def test_empty_search_shows_form(self, auth_client):
         resp = auth_client.get("/search/")

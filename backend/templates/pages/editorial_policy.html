@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Editorial Policy{% endblock %}
+
+{% block content %}
+<article class="prose container" style="max-width:72ch;padding-top:3rem;padding-bottom:3rem">
+  <h1>Editorial Policy</h1>
+  <p class="meta-small">Last updated: January 2025</p>
+
+  <p>OpenBlog is committed to publishing accurate, well-reasoned technical content. This policy describes our standards for published posts, revisions, and comments.</p>
+
+  <h2>Publication standards</h2>
+  <ul>
+    <li>All claims should be verifiable and backed by evidence or working code.</li>
+    <li>Posts must be original work. Plagiarism will result in immediate removal.</li>
+    <li>Marketing content, advertisements, and paid placements are not permitted.</li>
+  </ul>
+
+  <h2>Revision policy</h2>
+  <p>Any registered user with a verified email may propose a revision to any published post. Revisions should:</p>
+  <ul>
+    <li>Correct factual errors or out-of-date information.</li>
+    <li>Improve clarity without changing the author's voice or intent.</li>
+    <li>Not change the fundamental argument or conclusion of the post without author agreement.</li>
+  </ul>
+  <p>Authors are solely responsible for accepting or declining revisions to their posts. The editorial team may step in for posts whose authors are unreachable.</p>
+
+  <h2>Comments</h2>
+  <p>Comments must be constructive and on-topic. Personal attacks, spam, and off-topic promotion are removed without notice.</p>
+
+  <h2>Corrections</h2>
+  <p>If you spot an error in a published post, please submit a revision or <a href="{{ url_for('pages.contact') }}">contact us</a> directly.</p>
+</article>
+{% endblock %}

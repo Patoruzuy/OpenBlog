@@ -8,13 +8,13 @@ GET /posts/<slug>    full article view with rendered HTML
 
 from __future__ import annotations
 
-from flask import Blueprint, abort, render_template, request
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from backend.models.post import PostStatus
 from backend.routes.tags import _TAG_DESCRIPTIONS
 from backend.services.analytics_service import AnalyticsService
-from backend.services.post_service import PostService
-from backend.utils.auth import get_current_user
+from backend.services.post_service import PostError, PostService, RESERVED_SLUGS
+from backend.utils.auth import get_current_user, require_auth, require_role
 from backend.utils.markdown import (  # noqa: F401
     get_rendered_html,
     invalidate_html_cache,
@@ -43,6 +43,70 @@ def list_posts():
         tag_slug=tag_slug,
         tag_description=_TAG_DESCRIPTIONS.get(tag_slug) if tag_slug else None,
     )
+
+
+# ── /posts/new — writing surface ─────────────────────────────────────────────
+# Declared *before* /<slug> so Flask never treats "new" as a slug.
+
+@ssr_posts_bp.route("/new", methods=["GET", "POST"])
+@require_auth
+@require_role("contributor")
+def new_post():
+    """Create a new post and optionally publish it immediately."""
+    user = get_current_user()
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        markdown_body = request.form.get("markdown_body", "").strip()
+        raw_tags = request.form.get("tags", "").strip()
+        tags = [t.strip() for t in raw_tags.split(",") if t.strip()] if raw_tags else []
+        seo_description = request.form.get("seo_description", "").strip() or None
+        custom_slug = request.form.get("slug", "").strip() or None
+        action = request.form.get("action", "draft")  # "draft" or "publish"
+
+        try:
+            # Validate custom slug if provided
+            from backend.services.post_service import _slugify  # noqa: PLC0415
+            if custom_slug:
+                normalized = _slugify(custom_slug)
+                if normalized in RESERVED_SLUGS:
+                    flash(f"Slug '{normalized}' is reserved — please choose another.", "error")
+                    return render_template("posts/new.html", form_data=request.form)
+                custom_slug = normalized
+
+            post = PostService.create(
+                author_id=user.id,
+                title=title,
+                markdown_body=markdown_body,
+                tags=tags,
+                seo_description=seo_description,
+            )
+
+            # Override auto-generated slug if a valid custom one was provided
+            if custom_slug and custom_slug != post.slug:
+                from backend.extensions import db  # noqa: PLC0415
+                from sqlalchemy import select  # noqa: PLC0415
+                from backend.models.post import Post  # noqa: PLC0415
+                clash = db.session.scalar(
+                    select(Post.id).where(Post.slug == custom_slug).where(Post.id != post.id)
+                )
+                if clash is None:
+                    post.slug = custom_slug
+                    db.session.commit()
+
+            if action == "publish":
+                PostService.publish(post)
+                flash("Post published!", "success")
+            else:
+                flash("Draft saved.", "success")
+
+            return redirect(url_for("posts.post_detail", slug=post.slug))
+
+        except PostError as exc:
+            flash(str(exc), "error")
+            return render_template("posts/new.html", form_data=request.form)
+
+    return render_template("posts/new.html", form_data=None)
 
 
 @ssr_posts_bp.get("/<slug>")
@@ -82,3 +146,43 @@ def post_detail(slug: str):
         post=post,
         post_html=post_html,
     )
+
+
+@ssr_posts_bp.route("/<slug>/edit", methods=["GET", "POST"])
+@require_auth
+def edit_post(slug: str):
+    """Edit a post (author / admin / editor only)."""
+    post = PostService.get_by_slug(slug)
+    if post is None:
+        abort(404)
+
+    user = get_current_user()
+    if user.id != post.author_id and user.role.value not in {"admin", "editor"}:
+        abort(403)
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        markdown_body = request.form.get("markdown_body", "").strip()
+        raw_tags = request.form.get("tags", "").strip()
+        tags = [t.strip() for t in raw_tags.split(",") if t.strip()] if raw_tags else []
+        seo_title = request.form.get("seo_title", "").strip() or None
+        seo_description = request.form.get("seo_description", "").strip() or None
+        og_image_url = request.form.get("og_image_url", "").strip() or None
+
+        try:
+            PostService.update(
+                post,
+                title=title or None,
+                markdown_body=markdown_body or None,
+                tags=tags if tags else None,
+                seo_title=seo_title,
+                seo_description=seo_description,
+                og_image_url=og_image_url,
+            )
+            flash("Post updated successfully.", "success")
+            return redirect(url_for("posts.post_detail", slug=post.slug))
+        except PostError as exc:
+            flash(str(exc), "error")
+
+    current_tags = ", ".join(t.slug for t in post.tags) if post.tags else ""
+    return render_template("posts/edit.html", post=post, current_tags=current_tags)

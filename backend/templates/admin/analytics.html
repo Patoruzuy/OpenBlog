@@ -1,0 +1,257 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Analytics</h1>
+  <div class="adm-day-selector">
+    {% for d in [7, 14, 30, 90] %}
+      <a href="{{ url_for('admin.analytics') }}?days={{ d }}"
+         class="adm-btn adm-btn--xs {% if days == d %}adm-btn--active{% endif %}">{{ d }}d</a>
+    {% endfor %}
+  </div>
+</div>
+
+{# ── Top stat cards ──────────────────────────────────────────────────────── #}
+<div class="adm-stat-grid">
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Views ({{ days }}d)</span>
+    <span class="adm-stat-card__value">{{ total_views }}</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Active Contributors ({{ days }}d)</span>
+    <span class="adm-stat-card__value">{{ active_contributors }}</span>
+    <span class="adm-stat-card__sub">{{ first_time_contributors }} first-time</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Accepted Contribs ({{ days }}d)</span>
+    <span class="adm-stat-card__value adm-stat-card__value--success">{{ accepted_contribs }}</span>
+    {% if acceptance_rate is not none %}
+    <span class="adm-stat-card__sub">{{ acceptance_rate }}% acceptance rate</span>
+    {% endif %}
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Avg Review Time ({{ days }}d)</span>
+    <span class="adm-stat-card__value">{% if avg_review_days is not none %}{{ avg_review_days }}d{% else %}&mdash;{% endif %}</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Revisions Pending (all time)</span>
+    <span class="adm-stat-card__value {% if rev_funnel.pending > 0 %}adm-stat-card__value--warn{% endif %}">{{ rev_funnel.pending }}</span>
+    {% if can("manage_content") %}<a href="{{ url_for('admin.revisions') }}?status=pending" class="adm-stat-card__action">Review →</a>{% endif %}
+  </div>
+</div>
+
+{# ── Traffic + Signups trends ─────────────────────────────────────────────── #}
+<div class="adm-two-col">
+  <section class="adm-section">
+    <h2 class="adm-section-title">Page Views ({{ days }}d)</h2>
+    {% if pv_by_day %}
+    <div class="adm-sparkbar adm-sparkbar--tall">
+      {% set max_pv = pv_by_day | map(attribute='views') | max %}
+      {% for row in pv_by_day %}
+        {% set pct = (row.views / max_pv * 100) | int if max_pv > 0 else 0 %}
+        <div class="adm-sparkbar__col" title="{{ row.date }}: {{ row.views }}">
+          <div class="adm-sparkbar__bar" style="height:{{ pct }}%;"></div>
+          <span class="adm-sparkbar__label">{{ row.date[5:] }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="adm-text-muted">No page-view data for this period.</p>
+    {% endif %}
+  </section>
+
+  <section class="adm-section">
+    <h2 class="adm-section-title">New Signups ({{ days }}d)</h2>
+    {% if signups_by_day %}
+    <div class="adm-sparkbar adm-sparkbar--tall">
+      {% set max_s = signups_by_day | map(attribute='users') | max %}
+      {% for row in signups_by_day %}
+        {% set pct = (row.users / max_s * 100) | int if max_s > 0 else 0 %}
+        <div class="adm-sparkbar__col" title="{{ row.date }}: {{ row.users }}">
+          <div class="adm-sparkbar__bar adm-sparkbar__bar--accent" style="height:{{ pct }}%;"></div>
+          <span class="adm-sparkbar__label">{{ row.date[5:] }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="adm-text-muted">No signup data for this period.</p>
+    {% endif %}
+  </section>
+</div>
+
+{# ── Top posts + Top topics ────────────────────────────────────────────────── #}
+<div class="adm-two-col">
+  <section class="adm-section">
+    <h2 class="adm-section-title">Top Posts (all-time views)</h2>
+    <table class="adm-table">
+      <thead><tr><th>Title</th><th class="adm-table__num">Views</th></tr></thead>
+      <tbody>
+        {% for p in top_posts %}
+        <tr>
+          <td>
+            {% if can("manage_content") %}
+            <a href="{{ url_for('admin.post_detail', post_id=p.id) }}">{{ p.title | truncate(45) }}</a>
+            {% else %}
+            {{ p.title | truncate(45) }}
+            {% endif %}
+          </td>
+          <td class="adm-table__num">{{ p.view_count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="2" class="adm-table__empty">No published posts yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="adm-section">
+    <h2 class="adm-section-title">Top Topics (post count)</h2>
+    <table class="adm-table">
+      <thead><tr><th>Topic</th><th class="adm-table__num">Posts</th></tr></thead>
+      <tbody>
+        {% for t in top_tags %}
+        <tr>
+          <td>
+            {% if can("manage_content") %}
+            <a href="{{ url_for('admin.topics') }}">{{ t.name }}</a>
+            {% else %}
+            {{ t.name }}
+            {% endif %}
+          </td>
+          <td class="adm-table__num">{{ t.count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="2" class="adm-table__empty">No topics yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+{# ── Revision funnel (period-windowed) ────────────────────────────────────── #}
+<section class="adm-section">
+  <h2 class="adm-section-title">
+    Revision Funnel ({{ days }}d)
+    {% if avg_review_days is not none %}
+      <span class="adm-section-title__meta">Avg review: {{ avg_review_days }}d</span>
+    {% endif %}
+    {% if acceptance_rate is not none %}
+      <span class="adm-section-title__meta">Acceptance: {{ acceptance_rate }}%</span>
+    {% endif %}
+  </h2>
+  <div class="adm-funnel">
+    {% set total_in_period = rev_submitted_period %}
+    {% for label, val, cls in [
+        ('Submitted', rev_submitted_period, 'warn'),
+        ('Accepted',  rev_accepted_period,  'success'),
+        ('Rejected',  rev_rejected_period,  'danger')
+    ] %}
+      {% set pct = (val / total_in_period * 100) | round(1) if total_in_period > 0 else 0 %}
+      <div class="adm-funnel__row">
+        <span class="adm-funnel__label">{{ label }}</span>
+        <div class="adm-funnel__bar-bg">
+          <div class="adm-funnel__bar adm-funnel__bar--{{ cls }}" style="width:{{ pct }}%;"></div>
+        </div>
+        <span class="adm-funnel__val">{{ val }}{% if total_in_period > 0 and label != 'Submitted' %} ({{ pct }}%){% endif %}</span>
+      </div>
+    {% endfor %}
+    {% if rev_funnel.pending > 0 %}
+    <p class="adm-text-muted" style="font-size: .78rem; margin-top: .5rem;">
+      {{ rev_funnel.pending }} revision{{ 's' if rev_funnel.pending != 1 }} pending review (all time backlog)
+    </p>
+    {% endif %}
+  </div>
+</section>
+
+{# ── Content freshness ────────────────────────────────────────────────────── #}
+<div class="adm-two-col">
+  <section class="adm-section">
+    <h2 class="adm-section-title">Stale Content <span class="adm-section-title__meta">not updated in 90+ days</span></h2>
+    {% if stale_posts %}
+    <table class="adm-table adm-table--compact">
+      <thead><tr><th>Title</th><th class="adm-table__num">Views</th><th>Last updated</th></tr></thead>
+      <tbody>
+        {% for p in stale_posts %}
+        <tr>
+          <td>
+            {% if can("manage_content") %}
+            <a href="{{ url_for('admin.post_detail', post_id=p.id) }}">{{ p.title | truncate(40) }}</a>
+            {% else %}
+            {{ p.title | truncate(40) }}
+            {% endif %}
+          </td>
+          <td class="adm-table__num">{{ p.view_count }}</td>
+          <td class="adm-table__muted">{{ p.updated_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="adm-text-muted">All published posts were updated within 90 days.</p>
+    {% endif %}
+  </section>
+
+  <section class="adm-section">
+    <h2 class="adm-section-title">Low-Traffic Posts <span class="adm-section-title__meta">under 10 views</span></h2>
+    {% if low_traffic_posts %}
+    <table class="adm-table adm-table--compact">
+      <thead><tr><th>Title</th><th class="adm-table__num">Views</th><th>Published</th></tr></thead>
+      <tbody>
+        {% for p in low_traffic_posts %}
+        <tr>
+          <td>
+            {% if can("manage_content") %}
+            <a href="{{ url_for('admin.post_detail', post_id=p.id) }}">{{ p.title | truncate(40) }}</a>
+            {% else %}
+            {{ p.title | truncate(40) }}
+            {% endif %}
+          </td>
+          <td class="adm-table__num">{{ p.view_count }}</td>
+          <td class="adm-table__muted">
+            {% if p.published_at %}{{ p.published_at.strftime('%Y-%m-%d') }}{% else %}&mdash;{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="adm-text-muted">All published posts have 10+ views.</p>
+    {% endif %}
+  </section>
+</div>
+
+{# ── Contributors ─────────────────────────────────────────────────────────── #}
+{% if top_contributors or first_time_contributors > 0 %}
+<section class="adm-section">
+  <h2 class="adm-section-title">
+    Top Contributors ({{ days }}d, by accepted revisions)
+    {% if first_time_contributors > 0 %}
+      <span class="adm-section-title__meta">{{ first_time_contributors }} first-time contributor{{ 's' if first_time_contributors != 1 }}</span>
+    {% endif %}
+  </h2>
+  {% if top_contributors %}
+  <table class="adm-table">
+    <thead><tr><th>Contributor</th><th class="adm-table__num">Accepted</th></tr></thead>
+    <tbody>
+      {% for c in top_contributors %}
+      <tr>
+        <td>
+          {% if can("manage_users") %}
+          <a href="{{ url_for('admin.users') }}?q={{ c.username }}">{{ c.display }}</a>
+          {% else %}
+          {{ c.display }}
+          {% endif %}
+        </td>
+        <td class="adm-table__num">{{ c.count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="adm-text-muted">No accepted contributions in this period.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% endblock %}

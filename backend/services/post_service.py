@@ -23,6 +23,7 @@ from backend.models.tag import Tag
 from backend.models.user import User
 from backend.utils import metrics
 from backend.utils.markdown import invalidate_html_cache, reading_time_minutes
+from backend.utils.validation import validate_url
 
 
 class PostError(Exception):
@@ -39,6 +40,11 @@ class PostError(Exception):
 # ── Slug helpers ───────────────────────────────────────────────────────────────
 
 
+# Slugs that must never be assigned to a post because they collide with
+# static/wildcard routes.  Checked both here and in the SSR new-post form.
+RESERVED_SLUGS: frozenset[str] = frozenset({"new", "edit", "draft", "preview"})
+
+
 def _slugify(text: str) -> str:
     """Convert *text* to a lower-case, hyphen-separated, URL-safe string."""
     text = text.lower().strip()
@@ -52,13 +58,14 @@ def _unique_slug(base: str) -> str:
     """Return *base* suffixed with -2, -3 … until it is unique in the DB.
 
     Uses a single prefix-query to fetch all existing slugs matching *base*
-    rather than one round-trip per counter value.
+    rather than one round-trip per counter value.  Reserved slugs are treated
+    as already-taken so they always get a numeric suffix.
     """
     existing = set(
         db.session.scalars(
             select(Post.slug).where(Post.slug.like(f"{base}%"))
         ).all()
-    )
+    ) | RESERVED_SLUGS
     if base not in existing:
         return base
     counter = 2
@@ -71,21 +78,42 @@ def _unique_slug(base: str) -> str:
 
 
 def _resolve_tags(tag_names: list[str]) -> list[Tag]:
-    """Return Tag objects for each name in *tag_names*, creating missing ones."""
-    tags: list[Tag] = []
-    for name in tag_names:
-        name = name.strip()
+    """Return Tag objects for each name in *tag_names*, creating missing ones.
+
+    Uses a single ``WHERE slug IN (…)`` query to load all existing tags, then
+    creates only the missing ones — avoiding N+1 round-trips.
+    """
+    # Build (name, slug) pairs, preserving order and skipping blank entries.
+    pairs: list[tuple[str, str]] = []
+    seen_slugs: set[str] = set()
+    for raw in tag_names:
+        name = raw.strip()
         if not name:
             continue
         slug = _slugify(name)
-        # Use no_autoflush so that adding a new Tag doesn't accidentally flush
-        # a partially-built Post that is pending in the session.
-        with db.session.no_autoflush:
-            tag = db.session.scalar(select(Tag).where(Tag.slug == slug))
+        if slug not in seen_slugs:
+            pairs.append((name, slug))
+            seen_slugs.add(slug)
+
+    if not pairs:
+        return []
+
+    slugs = [slug for _, slug in pairs]
+
+    # Batch fetch all existing tags in one query.
+    with db.session.no_autoflush:
+        existing: dict[str, Tag] = {
+            t.slug: t
+            for t in db.session.scalars(select(Tag).where(Tag.slug.in_(slugs))).all()
+        }
+        tags: list[Tag] = []
+        for name, slug in pairs:
+            tag = existing.get(slug)
             if tag is None:
                 tag = Tag(name=name, slug=slug)
                 db.session.add(tag)
-        tags.append(tag)
+            tags.append(tag)
+
     # One explicit flush to assign PKs to any newly added tags.
     db.session.flush()
     return tags
@@ -120,6 +148,11 @@ class PostService:
 
         # Compute slug first (no pending post in session yet, so no identity clash).
         slug = _unique_slug(_slugify(title))
+
+        try:
+            og_image_url = validate_url(og_image_url, field="og_image_url")
+        except ValueError as exc:
+            raise PostError(str(exc), 400) from exc
 
         post = Post(
             author_id=author_id,
@@ -185,7 +218,10 @@ class PostService:
         if seo_description is not None:
             post.seo_description = seo_description or None
         if og_image_url is not None:
-            post.og_image_url = og_image_url or None
+            try:
+                post.og_image_url = validate_url(og_image_url or None, field="og_image_url")
+            except ValueError as exc:
+                raise PostError(str(exc), 400) from exc
 
         db.session.commit()
 
@@ -220,6 +256,42 @@ class PostService:
         db.session.commit()
         if post.status == PostStatus.published:
             metrics.posts_published.inc()
+            # ── Badge hooks on publish ────────────────────────────────────────
+            try:
+                from backend.services.badge_service import BadgeService  # noqa: PLC0415
+
+                # first_post: author's first published post
+                published_count = db.session.scalar(
+                    select(func.count(Post.id))
+                    .where(Post.author_id == post.author_id)
+                    .where(Post.status == PostStatus.published)
+                ) or 0
+                if published_count == 1:
+                    BadgeService.award(post.author_id, "first_post")
+
+                # consistent_contributor: 10+ published posts
+                if published_count >= 10:
+                    BadgeService.award(post.author_id, "consistent_contributor")
+
+                # topic_contributor: published posts in 3+ distinct tags
+                from backend.models.tag import PostTag  # noqa: PLC0415
+
+                distinct_tags = db.session.scalar(
+                    select(func.count(func.distinct(PostTag.c.tag_id)))
+                    .select_from(PostTag)
+                    .join(Post, Post.id == PostTag.c.post_id)
+                    .where(Post.author_id == post.author_id)
+                    .where(Post.status == PostStatus.published)
+                ) or 0
+                if distinct_tags >= 3:
+                    BadgeService.award(post.author_id, "topic_contributor")
+
+                # prolific_author: 5+ published posts
+                if published_count >= 5:
+                    BadgeService.award(post.author_id, "prolific_author")
+            except Exception:  # noqa: BLE001
+                # Badge hooks must never break the publish flow.
+                pass
         return post
 
     @staticmethod

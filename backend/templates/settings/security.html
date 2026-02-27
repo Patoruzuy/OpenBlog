@@ -1,0 +1,129 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Security{% endblock %}
+
+{% block settings_content %}
+
+{# ── Change password ───────────────────────────────────────────────────────── #}
+<section class="settings-card">
+  <h2 class="settings-card__title">Change password</h2>
+  {% if profile_user.oauth_provider and not profile_user.password_hash %}
+    <p class="settings-card__desc">
+      Your account uses <strong>{{ profile_user.oauth_provider | capitalize }}</strong> for sign-in.
+      Password sign-in is not enabled.
+    </p>
+  {% else %}
+  <form
+    class="settings-form"
+    method="post"
+    action="{{ url_for('settings.change_password') }}"
+    novalidate
+  >
+
+    <div class="form-field">
+      <label class="form-label" for="current_password">Current password</label>
+      <div class="password-wrap">
+        <input
+          class="form-input"
+          id="current_password"
+          name="current_password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+        <button type="button" class="password-toggle" aria-label="Toggle visibility" data-target="current_password">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4"/>
+            <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="new_password">New password</label>
+      <div class="password-wrap">
+        <input
+          class="form-input"
+          id="new_password"
+          name="new_password"
+          type="password"
+          autocomplete="new-password"
+          minlength="15"
+          required
+        />
+        <button type="button" class="password-toggle" aria-label="Toggle visibility" data-target="new_password">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4"/>
+            <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </button>
+      </div>
+      <span class="form-hint">Minimum 15 characters (NIST guidelines).</span>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="confirm_password">Confirm new password</label>
+      <div class="password-wrap">
+        <input
+          class="form-input"
+          id="confirm_password"
+          name="confirm_password"
+          type="password"
+          autocomplete="new-password"
+          minlength="15"
+          required
+        />
+        <button type="button" class="password-toggle" aria-label="Toggle visibility" data-target="confirm_password">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4"/>
+            <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-form__actions">
+      <button class="btn btn--primary" type="submit">Update password</button>
+    </div>
+
+  </form>
+  {% endif %}
+</section>
+
+{# ── Account info ──────────────────────────────────────────────────────────── #}
+<section class="settings-card">
+  <h2 class="settings-card__title">Account information</h2>
+  <dl class="info-list">
+    <div class="info-list__row">
+      <dt>Username</dt>
+      <dd>@{{ profile_user.username }}</dd>
+    </div>
+    <div class="info-list__row">
+      <dt>Email</dt>
+      <dd>
+        {{ profile_user.email }}
+        {% if profile_user.is_email_verified %}
+          <span class="badge badge--success">Verified</span>
+        {% else %}
+          <span class="badge badge--warning">Unverified</span>
+        {% endif %}
+      </dd>
+    </div>
+    <div class="info-list__row">
+      <dt>Role</dt>
+      <dd>{{ profile_user.role.value | capitalize }}</dd>
+    </div>
+    <div class="info-list__row">
+      <dt>Member since</dt>
+      <dd>{{ profile_user.created_at.strftime('%B %Y') }}</dd>
+    </div>
+    {% if profile_user.last_login_at %}
+    <div class="info-list__row">
+      <dt>Last sign-in</dt>
+      <dd>{{ profile_user.last_login_at.strftime('%d %b %Y, %H:%M UTC') }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+</section>
+
+{% endblock %}

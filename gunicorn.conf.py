@@ -12,7 +12,10 @@ bind = "0.0.0.0:8000"
 chdir = "/app"
 
 # ─── Workers ──────────────────────────────────────────────────────────────────
-workers = multiprocessing.cpu_count() * 2 + 1
+# Cap at 9 — avoids spawning dozens of workers on WSL2/cloud hosts that report
+# many logical CPUs. Raise the ceiling via the WEB_CONCURRENCY env var if needed.
+import os
+workers = int(os.environ.get("WEB_CONCURRENCY", min(multiprocessing.cpu_count() * 2 + 1, 9)))
 worker_class = "sync"
 threads = 1
 

@@ -29,7 +29,7 @@ from backend.schemas import CreateCommentSchema, UpdateCommentSchema, load_json
 api_comments_bp = Blueprint("api_comments", __name__, url_prefix="/api")
 csrf.exempt(api_comments_bp)
 
-_EDITOR_ROLES = {UserRole.admin.value, UserRole.editor.value}
+_EDITOR_ROLES = UserRole.EDITOR_SET
 
 
 # ── Serialiser ────────────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import enum
 from datetime import UTC, datetime
+from typing import ClassVar
 
 from sqlalchemy import Boolean, DateTime, Enum, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -24,6 +25,11 @@ class UserRole(str, enum.Enum):
     editor = "editor"
     contributor = "contributor"
     reader = "reader"
+
+    # Convenience frozensets used for role checks throughout the codebase.
+    # ClassVar annotations are not treated as enum members.
+    EDITOR_SET: ClassVar[frozenset[str]] = frozenset({"admin", "editor"})
+    AUTHOR_SET: ClassVar[frozenset[str]] = frozenset({"admin", "editor", "contributor"})
 
 
 class User(db.Model):
@@ -72,6 +78,8 @@ class User(db.Model):
         Text, nullable=True, comment="Comma-separated tech tags, e.g. 'Python,Flask,PostgreSQL'"
     )
     location: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # Short tagline shown under the display name on the profile card
+    headline: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     # ── Timestamps ─────────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
@@ -103,6 +111,25 @@ class User(db.Model):
     )
     notifications: Mapped[list[Notification]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Notification", back_populates="user", lazy="select"
+    )
+    # ── Portal relationships (lazy-loaded; created on first access) ────────
+    privacy_settings: Mapped[UserPrivacySettings | None] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "UserPrivacySettings", back_populates="user", uselist=False, lazy="select"
+    )
+    social_links: Mapped[list[UserSocialLink]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "UserSocialLink",
+        back_populates="user",
+        lazy="select",
+        order_by="UserSocialLink.sort_order",
+    )
+    connected_accounts: Mapped[list[UserConnectedAccount]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "UserConnectedAccount", back_populates="user", lazy="select"
+    )
+    repositories: Mapped[list[UserRepository]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "UserRepository",
+        back_populates="user",
+        lazy="select",
+        order_by="UserRepository.sort_order",
     )
 
     # ── Composite indexes ──────────────────────────────────────────────────

@@ -1,0 +1,50 @@
+{% extends "admin/_layout.html" %}
+{% block title %}System Health{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">System Health</h1>
+  <span class="adm-page-subtitle adm-text-muted">{{ server_time }}</span>
+</div>
+
+<div class="adm-stat-grid">
+
+  {# DB #}
+  <div class="adm-health-card {% if db.ok %}adm-health-card--ok{% else %}adm-health-card--err{% endif %}">
+    <span class="adm-health-card__icon" aria-hidden="true">{{ '✓' if db.ok else '✗' }}</span>
+    <span class="adm-health-card__title">Database</span>
+    <span class="adm-health-card__label">{{ db.label }}</span>
+    {% if not db.ok and db.error %}
+      <pre class="adm-health-card__err">{{ db.error | truncate(120) }}</pre>
+    {% endif %}
+  </div>
+
+  {# Redis #}
+  <div class="adm-health-card {% if redis.ok %}adm-health-card--ok{% else %}adm-health-card--err{% endif %}">
+    <span class="adm-health-card__icon" aria-hidden="true">{{ '✓' if redis.ok else '✗' }}</span>
+    <span class="adm-health-card__title">Redis</span>
+    <span class="adm-health-card__label">{{ redis.label }}</span>
+    {% if not redis.ok and redis.error %}
+      <pre class="adm-health-card__err">{{ redis.error | truncate(120) }}</pre>
+    {% endif %}
+  </div>
+
+  {# Celery #}
+  <div class="adm-health-card {% if celery.ok %}adm-health-card--ok{% else %}adm-health-card--warn{% endif %}">
+    <span class="adm-health-card__icon" aria-hidden="true">{{ '✓' if celery.ok else '⚠' }}</span>
+    <span class="adm-health-card__title">Celery Workers</span>
+    <span class="adm-health-card__label">{{ celery.label }}</span>
+  </div>
+
+</div>
+
+<section class="adm-section" style="margin-top:2rem; max-width:30rem">
+  <h2 class="adm-section-title">Runtime Info</h2>
+  <dl class="adm-meta">
+    <dt>Python</dt>
+    <dd><code>{{ python_version }}</code></dd>
+    <dt>Server Time (UTC)</dt>
+    <dd>{{ server_time }}</dd>
+  </dl>
+</section>
+{% endblock %}

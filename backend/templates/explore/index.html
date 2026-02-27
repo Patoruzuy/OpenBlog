@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% from "macros/cards.html" import post_card, tag_card, revision_row %}
+{% block title %}{{ _('Explore') }}{% endblock %}
+
+{% block content %}
+<div class="container explore-page">
+
+  <header class="explore-header">
+    <h1 class="explore-title">{{ _('Explore') }}</h1>
+    <p class="explore-desc">
+      {{ _('Discover posts, topics, and community revisions.') }}
+    </p>
+  </header>
+
+  {# ── Tab bar ─────────────────────────────────────────────────────────────── #}
+  <nav class="tab-bar" aria-label="{{ _('Explore sections') }}">
+    <a class="tab-link{% if tab == 'posts' %} tab-link--active{% endif %}"
+       href="{{ url_for('explore.explore_index', tab='posts') }}"
+       {% if tab == 'posts' %}aria-current="page"{% endif %}>
+      {{ _('Posts') }}
+    </a>
+    <a class="tab-link{% if tab == 'topics' %} tab-link--active{% endif %}"
+       href="{{ url_for('explore.explore_index', tab='topics') }}"
+       {% if tab == 'topics' %}aria-current="page"{% endif %}>
+      {{ _('Topics') }}
+    </a>
+    <a class="tab-link{% if tab == 'revisions' %} tab-link--active{% endif %}"
+       href="{{ url_for('explore.explore_index', tab='revisions') }}"
+       {% if tab == 'revisions' %}aria-current="page"{% endif %}>
+      {{ _('Revisions') }}
+    </a>
+  </nav>
+
+  {# ── Posts tab ───────────────────────────────────────────────────────────── #}
+  {% if tab == 'posts' %}
+    <div class="explore-sections">
+      {% if posts %}
+        <section>
+          <div class="post-feed">
+            {% for post in posts %}
+              {{ post_card(post) }}
+            {% endfor %}
+          </div>
+
+          {# Pagination #}
+          {% if total_pages > 1 %}
+            <div class="pagination" style="margin-top:var(--space-lg)">
+              {% if page > 1 %}
+                <a class="btn btn-ghost btn-sm"
+                   href="{{ url_for('explore.explore_index', tab='posts', page=page-1) }}">
+                  &larr; {{ _('Previous') }}
+                </a>
+              {% endif %}
+              <span class="pagination-info">
+                {{ _('Page') }} {{ page }} / {{ total_pages }}
+              </span>
+              {% if page < total_pages %}
+                <a class="btn btn-ghost btn-sm"
+                   href="{{ url_for('explore.explore_index', tab='posts', page=page+1) }}">
+                  {{ _('Next') }} &rarr;
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </section>
+      {% else %}
+        <p class="empty-state">{{ _('No posts published yet. Be the first!') }}</p>
+      {% endif %}
+    </div>
+
+  {# ── Topics tab ──────────────────────────────────────────────────────────── #}
+  {% elif tab == 'topics' %}
+    <div class="explore-sections">
+      {% if topics %}
+        <section>
+          <div class="tag-grid">
+            {% for item in topics %}
+              {{ tag_card(item.tag, item.post_count) }}
+            {% endfor %}
+          </div>
+        </section>
+      {% else %}
+        <p class="empty-state">{{ _('No topics yet.') }}</p>
+      {% endif %}
+    </div>
+
+  {# ── Revisions tab ───────────────────────────────────────────────────────── #}
+  {% else %}
+    <div class="explore-sections">
+
+      {# ── Section 1: Open revisions ─────────────────────────────────────── #}
+      <section>
+        <h2 class="explore-section-title">
+          <span>{{ _('Open revisions') }}</span>
+          {% if open_total %}
+            <span class="count-badge">{{ open_total }}</span>
+          {% endif %}
+        </h2>
+        {% if open_revisions %}
+          <div class="revision-feed">
+            {% for rev in open_revisions %}
+              {{ revision_row(rev) }}
+            {% endfor %}
+          </div>
+          {% if open_total > open_revisions | length %}
+            <div style="margin-top:var(--space-md)">
+              <a class="btn btn-ghost btn-sm"
+                 href="{{ url_for('revisions.revision_list') }}">
+                {{ _('View all open revisions') }} &rarr;
+              </a>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="empty-state">{{ _('No open revisions right now.') }}</p>
+        {% endif %}
+      </section>
+
+      {# ── Section 2: Recently accepted ─────────────────────────────────── #}
+      <section>
+        <h2 class="explore-section-title">
+          <span>{{ _('Recently accepted') }}</span>
+        </h2>
+        {% if accepted_revisions %}
+          <div class="revision-feed">
+            {% for rev in accepted_revisions %}
+              {{ revision_row(rev) }}
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="empty-state">{{ _('No accepted revisions yet.') }}</p>
+        {% endif %}
+      </section>
+
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

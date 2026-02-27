@@ -22,6 +22,23 @@ from backend.models.user import User
 from backend.utils.validation import validate_url
 
 
+def _normalize_tech_stack(value: str) -> str:
+    """Normalise a comma-separated tech-stack string.
+
+    Lowercases each item, strips surrounding whitespace, deduplicates while
+    preserving first-occurrence order, and re-joins with ", ".
+
+    >>> _normalize_tech_stack("Python,  python, Flask , postgres")
+    'python, flask, postgres'
+    """
+    seen: dict[str, None] = {}
+    for item in value.split(","):
+        token = item.strip().lower()
+        if token:
+            seen[token] = None  # dict preserves insertion order (Python 3.7+)
+    return ", ".join(seen.keys())
+
+
 class UserServiceError(Exception):
     """Domain error raised by UserService.  Carries an HTTP status code."""
 
@@ -69,7 +86,7 @@ class UserService:
         if github_url is not None:
             user.github_url = validate_url(github_url.strip(), field="github_url")
         if tech_stack is not None:
-            user.tech_stack = tech_stack.strip()
+            user.tech_stack = _normalize_tech_stack(tech_stack)
         if location is not None:
             user.location = location.strip()
         db.session.commit()

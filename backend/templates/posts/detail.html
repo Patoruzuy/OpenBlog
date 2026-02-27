@@ -8,6 +8,8 @@
 {% endif %}
 <meta property="og:title" content="{{ post.seo_title or post.title }}" />
 <meta property="og:type" content="article" />
+<script src="{{ url_for('static', filename='js/editor.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/comments.js') }}" defer></script>
 {% endblock %}
 
 {% block content %}
@@ -53,6 +55,37 @@
     {% endif %}
   </header>
 
+  {# ── Post actions bar ─────────────────────────────────────────────────────── #}
+  <div class="post-actions" aria-label="{{ _('Post actions') }}">
+    <a class="btn btn-sm btn-ghost" href="#comment-form-anchor">&#x1F4AC; {{ _('Comment') }}</a>
+    {% if post.status.value == 'published' and current_user and current_user.id != post.author_id %}
+      <a class="btn btn-sm btn-ghost" href="{{ url_for('revisions.submit_revision', slug=post.slug) }}">
+        &#x270E; {{ _('Suggest edit') }}
+      </a>
+    {% endif %}
+    {% if current_user %}
+      <button id="bookmark-btn" class="btn btn-sm btn-ghost" type="button"
+              data-post-slug="{{ post.slug }}" data-bookmarked="false">
+        &#x1F516; {{ _('Bookmark') }}
+      </button>
+    {% endif %}
+    <button id="share-btn" class="btn btn-sm btn-ghost" type="button"
+            data-share-url="{{ request.url }}" data-share-title="{{ post.title }}">
+      &#x1F517; {{ _('Share') }}
+    </button>
+    {% if current_user and (current_user.id == post.author_id or current_user.role.value in ['admin','editor']) %}
+      <a class="btn btn-sm" href="{{ url_for('posts.edit_post', slug=post.slug) }}">
+        &#x270F; {{ _('Edit post') }}
+      </a>
+    {% endif %}
+    {% if current_user and current_user.id != post.author_id %}
+      <button class="btn btn-sm btn-ghost" type="button" style="margin-left:auto"
+              data-report-target-type="post" data-report-target-id="{{ post.id }}">
+        &#x26A0; {{ _('Report') }}
+      </button>
+    {% endif %}
+  </div>
+
   {# ── Body ────────────────────────────────────────────────────────────── #}
   <div class="prose" itemprop="articleBody">
     {{ post_html | safe }}
@@ -60,28 +93,12 @@
 
   {# ── Post footer ─────────────────────────────────────────────────────── #}
   <footer class="post-footer">
-    <div class="review-buttons">
-      {% if current_user and (current_user.id == post.author_id or current_user.role.value in ['admin','editor']) %}
-        <a class="btn btn-sm" href="#">Edit post</a>
-      {% endif %}
-    </div>
-
-    {# Revision CTA — shown to authenticated non-authors #}
-    {% if current_user and current_user.id != post.author_id %}
+    {% if not current_user %}
       <div class="revision-cta">
-        <div class="revision-cta-title">Spot something that could be better?</div>
+        <div class="revision-cta-title">{{ _('Think this could be improved?') }}</div>
         <p class="revision-cta-body">
-          OpenBlog is open to community improvement. Suggest a revision and,
-          if accepted, it becomes part of this post's history.
-        </p>
-        <a class="btn btn-sm btn-ghost" href="#">Suggest a revision</a>
-      </div>
-    {% elif not current_user %}
-      <div class="revision-cta">
-        <div class="revision-cta-title">Think this could be improved?</div>
-        <p class="revision-cta-body">
-          <a href="{{ url_for('auth.login') }}">Sign in</a> to suggest a revision.
-          Accepted contributions are credited to you.
+          <a href="{{ url_for('auth.login') }}">{{ _('Sign in') }}</a>
+          {{ _('to suggest a revision. Accepted contributions are credited to you.') }}
         </p>
       </div>
     {% endif %}
@@ -91,30 +108,213 @@
 
 {# ── Comments ─────────────────────────────────────────────────────────────── #}
 <section class="comments container" id="comments">
-  <h2 class="comments-title">Comments</h2>
+
+  <div class="thread-meta">
+    <h2 class="comments-title" id="comments-heading">
+      {{ _('Comments') }}
+      {% set active_comments = post.comments | selectattr('is_deleted', 'false') | list %}
+      {% if active_comments %}
+        <span class="count-badge">{{ active_comments | length }}</span>
+      {% endif %}
+    </h2>
+    {% if current_user %}
+      <button id="follow-thread-btn" class="btn btn-sm btn-ghost" type="button"
+              data-post-slug="{{ post.slug }}" data-following="false" aria-pressed="false">
+        &#x1F514; {{ _('Follow thread') }}
+      </button>
+    {% endif %}
+  </div>
+
   {% if post.comments %}
-    {% for comment in post.comments %}
-      <div class="comment">
-        <div class="comment-meta">
-          <strong>{{ comment.author.display_name or comment.author.username }}</strong>
-          <time datetime="{{ comment.created_at.isoformat() }}">
-            {{ comment.created_at.strftime('%b %d, %Y') }}
-          </time>
-        </div>
-        <div class="comment-body">
-          {% if comment.is_deleted %}
-            <em>[deleted]</em>
-          {% else %}
-            {{ comment.body }}
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
+    <div class="comment-list" id="comment-list">
+      {% for comment in post.comments %}
+        {% if not comment.parent_id %}
+          <div class="comment" id="comment-{{ comment.id }}" data-comment-id="{{ comment.id }}">
+            <div class="comment-header">
+              <span class="comment-author">
+                {% if comment.is_deleted %}<em>{{ _('[deleted]') }}</em>
+                {% else %}{{ comment.public_display_name_snapshot or (comment.author.display_name or comment.author.username) }}
+                {% endif %}
+              </span>
+              <time class="comment-time" datetime="{{ comment.created_at.isoformat() }}">
+                {{ comment.created_at.strftime('%b %d, %Y') }}
+              </time>
+              {% if not comment.is_deleted and current_user %}
+                <div class="comment-more-wrap">
+                  <button class="comment-more-btn" type="button"
+                          aria-label="{{ _('Comment options') }}" aria-haspopup="true"
+                          aria-expanded="false" data-more-toggle>&#x22EF;</button>
+                  <ul class="comment-more-menu" hidden>
+                    <li><button type="button" data-report-target-type="comment"
+                                data-report-target-id="{{ comment.id }}">{{ _('Report') }}</button></li>
+                    {% if current_user.id == comment.author_id or current_user.role.value in ['admin','editor'] %}
+                      <li><button type="button" class="danger">{{ _('Delete') }}</button></li>
+                    {% endif %}
+                  </ul>
+                </div>
+              {% endif %}
+            </div>
+            <div class="comment-body">
+              {% if comment.is_deleted %}<em>{{ _('[This comment has been deleted.]') }}</em>
+              {% else %}{{ comment.body }}{% endif %}
+            </div>
+            {% if not comment.is_deleted and current_user %}
+              <div class="comment-actions">
+                <button class="comment-like-btn" type="button"
+                        data-comment-id="{{ comment.id }}" data-voted="false" aria-pressed="false">
+                  &#x2764; <span class="like-count">0</span>
+                </button>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
   {% else %}
-    <div class="empty-state">
+    <div class="empty-state" id="comment-list">
       <span class="empty-state-icon">&#x1F4AC;</span>
-      <p>No comments yet. Be the first!</p>
+      <p>{{ _('No comments yet. Be the first!') }}</p>
     </div>
   {% endif %}
+
+  {# ── Comment form ──────────────────────────────────────────────────────── #}
+  <div id="comment-form-anchor"
+       style="scroll-margin-top:calc(var(--header-height) + var(--space-md))"></div>
+  {% if current_user %}
+    <div class="comment-compose" style="margin-top:var(--space-xl)">
+      <h3 style="font-size:.875rem;font-weight:600;color:var(--text-muted);
+                 margin-bottom:var(--space-md);text-transform:uppercase;
+                 letter-spacing:var(--tracking-label)">
+        {{ _('Leave a comment') }}
+      </h3>
+      <form method="post" id="comment-form"
+            action="{{ url_for('api_comments.create_comment', slug=post.slug) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="write-preview-tabs tab-bar" role="tablist">
+          <button type="button" class="tab-link tab-link--active"
+                  role="tab" aria-selected="true"
+                  data-tab-target="comment-write" id="ctab-write">{{ _('Write') }}</button>
+          <button type="button" class="tab-link"
+                  role="tab" aria-selected="false"
+                  data-tab-target="comment-preview" id="ctab-preview">{{ _('Preview') }}</button>
+        </div>
+        <div class="md-editor" data-md-editor>
+          <div class="md-toolbar" data-md-toolbar>
+            <button type="button" class="md-toolbar__btn" data-action="bold">B</button>
+            <button type="button" class="md-toolbar__btn" data-action="italic"><em>i</em></button>
+            <button type="button" class="md-toolbar__btn" data-action="code">`</button>
+            <button type="button" class="md-toolbar__btn" data-action="codeblock">```</button>
+            <button type="button" class="md-toolbar__btn" data-action="blockquote">&ldquo;</button>
+            <button type="button" class="md-toolbar__btn" data-action="link">Link</button>
+          </div>
+          <div id="panel-comment-write" role="tabpanel" aria-labelledby="ctab-write">
+            <textarea name="body" id="comment-body" data-md-input rows="6"
+                      placeholder="{{ _('Write a comment in Markdown…') }}"
+                      required></textarea>
+          </div>
+          <div id="panel-comment-preview" role="tabpanel"
+               aria-labelledby="ctab-preview" hidden>
+            <div class="md-preview prose" data-md-preview>
+              <p style="color:var(--text-muted);font-style:italic">
+                {{ _('Preview will appear here…') }}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="comment-form-footer">
+          <button type="button" id="attach-file-btn" class="attach-file-btn">
+            &#x1F4CE; {{ _('Attach') }}
+          </button>
+          <input type="file" id="comment-attachment"
+                 accept=".png,.jpg,.jpeg,.gif,.pdf,.txt,.md"
+                 style="display:none" aria-hidden="true" />
+          <div id="attachment-list" aria-live="polite"></div>
+          <button type="submit" class="btn btn-primary btn-sm" style="margin-left:auto">
+            {{ _('Post comment') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  {% else %}
+    <div style="margin-top:var(--space-xl);padding:var(--space-lg);
+                border:1px dashed var(--border);border-radius:var(--radius-lg);
+                text-align:center">
+      <p style="color:var(--text-muted)">
+        <a href="{{ url_for('auth.login') }}">{{ _('Sign in') }}</a>
+        {{ _('to join the discussion.') }}
+      </p>
+    </div>
+  {% endif %}
+
 </section>
+
+{# ── Report modal ──────────────────────────────────────────────────────────── #}
+<dialog id="report-modal" class="report-modal"
+        aria-labelledby="report-modal-title" aria-modal="true">
+  <h2 class="report-modal__title" id="report-modal-title">{{ _('Report') }}</h2>
+  <form id="report-form" method="dialog">
+    <ul class="report-modal__reasons" role="radiogroup">
+      <li><label><input type="radio" name="reason" value="spam" required /> {{ _('Spam') }}</label></li>
+      <li><label><input type="radio" name="reason" value="harassment" /> {{ _('Harassment') }}</label></li>
+      <li><label><input type="radio" name="reason" value="misinformation" /> {{ _('Misinformation') }}</label></li>
+      <li><label><input type="radio" name="reason" value="off_topic" /> {{ _('Off-topic') }}</label></li>
+      <li><label><input type="radio" name="reason" value="other" /> {{ _('Other') }}</label></li>
+    </ul>
+    <textarea id="report-note" name="note" class="report-modal__note"
+              placeholder="{{ _('Additional context (optional)…') }}"
+              maxlength="500"></textarea>
+    <p class="report-modal__error" id="report-error"
+       role="alert" aria-live="polite"></p>
+    <div class="report-modal__actions">
+      <button type="button" id="report-cancel"
+              class="btn btn-ghost btn-sm">{{ _('Cancel') }}</button>
+      <button type="button" id="report-submit"
+              class="btn btn-danger btn-sm">{{ _('Submit report') }}</button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  "use strict";
+  /* ── Bookmark toggle ──── */
+  const bookmarkBtn = document.getElementById("bookmark-btn");
+  if (bookmarkBtn) {
+    fetch("/api/posts/{{ post.slug }}", { credentials: "same-origin" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && d.has_bookmarked != null) setBookmark(d.has_bookmarked); })
+      .catch(() => {});
+    bookmarkBtn.addEventListener("click", async () => {
+      const cur = bookmarkBtn.dataset.bookmarked === "true";
+      const res = await fetch("/api/bookmarks/{{ post.id }}", {
+        method: cur ? "DELETE" : "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRFToken": (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || "" }
+      }).catch(() => null);
+      if (res && (res.ok || res.status === 204)) setBookmark(!cur);
+    });
+    function setBookmark(a) {
+      bookmarkBtn.dataset.bookmarked = a ? "true" : "false";
+      bookmarkBtn.textContent = a ? "\uD83D\uDD16 Saved" : "\uD83D\uDD16 Bookmark";
+    }
+  }
+  /* ── Share button ──── */
+  const shareBtn = document.getElementById("share-btn");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", () => {
+      const url = shareBtn.dataset.shareUrl || location.href;
+      if (navigator.share) {
+        navigator.share({ title: shareBtn.dataset.shareTitle, url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url)
+          .then(() => { shareBtn.textContent = "\u2705 Copied!"; setTimeout(() => { shareBtn.textContent = "\uD83D\uDD17 Share"; }, 2e3); })
+          .catch(() => {});
+      }
+    });
+  }
+}());
+</script>
+{% endblock %}
+
