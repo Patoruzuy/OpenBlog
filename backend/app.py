@@ -172,6 +172,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.search import ssr_search_bp
     from backend.routes.settings import settings_bp
     from backend.routes.tags import ssr_tags_bp
+    from backend.routes.threads import threads_bp
     from backend.routes.users import ssr_users_bp
 
     app.register_blueprint(health_bp)
@@ -205,6 +206,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(attachments_bp)
     app.register_blueprint(api_attachments_bp)
     app.register_blueprint(newsletter_bp)
+    app.register_blueprint(threads_bp)
 
 
 def _register_cli(app: Flask) -> None:

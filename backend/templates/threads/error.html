@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Unsubscribe error{% endblock %}
+{% block content %}
+<div class="page-shell" style="max-width:480px;margin:4rem auto;text-align:center">
+  <p style="font-family:monospace;font-weight:700;font-size:1.1rem;margin:0 0 16px">ob/ OpenBlog</p>
+  <h1 style="font-size:1.5rem;font-weight:600;margin:0 0 12px">Invalid or expired link</h1>
+  <p style="color:var(--text-muted)">
+    The unsubscribe link is missing, invalid, or has been tampered with.<br/>
+    Please use the link from your notification email.
+  </p>
+  <p style="color:var(--text-muted);font-size:0.875rem;margin-top:1rem">
+    If you believe this is a mistake, log in and manage your thread subscriptions
+    from your notification settings.
+  </p>
+  <a class="btn" href="{{ url_for('index.index') }}" style="margin-top:2rem;display:inline-block">Go home</a>
+</div>
+{% endblock %}

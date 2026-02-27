@@ -87,6 +87,14 @@ class BaseConfig:
     SITE_NAME: str = os.environ.get("SITE_NAME", "OpenBlog")
     SITE_URL: str = os.environ.get("SITE_URL", "https://openblog.dev")
 
+    # ── Thread notifications ────────────────────────────────────────
+    # Minimum seconds between two "new comment on thread you follow" emails
+    # for the same (user, post) pair.  Prevents inbox flooding on busy threads.
+    # Set to 0 to disable the cooldown (every comment triggers an email).
+    THREAD_NOTIF_COOLDOWN_SECONDS: int = int(
+        os.environ.get("THREAD_NOTIF_COOLDOWN_SECONDS", "900")  # 15 min default
+    )
+
     # ── Flags ──────────────────────────────────────────────────────────────
     DEBUG: bool = False
     TESTING: bool = False

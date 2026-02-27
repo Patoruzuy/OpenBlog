@@ -20,9 +20,23 @@ from __future__ import annotations
 import fakeredis
 import pytest
 from sqlalchemy import text as sa_text
+from unittest.mock import patch
 
 from backend.app import create_app
 from backend.extensions import db as _db
+
+# ── Global Celery task stubs ──────────────────────────────────────────────────
+
+
+@pytest.fixture(autouse=True)
+def _stub_notification_task():
+    """Prevent notify_thread_comment_created.delay() from connecting to the
+    Celery broker (Redis) during unit tests.  Tests that need to assert on the
+    dispatch can override this with their own ``patch`` inside the test body.
+    """
+    with patch("backend.tasks.notifications.notify_thread_comment_created.delay"):
+        yield
+
 
 # ── Session-scoped app ────────────────────────────────────────────────────────
 

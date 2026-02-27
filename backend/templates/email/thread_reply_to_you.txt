@@ -1,0 +1,25 @@
+{% if locale == 'es' %}{{ commenter_name }} respondió a tu comentario
+============================================
+
+En el hilo "{{ post_title }}":
+
+{{ comment_excerpt }}
+
+Ver la respuesta: {{ post_url }}
+
+---
+Estás recibiendo este correo porque alguien respondió a tu comentario en OpenBlog.
+Cancelar suscripción: {{ unsubscribe_url }}
+{% else %}{{ commenter_name }} replied to your comment
+============================================
+
+On the thread "{{ post_title }}":
+
+{{ comment_excerpt }}
+
+View the reply: {{ post_url }}
+
+---
+You're receiving this because someone replied to your comment on OpenBlog.
+Unsubscribe: {{ unsubscribe_url }}
+{% endif %}

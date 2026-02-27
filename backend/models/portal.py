@@ -87,6 +87,12 @@ class UserPrivacySettings(db.Model):
     show_contributions: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     searchable_profile: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
+    # ── Notification preferences ───────────────────────────────────────────
+    # Email me when someone new comments on a post I follow
+    notify_thread_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    # Email me when someone replies directly to my comment
+    notify_reply_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )

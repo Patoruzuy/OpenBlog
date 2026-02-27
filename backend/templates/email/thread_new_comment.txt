@@ -1,0 +1,25 @@
+{% if locale == 'es' %}Nuevo comentario en "{{ post_title }}"
+============================================
+
+{{ commenter_name }} comentó:
+
+{{ comment_excerpt }}
+
+Ver el hilo: {{ post_url }}
+
+---
+Estás recibiendo este correo porque sigues este hilo en OpenBlog.
+Cancelar suscripción: {{ unsubscribe_url }}
+{% else %}New comment on "{{ post_title }}"
+============================================
+
+{{ commenter_name }} commented:
+
+{{ comment_excerpt }}
+
+View the thread: {{ post_url }}
+
+---
+You're receiving this because you follow this thread on OpenBlog.
+Unsubscribe: {{ unsubscribe_url }}
+{% endif %}

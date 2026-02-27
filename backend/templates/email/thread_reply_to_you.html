@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/></head>
+<body style="font-family:system-ui,sans-serif;background:#0d0d0d;color:#e0e0e0;margin:0;padding:32px 16px">
+  <div style="max-width:480px;margin:0 auto;background:#1a1a1a;border-radius:8px;padding:32px">
+    <p style="font-family:monospace;font-weight:700;font-size:1.1rem;margin:0 0 24px">ob/ OpenBlog</p>
+    {% if locale == 'es' %}
+    <h1 style="font-size:1.25rem;font-weight:600;margin:0 0 12px">{{ commenter_name }} respondió a tu comentario</h1>
+    <p style="color:#a8a8a8;margin:0 0 8px">En el hilo <strong style="color:#e0e0e0">{{ post_title }}</strong>:</p>
+    <blockquote style="border-left:3px solid #4fafff;margin:0 0 24px;padding:10px 16px;color:#b8b8b8;font-style:italic">{{ comment_excerpt }}</blockquote>
+    <a href="{{ post_url }}" style="display:inline-block;background:#4fafff;color:#000;font-weight:600;padding:12px 24px;border-radius:6px;text-decoration:none">Ver la respuesta</a>
+    <hr style="border:none;border-top:1px solid #2a2a2a;margin:24px 0"/>
+    <p style="color:#666;font-size:0.8rem;margin:0">Estás recibiendo este correo porque alguien respondió a tu comentario en OpenBlog.<br/>
+    <a href="{{ unsubscribe_url }}" style="color:#4fafff">Cancelar suscripción</a> a las notificaciones de este hilo.</p>
+    {% else %}
+    <h1 style="font-size:1.25rem;font-weight:600;margin:0 0 12px">{{ commenter_name }} replied to your comment</h1>
+    <p style="color:#a8a8a8;margin:0 0 8px">On the thread <strong style="color:#e0e0e0">{{ post_title }}</strong>:</p>
+    <blockquote style="border-left:3px solid #4fafff;margin:0 0 24px;padding:10px 16px;color:#b8b8b8;font-style:italic">{{ comment_excerpt }}</blockquote>
+    <a href="{{ post_url }}" style="display:inline-block;background:#4fafff;color:#000;font-weight:600;padding:12px 24px;border-radius:6px;text-decoration:none">View the reply</a>
+    <hr style="border:none;border-top:1px solid #2a2a2a;margin:24px 0"/>
+    <p style="color:#666;font-size:0.8rem;margin:0">You're receiving this because someone replied to your comment on OpenBlog.<br/>
+    <a href="{{ unsubscribe_url }}" style="color:#4fafff">Unsubscribe</a> from notifications for this thread.</p>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -72,6 +72,29 @@ class CommentService:
         db.session.add(comment)
         db.session.commit()
         metrics.comments_created.inc()
+
+        # Dispatch thread notification asynchronously.  Any error here must
+        # not surface to the caller — a failed notification must never prevent
+        # a comment from being saved.
+        try:
+            from backend.tasks.notifications import notify_thread_comment_created  # noqa: PLC0415
+
+            notify_thread_comment_created.delay(
+                {
+                    "post_id": post_id,
+                    "comment_id": comment.id,
+                    "author_id": author_id,
+                    "parent_id": parent_id,
+                    "body": body,
+                }
+            )
+        except Exception:  # pragma: no cover
+            from flask import current_app  # noqa: PLC0415
+
+            current_app.logger.warning(
+                "Failed to enqueue thread notification for comment %s", comment.id
+            )
+
         return comment
 
     # ── Update ────────────────────────────────────────────────────────────────
