@@ -73,6 +73,20 @@ class BaseConfig:
     MAIL_DEFAULT_SENDER: str = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@openblog.dev")
     MAIL_SUPPRESS_SEND: bool = False
 
+    # ── Media / file storage ─────────────────────────────────────────
+    # Absolute path to the directory used for user-uploaded files.
+    # Must be writable by the app process and must NOT be under static/.
+    MEDIA_ROOT: str = os.environ.get("MEDIA_ROOT", "/app/media")
+    # 5 MiB hard limit for a single comment attachment.
+    MAX_COMMENT_ATTACHMENT_BYTES: int = int(
+        os.environ.get("MAX_COMMENT_ATTACHMENT_BYTES", str(5 * 1024 * 1024))
+    )
+
+    # ── Newsletter ──────────────────────────────────────────────────
+    NEWSLETTER_CONFIRM_TTL: int = 48 * 60 * 60  # 48 h in seconds
+    SITE_NAME: str = os.environ.get("SITE_NAME", "OpenBlog")
+    SITE_URL: str = os.environ.get("SITE_URL", "https://openblog.dev")
+
     # ── Flags ──────────────────────────────────────────────────────────────
     DEBUG: bool = False
     TESTING: bool = False

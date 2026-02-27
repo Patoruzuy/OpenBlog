@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{ current_locale }}" data-theme="dark">
+<html lang="{% if current_locale == 'es' %}es{% else %}en{% endif %}" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -113,11 +113,11 @@
             <a href="{{ url_for('i18n.set_lang', locale='en') }}"
                class="lang-btn{% if current_locale == 'en' %} is-active{% endif %}"
                hreflang="en"
-               aria-pressed="{{ 'true' if current_locale == 'en' else 'false' }}">EN</a>
+               {% if current_locale == 'en' %}aria-current="page"{% endif %}>EN</a>
             <a href="{{ url_for('i18n.set_lang', locale='es') }}"
                class="lang-btn{% if current_locale == 'es' %} is-active{% endif %}"
                hreflang="es"
-               aria-pressed="{{ 'true' if current_locale == 'es' else 'false' }}">ES</a>
+               {% if current_locale == 'es' %}aria-current="page"{% endif %}>ES</a>
           </div>
 
           {# ── Avatar dropdown (logged-in) / Sign in (logged-out) ────── #}
@@ -232,6 +232,28 @@
           <a href="{{ url_for('pages.terms') }}">{{ _('Terms of Service') }}</a>
           <a href="{{ url_for('pages.cookies') }}">{{ _('Cookie Policy') }}</a>
         </nav>
+
+        {# ── Newsletter subscribe form ───────────────────────────────────── #}
+        <div class="footer-newsletter">
+          <h3 class="footer-nav-heading">{{ _('Stay updated') }}</h3>
+          <p class="footer-newsletter__desc" style="color:var(--text-muted);font-size:0.8125rem;margin:0 0 0.75rem">
+            {{ _('New posts and features — no spam.') }}
+          </p>
+          <form class="footer-newsletter__form" method="post" action="{{ url_for('newsletter.subscribe') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="next" value="{{ request.path }}"/>
+            <input type="hidden" name="source" value="footer_form"/>
+            <input
+              class="footer-newsletter__input"
+              type="email"
+              name="email"
+              placeholder="{{ _('your@email.com') }}"
+              required
+              autocomplete="email"
+            />
+            <button class="btn btn--primary btn--sm" type="submit">{{ _('Subscribe') }}</button>
+          </form>
+        </div>
       </div>
     </footer>
 

@@ -1,0 +1,13 @@
+Verify your email address — OpenBlog
+
+Hi,
+
+You requested to verify your email address with OpenBlog.
+
+Click the link below to confirm your address. This link expires in 1 hour.
+
+{{ verify_url }}
+
+If you didn't create an OpenBlog account, you can safely ignore this email.
+
+— The OpenBlog Team

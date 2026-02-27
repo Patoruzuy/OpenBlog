@@ -16,7 +16,9 @@ from backend.models.badge import Badge, UserBadge
 from backend.models.bookmark import Bookmark
 from backend.models.comment import Comment
 from backend.models.comment_attachment import CommentAttachment
+from backend.models.email_delivery_log import EmailDeliveryLog
 from backend.models.follow import Follow
+from backend.models.newsletter import NewsletterSubscription
 from backend.models.notification import Notification
 from backend.models.pinned_post import PinnedPost
 from backend.models.portal import (
@@ -44,8 +46,10 @@ __all__ = [
     "Bookmark",
     "Comment",
     "CommentAttachment",
+    "EmailDeliveryLog",
     "Follow",
     "IdentityMode",
+    "NewsletterSubscription",
     "Notification",
     "PinnedPost",
     "Post",

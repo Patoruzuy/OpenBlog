@@ -1,0 +1,43 @@
+{% extends "settings/_layout.html" %}
+{% block settings_title %}Newsletter{% endblock %}
+{% block settings_content %}
+<section class="settings-section">
+  <h2 class="settings-section__title">Newsletter</h2>
+
+  {% if subscription %}
+    <div class="form-field" style="margin-bottom:1.5rem">
+      <p class="form-label">Status</p>
+      <p>
+        {% if subscription.status == 'active' %}
+          <span style="color:#4ade80;font-weight:600">Active</span> — you're subscribed.
+        {% elif subscription.status == 'pending' %}
+          <span style="color:#facc15;font-weight:600">Pending</span> — check your inbox to confirm.
+        {% elif subscription.status == 'unsubscribed' %}
+          <span style="color:var(--text-muted)">Unsubscribed</span>
+        {% else %}
+          <span style="color:var(--text-muted)">{{ subscription.status | capitalize }}</span>
+        {% endif %}
+      </p>
+    </div>
+
+    {% if subscription.status in ('active', 'pending') %}
+      <form method="post" action="{{ url_for('settings.newsletter_unsubscribe') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn--danger--outline" type="submit">Unsubscribe</button>
+      </form>
+    {% else %}
+      <form method="post" action="{{ url_for('settings.newsletter_subscribe') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn--primary" type="submit">Subscribe again</button>
+      </form>
+    {% endif %}
+
+  {% else %}
+    <p style="color:var(--text-muted);margin-bottom:1.5rem">You are not currently subscribed to the OpenBlog newsletter.</p>
+    <form method="post" action="{{ url_for('settings.newsletter_subscribe') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button class="btn btn--primary" type="submit">Subscribe</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

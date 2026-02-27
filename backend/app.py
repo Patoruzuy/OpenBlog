@@ -157,12 +157,14 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.api.thread_follow import api_thread_follow_bp
     from backend.routes.api.votes import api_votes_bp
     from backend.routes.admin import admin_bp
+    from backend.routes.attachments import api_attachments_bp, attachments_bp
     from backend.routes.auth import ssr_auth_bp
     from backend.routes.bookmarks import ssr_bookmarks_bp
     from backend.routes.explore import explore_bp
     from backend.routes.health import health_bp
     from backend.routes.i18n import i18n_bp
     from backend.routes.index import index_bp
+    from backend.routes.newsletter import newsletter_bp
     from backend.routes.notifications import ssr_notifications_bp
     from backend.routes.pages import pages_bp
     from backend.routes.posts import ssr_posts_bp
@@ -200,6 +202,9 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(api_thread_follow_bp)
     app.register_blueprint(pages_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(attachments_bp)
+    app.register_blueprint(api_attachments_bp)
+    app.register_blueprint(newsletter_bp)
 
 
 def _register_cli(app: Flask) -> None:

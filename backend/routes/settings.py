@@ -401,3 +401,73 @@ def contributions():
         revision_identities=revision_identities,
         active_section="contributions",
     )
+
+
+# ── Newsletter ─────────────────────────────────────────────────────────────────
+
+@settings_bp.get("/newsletter")
+@require_auth
+def newsletter():
+    """Show newsletter subscription status for the current user."""
+    user = _current_user_or_abort()
+    from backend.services.newsletter_service import NewsletterService  # noqa: PLC0415
+
+    sub = NewsletterService.get_for_user(user.id)
+    if sub is None:
+        sub = NewsletterService.get_by_email(user.email)
+    return render_template(
+        "settings/newsletter.html",
+        subscription=sub,
+        active_section="newsletter",
+    )
+
+
+@settings_bp.post("/newsletter/subscribe")
+@require_auth
+def newsletter_subscribe():
+    """Subscribe the logged-in user's email to the newsletter."""
+    user = _current_user_or_abort()
+    from backend.services.newsletter_service import NewsletterService  # noqa: PLC0415
+
+    try:
+        sub, confirm_token = NewsletterService.subscribe(
+            user.email,
+            source="settings",
+            user_id=user.id,
+        )
+        db.session.commit()
+        if sub.status == "pending":
+            try:
+                from backend.tasks.email import send_newsletter_confirm_email  # noqa: PLC0415
+                from flask import session as flask_session  # noqa: PLC0415
+                locale = flask_session.get("locale") or "en"
+                send_newsletter_confirm_email.delay(user.email, confirm_token, locale)
+            except Exception as exc:
+                current_app.logger.warning("Newsletter confirm email failed: %s", exc)
+            flash("Confirmation email sent — check your inbox.", "success")
+        else:
+            flash("You are already subscribed.", "info")
+    except Exception as exc:
+        current_app.logger.error("Newsletter subscribe error: %s", exc)
+        flash("Could not process your request. Please try again.", "error")
+    return redirect(url_for("settings.newsletter"))
+
+
+@settings_bp.post("/newsletter/unsubscribe")
+@require_auth
+def newsletter_unsubscribe():
+    """Unsubscribe the logged-in user from the newsletter."""
+    user = _current_user_or_abort()
+    from backend.services.newsletter_service import NewsletterService  # noqa: PLC0415
+
+    sub = NewsletterService.get_for_user(user.id) or NewsletterService.get_by_email(user.email)
+    if sub is None:
+        flash("No active subscription found.", "info")
+        return redirect(url_for("settings.newsletter"))
+
+    from datetime import UTC, datetime  # noqa: PLC0415
+    sub.status = "unsubscribed"
+    sub.unsubscribed_at = datetime.now(UTC)
+    db.session.commit()
+    flash("You have been unsubscribed.", "success")
+    return redirect(url_for("settings.newsletter"))

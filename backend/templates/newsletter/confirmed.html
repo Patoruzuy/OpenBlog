@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Subscription Confirmed{% endblock %}
+{% block content %}
+<div class="page-shell" style="max-width:480px;margin:4rem auto;text-align:center">
+  <p style="font-family:monospace;font-weight:700;font-size:1.1rem;margin:0 0 16px">ob/ OpenBlog</p>
+  <h1 style="font-size:1.5rem;font-weight:600;margin:0 0 12px">You're subscribed!</h1>
+  <p style="color:var(--text-muted)">
+    <strong>{{ email }}</strong> is now confirmed.
+    We'll send you updates when new content lands.
+  </p>
+  <a class="btn btn--primary" href="{{ url_for('index.index') }}" style="margin-top:2rem;display:inline-block">Browse posts</a>
+</div>
+{% endblock %}

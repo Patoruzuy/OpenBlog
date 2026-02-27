@@ -158,6 +158,34 @@
               {% if comment.is_deleted %}<em>{{ _('[This comment has been deleted.]') }}</em>
               {% else %}{{ comment.body }}{% endif %}
             </div>
+            {# ── Attachment chips ────────────────────────────────────────── #}
+            {% if not comment.is_deleted and comment.attachments %}
+              <ul class="comment-attachments" style="list-style:none;padding:0;margin:0.5rem 0 0;display:flex;flex-wrap:wrap;gap:0.5rem">
+                {% for att in comment.attachments %}
+                  {% if att.storage_status == 'stored' %}
+                    <li>
+                      {% if att.is_image %}
+                        <a class="comment-attachment-chip comment-attachment-chip--image"
+                           href="{{ url_for('attachments.preview_attachment', attachment_id=att.id) }}"
+                           target="_blank" rel="noopener noreferrer"
+                           style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.25rem 0.625rem;background:var(--bg-2,#1e1e1e);border:1px solid var(--border,#333);border-radius:4px;font-size:0.8125rem;color:var(--text-link,#4fafff);text-decoration:none">
+                          <span aria-label="image" aria-hidden="true">&#x1F5BC;&#xFE0F;</span>
+                          {{ att.original_filename | truncate(30, True) }}
+                        </a>
+                      {% else %}
+                        <a class="comment-attachment-chip"
+                           href="{{ url_for('attachments.download_attachment', attachment_id=att.id) }}"
+                           style="display:inline-flex;align-items:center;gap:0.375rem;padding:0.25rem 0.625rem;background:var(--bg-2,#1e1e1e);border:1px solid var(--border,#333);border-radius:4px;font-size:0.8125rem;color:var(--text-link,#4fafff);text-decoration:none">
+                          <span aria-label="file" aria-hidden="true">&#x1F4CE;</span>
+                          {{ att.original_filename | truncate(30, True) }}
+                          <span style="color:var(--text-muted);font-size:0.75rem">({{ (att.size_bytes / 1024) | round(1) }} KB)</span>
+                        </a>
+                      {% endif %}
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            {% endif %}
             {% if not comment.is_deleted and current_user %}
               <div class="comment-actions">
                 <button class="comment-like-btn" type="button"

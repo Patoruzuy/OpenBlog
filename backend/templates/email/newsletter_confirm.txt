@@ -1,0 +1,19 @@
+{% if locale == 'es' %}Confirma tu suscripción al boletín de OpenBlog
+
+Haz clic en el enlace para confirmar tu dirección. Caduca en 48 horas.
+
+{{ confirm_url }}
+
+Si no te has suscrito, ignora este correo.
+
+— El equipo de OpenBlog
+{% else %}Confirm your OpenBlog newsletter subscription
+
+Click the link below to confirm your email address. This link expires in 48 hours.
+
+{{ confirm_url }}
+
+If you didn't subscribe to the OpenBlog newsletter, you can safely ignore this email.
+
+— The OpenBlog Team
+{% endif %}

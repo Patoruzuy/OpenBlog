@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Newsletter Error{% endblock %}
+{% block content %}
+<div class="page-shell" style="max-width:480px;margin:4rem auto;text-align:center">
+  <p style="font-family:monospace;font-weight:700;font-size:1.1rem;margin:0 0 16px">ob/ OpenBlog</p>
+  <h1 style="font-size:1.5rem;font-weight:600;margin:0 0 12px">Something went wrong</h1>
+  <p style="color:var(--text-muted)">
+    {% if reason == 'missing_token' %}
+      No token was provided. Please use the link from your email.
+    {% else %}
+      {{ reason }}
+    {% endif %}
+  </p>
+  <p style="color:var(--text-muted);font-size:0.875rem;margin-top:1rem">
+    If you need to subscribe again, use the form on the homepage.
+  </p>
+  <a class="btn" href="{{ url_for('index.index') }}" style="margin-top:2rem;display:inline-block">Go home</a>
+</div>
+{% endblock %}

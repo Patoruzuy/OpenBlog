@@ -80,6 +80,14 @@ class Comment(db.Model):
     parent: Mapped[Comment | None] = relationship(
         "Comment", back_populates="replies", remote_side=[id]
     )
+    attachments: Mapped[list[CommentAttachment]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "CommentAttachment",
+        back_populates="comment",
+        lazy="select",
+        cascade="all, delete-orphan",
+        order_by="CommentAttachment.created_at",
+        overlaps="comment",
+    )
 
     __table_args__ = (
         Index("ix_comments_post_parent", "post_id", "parent_id"),
