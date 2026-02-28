@@ -1,27 +1,28 @@
 {% extends "base.html" %}
-{% block title %}{% if query %}Search: {{ query }}{% else %}Search{% endif %}{% endblock %}
+{% from "macros/cards.html" import user_card %}
+{% block title %}{% if query %}{{ _('Search: %(q)s', q=query) }}{% else %}{{ _('Search') }}{% endif %}{% endblock %}
 
 {% block content %}
 <section class="search-page">
 
   {# ── Search form ─────────────────────────────────────────────────────────── #}
   <div class="search-header">
-    <h1 class="search-title">Search</h1>
+    <h1 class="search-title">{{ _('Search') }}</h1>
     <form class="search-form" method="get" action="{{ url_for('search.search_results') }}" role="search">
       <div class="search-input-group">
-        <label class="sr-only" for="search-input">Search posts and topics</label>
+        <label class="sr-only" for="search-input">{{ _('Search posts, topics and people') }}</label>
         <input
           id="search-input"
           class="search-input"
           type="search"
           name="q"
           value="{{ query | e }}"
-          placeholder="Search posts, topics…"
+          placeholder="{{ _('Search posts, topics, people…') }}"
           autofocus
           autocomplete="off"
-          aria-label="Search query"
+          aria-label="{{ _('Search query') }}"
         >
-        <button class="search-btn" type="submit" aria-label="Submit search">
+        <button class="search-btn" type="submit" aria-label="{{ _('Submit search') }}">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
             <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -29,21 +30,36 @@
         </button>
       </div>
     </form>
+
+    {# ── Recent searches (authenticated, no active query) ─────────────────── #}
+    {% if recent_searches and not query %}
+      <div class="search-recent">
+        <span class="search-recent-label">{{ _('Recent searches') }}:</span>
+        {% for rs in recent_searches %}
+          <a class="search-recent-item" href="{{ url_for('search.search_results', q=rs) }}">{{ rs | e }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
 
   {% if query %}
 
     {# ── Tab bar ──────────────────────────────────────────────────────────── #}
-    <nav class="search-tabs" aria-label="Search result types">
+    <nav class="search-tabs" aria-label="{{ _('Search result types') }}">
       <a class="search-tab{% if tab == 'posts' %} search-tab--active{% endif %}"
          href="{{ url_for('search.search_results', q=query, tab='posts') }}">
-        Posts
+        {{ _('Posts') }}
         {% if post_total %}<span class="tab-count">{{ post_total }}</span>{% endif %}
       </a>
       <a class="search-tab{% if tab == 'topics' %} search-tab--active{% endif %}"
          href="{{ url_for('search.search_results', q=query, tab='topics') }}">
-        Topics
+        {{ _('Topics') }}
         {% if tag_total %}<span class="tab-count">{{ tag_total }}</span>{% endif %}
+      </a>
+      <a class="search-tab{% if tab == 'people' %} search-tab--active{% endif %}"
+         href="{{ url_for('search.search_results', q=query, tab='people') }}">
+        {{ _('People') }}
+        {% if user_total %}<span class="tab-count">{{ user_total }}</span>{% endif %}
       </a>
     </nav>
 
@@ -57,16 +73,16 @@
                 {{ highlight(post.title | e, query) | safe }}
               </a>
               <p class="result-meta">
-                by <strong>{{ post.author.display_name or post.author.username }}</strong>
+                {{ _('by') }} <strong>{{ post.author.display_name or post.author.username }}</strong>
                 &middot;
                 {{ post.published_at.strftime('%b %d, %Y') if post.published_at }}
                 &middot;
-                {{ post.reading_time_minutes }} min read
+                {{ post.reading_time_minutes }} {{ _('min read') }}
               </p>
               {% if post.tags %}
                 <div class="result-tags">
                   {% for tag in post.tags %}
-                    <a class="tag-badge" href="{{ url_for('tags.tag_detail', slug=tag.slug) }}">#{{ tag.slug }}</a>
+                    <a class="tag-badge" href="{{ url_for('posts.list_posts', tag=tag.slug) }}">#{{ tag.slug }}</a>
                   {% endfor %}
                 </div>
               {% endif %}
@@ -75,26 +91,33 @@
           {% endfor %}
         </div>
 
-        {# ── Pagination ────────────────────────────────────────────────────── #}
-        {% if pages > 1 %}
-          <nav class="pagination" aria-label="Search result pages">
+        {# ── Post pagination ────────────────────────────────────────────────── #}
+        {% if post_pages > 1 %}
+          <nav class="pagination" aria-label="{{ _('Search result pages') }}">
             {% if page > 1 %}
-              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='posts', page=page-1) }}">&larr; Prev</a>
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='posts', page=page-1) }}">&larr; {{ _('Prev') }}</a>
             {% endif %}
-            <span class="page-info">Page {{ page }} of {{ pages }}</span>
-            {% if page < pages %}
-              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='posts', page=page+1) }}">Next &rarr;</a>
+            <span class="page-info">{{ _('Page %(p)s of %(t)s', p=page, t=post_pages) }}</span>
+            {% if page < post_pages %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='posts', page=page+1) }}">{{ _('Next') }} &rarr;</a>
             {% endif %}
           </nav>
         {% endif %}
 
       {% else %}
+        {# ── Zero-results (Posts) ────────────────────────────────────────── #}
         <div class="empty-state">
-          <p>No posts found for <strong>{{ query | e }}</strong>.</p>
+          <p class="empty-state-headline">{{ _('No results for') }} <strong>&#8220;{{ query | e }}&#8221;</strong></p>
+          <ul class="empty-state-tips">
+            <li>{{ _('Check your spelling') }}</li>
+            <li>{{ _('Try broader or different terms') }}</li>
+          </ul>
           {% if tag_total %}
-            <p><a href="{{ url_for('search.search_results', q=query, tab='topics') }}">View {{ tag_total }} matching topic{{ 's' if tag_total != 1 }}</a> instead.</p>
+            <p><a href="{{ url_for('search.search_results', q=query, tab='topics') }}">{{ _('View %(n)s matching topic%(s)s', n=tag_total, s='s' if tag_total != 1 else '') }}</a></p>
+          {% elif user_total %}
+            <p><a href="{{ url_for('search.search_results', q=query, tab='people') }}">{{ _('View %(n)s matching profile%(s)s', n=user_total, s='s' if user_total != 1 else '') }}</a></p>
           {% else %}
-            <p>Try different keywords or browse <a href="{{ url_for('posts.list_posts') }}">all posts</a>.</p>
+            <p>{{ _('Try different keywords or') }} <a href="{{ url_for('posts.list_posts') }}">{{ _('browse all posts') }}</a>.</p>
           {% endif %}
         </div>
       {% endif %}
@@ -105,7 +128,7 @@
       {% if tags %}
         <div class="tag-grid">
           {% for tag in tags %}
-            <a class="tag-card" href="{{ url_for('tags.tag_detail', slug=tag.slug) }}">
+            <a class="tag-card" href="{{ url_for('posts.list_posts', tag=tag.slug) }}">
               <span class="tag-card-name">{{ highlight(tag.name | e, query) | safe }}</span>
               {% if tag.description %}
                 <span class="tag-card-desc">{{ tag.description | truncate(72) }}</span>
@@ -113,18 +136,96 @@
             </a>
           {% endfor %}
         </div>
+
+        {# ── Topic pagination ─────────────────────────────────────────────── #}
+        {% if tag_pages > 1 %}
+          <nav class="pagination" aria-label="{{ _('Search result pages') }}">
+            {% if page > 1 %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='topics', page=page-1) }}">&larr; {{ _('Prev') }}</a>
+            {% endif %}
+            <span class="page-info">{{ _('Page %(p)s of %(t)s', p=page, t=tag_pages) }}</span>
+            {% if page < tag_pages %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='topics', page=page+1) }}">{{ _('Next') }} &rarr;</a>
+            {% endif %}
+          </nav>
+        {% endif %}
+
       {% else %}
+        {# ── Zero-results (Topics) ───────────────────────────────────────── #}
         <div class="empty-state">
-          <p>No topics found for <strong>{{ query | e }}</strong>.</p>
+          <p class="empty-state-headline">{{ _('No results for') }} <strong>&#8220;{{ query | e }}&#8221;</strong></p>
+          <ul class="empty-state-tips">
+            <li>{{ _('Check your spelling') }}</li>
+            <li>{{ _('Try broader or different terms') }}</li>
+          </ul>
           {% if post_total %}
-            <p><a href="{{ url_for('search.search_results', q=query, tab='posts') }}">View {{ post_total }} matching post{{ 's' if post_total != 1 }}</a> instead.</p>
+            <p><a href="{{ url_for('search.search_results', q=query, tab='posts') }}">{{ _('View %(n)s matching post%(s)s', n=post_total, s='s' if post_total != 1 else '') }}</a></p>
           {% else %}
-            <p>Try different keywords or browse <a href="{{ url_for('tags.list_tags') }}">all topics</a>.</p>
+            <p>{{ _('Explore all topics:') }} <a href="{{ url_for('tags.tag_index') }}">{{ _('browse topics') }}</a>.</p>
           {% endif %}
         </div>
       {% endif %}
     {% endif %}
 
+    {# ── People tab ────────────────────────────────────────────────────────── #}
+    {% if tab == 'people' %}
+      {% if users %}
+        <div class="user-grid">
+          {% for user in users %}
+            {{ user_card(user, post_count=user_post_counts.get(user.id, 0), query=query, highlight=highlight) }}
+          {% endfor %}
+        </div>
+
+        {# ── People pagination ─────────────────────────────────────────────── #}
+        {% if people_pages > 1 %}
+          <nav class="pagination" aria-label="{{ _('Search result pages') }}">
+            {% if page > 1 %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='people', page=page-1) }}">&larr; {{ _('Prev') }}</a>
+            {% endif %}
+            <span class="page-info">{{ _('Page %(p)s of %(t)s', p=page, t=people_pages) }}</span>
+            {% if page < people_pages %}
+              <a class="page-link" href="{{ url_for('search.search_results', q=query, tab='people', page=page+1) }}">{{ _('Next') }} &rarr;</a>
+            {% endif %}
+          </nav>
+        {% endif %}
+
+      {% else %}
+        {# ── Zero-results (People) ───────────────────────────────────────── #}
+        <div class="empty-state">
+          <p class="empty-state-headline">{{ _('No results for') }} <strong>&#8220;{{ query | e }}&#8221;</strong></p>
+          <ul class="empty-state-tips">
+            <li>{{ _('Check your spelling') }}</li>
+            <li>{{ _('Only public profiles appear in search') }}</li>
+          </ul>
+          {% if post_total %}
+            <p><a href="{{ url_for('search.search_results', q=query, tab='posts') }}">{{ _('View %(n)s matching post%(s)s', n=post_total, s='s' if post_total != 1 else '') }}</a></p>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endif %}
+
+  {% else %}
+    {# ── No query yet: show recent searches or empty prompt ──────────────── #}
+    {% if recent_searches %}
+      <div class="search-empty-recent">
+        <h2 class="search-empty-heading">{{ _('Recent searches') }}</h2>
+        <ul class="search-recent-list">
+          {% for rs in recent_searches %}
+            <li>
+              <a class="search-recent-full" href="{{ url_for('search.search_results', q=rs) }}">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+                  <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                {{ rs | e }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <p class="search-empty-prompt">{{ _('Type in the box above to search posts, topics and people.') }}</p>
+    {% endif %}
   {% endif %}
 
 </section>

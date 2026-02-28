@@ -14,7 +14,8 @@ PostgreSQL (production)
     are ranked by ``ts_rank``.
 
 Both paths accept ``page`` / ``per_page`` parameters and return a
-``SearchResults`` named-tuple that carries separate post and tag result sets.
+``SearchResults`` named-tuple that carries separate post, tag and user result
+sets.
 """
 
 from __future__ import annotations
@@ -22,11 +23,13 @@ from __future__ import annotations
 import re
 from typing import NamedTuple
 
-from sqlalchemy import func, or_, select, text
+from sqlalchemy import and_, func, or_, select, text
 
 from backend.extensions import db
+from backend.models.portal import IdentityMode, ProfileVisibility, UserPrivacySettings
 from backend.models.post import Post, PostStatus
 from backend.models.tag import PostTag, Tag
+from backend.models.user import User
 from backend.utils import metrics
 
 # Maximum characters kept from a body excerpt for the snippet helper.
@@ -38,8 +41,10 @@ class SearchResults(NamedTuple):
 
     posts: list[Post]
     tags: list[Tag]
+    users: list[User]
     post_total: int
     tag_total: int
+    user_total: int
 
 
 class SearchService:
@@ -51,7 +56,7 @@ class SearchService:
         page: int = 1,
         per_page: int = 20,
     ) -> SearchResults:
-        """Search published posts and tags by *query*.
+        """Search published posts, tags and public user profiles by *query*.
 
         Parameters
         ----------
@@ -59,18 +64,23 @@ class SearchService:
             Raw search string from the user.  Empty / whitespace-only queries
             return an empty ``SearchResults`` immediately.
         page:
-            1-based page number (applies to posts; tags always return up to 20).
+            1-based page number (applies to posts and users; tags always return
+            up to 20).
         per_page:
-            Maximum post results per page (clamped to 1-100).
+            Maximum results per page for posts/users (clamped to 1-100).
 
         Returns
         -------
         SearchResults
-            Named-tuple with ``posts``, ``tags``, ``post_total``, ``tag_total``.
+            Named-tuple with ``posts``, ``tags``, ``users``, ``post_total``,
+            ``tag_total``, ``user_total``.
         """
         q = query.strip()
         if not q:
-            return SearchResults(posts=[], tags=[], post_total=0, tag_total=0)
+            return SearchResults(
+                posts=[], tags=[], users=[],
+                post_total=0, tag_total=0, user_total=0,
+            )
 
         metrics.search_queries.inc()
         page = max(1, page)
@@ -80,28 +90,33 @@ class SearchService:
         if dialect == "postgresql":
             posts, post_total = SearchService._search_postgres(q, page, per_page)
             tags, tag_total = SearchService._search_tags_postgres(q)
+            users, user_total = SearchService._search_users_postgres(q, page, per_page)
         else:
             posts, post_total = SearchService._search_sqlite(q, page, per_page)
             tags, tag_total = SearchService._search_tags_sqlite(q)
+            users, user_total = SearchService._search_users_sqlite(q, page, per_page)
 
         return SearchResults(
             posts=posts,
             tags=tags,
+            users=users,
             post_total=post_total,
             tag_total=tag_total,
+            user_total=user_total,
         )
 
     @staticmethod
     def suggest(query: str, limit: int = 5) -> dict:
         """Return lightweight suggestions for the live search dropdown.
 
-        Returns a dict ``{"posts": [...], "tags": [...]}`` suitable for JSON
-        serialisation.  Each post entry has ``title``, ``slug``, ``excerpt``;
-        each tag entry has ``name``, ``slug``.
+        Returns a dict ``{"posts": [...], "tags": [...], "users": [...]}``
+        suitable for JSON serialisation.  Each post entry has ``title``,
+        ``slug``, ``excerpt``; each tag entry has ``name``, ``slug``; each
+        user entry has ``username``, ``display_name``, ``avatar_url``.
         """
         q = query.strip()
         if not q or len(q) < 2:
-            return {"posts": [], "tags": []}
+            return {"posts": [], "tags": [], "users": []}
 
         dialect = db.engine.dialect.name
         like_pat = f"%{q}%"
@@ -123,6 +138,7 @@ class SearchService:
                 .order_by(func.ts_rank(tsvec, tsq).desc())
                 .limit(limit)
             )
+            user_stmt = SearchService._users_suggest_stmt_postgres(like_pat, limit)
         else:
             post_stmt = (
                 select(Post.id, Post.title, Post.slug, Post.markdown_body)
@@ -133,6 +149,7 @@ class SearchService:
                 .order_by(Post.published_at.desc())
                 .limit(limit)
             )
+            user_stmt = SearchService._users_suggest_stmt_sqlite(like_pat, limit)
 
         tag_stmt = (
             select(Tag.name, Tag.slug)
@@ -142,6 +159,7 @@ class SearchService:
 
         post_rows = db.session.execute(post_stmt).all()
         tag_rows = db.session.execute(tag_stmt).all()
+        user_rows = db.session.execute(user_stmt).all()
 
         posts_out = [
             {
@@ -152,7 +170,15 @@ class SearchService:
             for row in post_rows
         ]
         tags_out = [{"name": row.name, "slug": row.slug} for row in tag_rows]
-        return {"posts": posts_out, "tags": tags_out}
+        users_out = [
+            {
+                "username": row.username,
+                "display_name": row.display_name or row.username,
+                "avatar_url": row.avatar_url,
+            }
+            for row in user_rows
+        ]
+        return {"posts": posts_out, "tags": tags_out, "users": users_out}
 
     @staticmethod
     def excerpt(body: str, query: str, length: int = _SNIPPET_LENGTH) -> str:
@@ -290,3 +316,111 @@ class SearchService:
             select(func.count()).select_from(base.subquery())
         ) or 0
         return tags, total
+
+    # ── User search helpers ───────────────────────────────────────────────────
+
+    @staticmethod
+    def _public_user_base(like_pat: str):
+        """Shared WHERE clause: public, searchable, non-anonymous user profiles."""
+        return (
+            select(User)
+            .outerjoin(UserPrivacySettings, UserPrivacySettings.user_id == User.id)
+            .where(
+                User.is_active == True,  # noqa: E712
+                User.is_shadow_banned == False,  # noqa: E712
+                # Include users with NO privacy row (defaults to public/searchable)
+                # or users who have explicitly enabled public visibility.
+                or_(
+                    UserPrivacySettings.id == None,  # noqa: E711 (IS NULL sentinel)
+                    and_(
+                        UserPrivacySettings.profile_visibility == ProfileVisibility.public.value,
+                        UserPrivacySettings.searchable_profile == True,  # noqa: E712
+                        UserPrivacySettings.default_identity_mode != IdentityMode.anonymous.value,
+                    ),
+                ),
+                # Match username, display_name, or headline
+                or_(
+                    User.username.ilike(like_pat),
+                    User.display_name.ilike(like_pat),
+                    User.headline.ilike(like_pat),
+                ),
+            )
+        )
+
+    @staticmethod
+    def _search_users_sqlite(q: str, page: int, per_page: int) -> tuple[list[User], int]:
+        like_pat = f"%{q}%"
+        base = SearchService._public_user_base(like_pat).order_by(User.username)
+        total = db.session.scalar(
+            select(func.count()).select_from(base.subquery())
+        ) or 0
+        users = list(
+            db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
+        )
+        return users, total
+
+    @staticmethod
+    def _search_users_postgres(q: str, page: int, per_page: int) -> tuple[list[User], int]:
+        like_pat = f"%{q}%"
+        base = SearchService._public_user_base(like_pat).order_by(User.username)
+        total = db.session.scalar(
+            select(func.count()).select_from(base.subquery())
+        ) or 0
+        users = list(
+            db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
+        )
+        return users, total
+
+    @staticmethod
+    def _users_suggest_stmt_sqlite(like_pat: str, limit: int):
+        """Suggest query for user profiles (SQLite LIKE)."""
+        return (
+            select(User.username, User.display_name, User.avatar_url)
+            .outerjoin(UserPrivacySettings, UserPrivacySettings.user_id == User.id)
+            .where(
+                User.is_active == True,  # noqa: E712
+                User.is_shadow_banned == False,  # noqa: E712
+                or_(
+                    UserPrivacySettings.id == None,  # noqa: E711
+                    and_(
+                        UserPrivacySettings.profile_visibility == ProfileVisibility.public.value,
+                        UserPrivacySettings.searchable_profile == True,  # noqa: E712
+                        UserPrivacySettings.default_identity_mode != IdentityMode.anonymous.value,
+                    ),
+                ),
+                or_(
+                    User.username.like(like_pat),
+                    User.display_name.like(like_pat),
+                    User.headline.like(like_pat),
+                ),
+            )
+            .order_by(User.username)
+            .limit(limit)
+        )
+
+    @staticmethod
+    def _users_suggest_stmt_postgres(like_pat: str, limit: int):
+        """Suggest query for user profiles (Postgres ILIKE)."""
+        return (
+            select(User.username, User.display_name, User.avatar_url)
+            .outerjoin(UserPrivacySettings, UserPrivacySettings.user_id == User.id)
+            .where(
+                User.is_active == True,  # noqa: E712
+                User.is_shadow_banned == False,  # noqa: E712
+                or_(
+                    UserPrivacySettings.id == None,  # noqa: E711
+                    and_(
+                        UserPrivacySettings.profile_visibility == ProfileVisibility.public.value,
+                        UserPrivacySettings.searchable_profile == True,  # noqa: E712
+                        UserPrivacySettings.default_identity_mode != IdentityMode.anonymous.value,
+                    ),
+                ),
+                or_(
+                    User.username.ilike(like_pat),
+                    User.display_name.ilike(like_pat),
+                    User.headline.ilike(like_pat),
+                ),
+            )
+            .order_by(User.username)
+            .limit(limit)
+        )

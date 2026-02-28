@@ -94,3 +94,49 @@
   </div>
 </a>
 {% endmacro %}
+
+{# ─── User card (search results / people tab) ─────────────────────────────── #}
+{% macro user_card(user, post_count=0, query='', highlight=none) %}
+{%- set display = user.display_name or user.username -%}
+{%- set bio_text = (user.headline or user.bio or '') | truncate(140, True, '…') -%}
+<div class="user-card">
+  <a class="user-card-avatar-link" href="{{ url_for('users.profile', username=user.username) }}" tabindex="-1" aria-hidden="true">
+    {% if user.avatar_url %}
+      <img
+        class="user-card-avatar"
+        src="{{ user.avatar_url | e }}"
+        alt="{{ display | e }}"
+        width="48" height="48"
+        loading="lazy"
+      />
+    {% else %}
+      <span class="user-card-initials" aria-hidden="true">{{ display[0] | upper }}</span>
+    {% endif %}
+  </a>
+  <div class="user-card-body">
+    <a class="user-card-name" href="{{ url_for('users.profile', username=user.username) }}">
+      {%- if highlight and query -%}
+        {{ highlight(display | e, query) | safe }}
+      {%- else -%}
+        {{ display | e }}
+      {%- endif -%}
+    </a>
+    <span class="user-card-handle">
+      @{%- if highlight and query -%}
+        {{ highlight(user.username | e, query) | safe }}
+      {%- else -%}
+        {{ user.username | e }}
+      {%- endif -%}
+    </span>
+    {% if bio_text %}
+      <p class="user-card-bio">{{ bio_text }}</p>
+    {% endif %}
+    <div class="user-card-stats">
+      <span class="user-card-stat">{{ post_count }} {{ ngettext('post', 'posts', post_count) }}</span>
+    </div>
+    <a class="user-card-link btn btn-sm btn-ghost" href="{{ url_for('users.profile', username=user.username) }}">
+      {{ _('View profile') }} &rarr;
+    </a>
+  </div>
+</div>
+{% endmacro %}
