@@ -29,6 +29,9 @@
         <article class="post-card">
           <span class="post-card-title">
             <a href="{{ url_for('posts.post_detail', slug=post.slug) }}">{{ post.title }}</a>
+            {% if post.id in updated_post_ids %}
+              <span class="badge badge--updated" aria-label="Updated since last visit">Updated</span>
+            {% endif %}
           </span>
           {% if post.seo_description %}
             <p class="post-card-summary">{{ post.seo_description }}</p>

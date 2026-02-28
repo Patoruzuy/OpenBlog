@@ -24,6 +24,24 @@
     {% endif %}
   </nav>
 
+  {# ── "Updated since last read" banner ─────────────────────────────────── #}
+  {# Shown when the user has visited before and the post has since been revised. #}
+  {% if last_read_version is not none and last_read_version < post.version %}
+    <div class="updated-banner" role="status">
+      <span class="updated-banner__icon">&#x1F504;</span>
+      <span class="updated-banner__text">
+        {{ _("Updated since you last read") }}
+        <span class="version-badge">v{{ last_read_version }}</span>
+        &rarr;
+        <span class="version-badge version-badge--current">v{{ post.version }}</span>
+      </span>
+      <a class="updated-banner__link btn btn-sm btn-ghost"
+         href="{{ url_for('revisions.revision_list') }}">
+        {{ _('View revision history') }}
+      </a>
+    </div>
+  {% endif %}
+
   {# ── Header ──────────────────────────────────────────────────────────── #}
   <header class="post-header">
     <h1 class="post-title" itemprop="headline">{{ post.title }}</h1>

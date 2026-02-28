@@ -14,6 +14,7 @@ from backend.models.post import PostStatus
 from backend.routes.tags import _TAG_DESCRIPTIONS
 from backend.services.analytics_service import AnalyticsService
 from backend.services.post_service import PostError, PostService, RESERVED_SLUGS
+from backend.services.read_history_service import ReadHistoryService
 from backend.utils.auth import get_current_user, require_auth, require_role
 from backend.utils.markdown import (  # noqa: F401
     get_rendered_html,
@@ -33,6 +34,14 @@ def list_posts():
     posts, total = PostService.list_published(page, _PER_PAGE, tag_slug)
     pages = (total + _PER_PAGE - 1) // _PER_PAGE if total else 0
 
+    # Show "Updated" badges for authenticated users whose cached version is stale.
+    user = get_current_user()
+    updated_post_ids: frozenset[int] = frozenset()
+    if user and posts:
+        updated_post_ids = frozenset(
+            ReadHistoryService.get_updated_post_ids(user.id, posts)
+        )
+
     return render_template(
         "posts/list.html",
         posts=posts,
@@ -42,6 +51,7 @@ def list_posts():
         per_page=_PER_PAGE,
         tag_slug=tag_slug,
         tag_description=_TAG_DESCRIPTIONS.get(tag_slug) if tag_slug else None,
+        updated_post_ids=updated_post_ids,
     )
 
 
@@ -125,6 +135,18 @@ def post_detail(slug: str):
         if post.author_id != user.id and not is_editor:
             abort(404)
 
+    # ── Read-history: snapshot the old read record, then upsert ─────────
+    # We capture the version number *before* the upsert commits.
+    # After commit SQLAlchemy expires ORM objects, so accessing attributes on the
+    # old record would lazy-reload the *new* value — defeating the stale check.
+    read_record = None
+    last_read_version: int | None = None
+    if user:
+        read_record = ReadHistoryService.get_read(user.id, post.id)
+        if read_record is not None:
+            last_read_version = read_record.last_read_version
+        ReadHistoryService.record_read(user.id, post)
+
     # Increment view count and queue an analytics event (both best-effort).
     from backend.extensions import db
     post.view_count += 1
@@ -145,6 +167,7 @@ def post_detail(slug: str):
         "posts/detail.html",
         post=post,
         post_html=post_html,
+        last_read_version=last_read_version,
     )
 
 

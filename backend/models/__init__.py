@@ -37,6 +37,7 @@ from backend.models.revision import Revision
 from backend.models.tag import PostTag, Tag
 from backend.models.thread_subscription import ThreadSubscription
 from backend.models.user import User
+from backend.models.user_post_read import UserPostRead
 from backend.models.vote import Vote
 
 __all__ = [
@@ -65,6 +66,7 @@ __all__ = [
     "User",
     "UserBadge",
     "UserConnectedAccount",
+    "UserPostRead",
     "UserPrivacySettings",
     "UserRepository",
     "UserSocialLink",
