@@ -14,6 +14,9 @@ import pytest
 from backend.services.search_ranking import (
     WEIGHTS,
     _ANON,
+    _clamp,
+    _freshness,
+    _quality,
     score_person,
     score_post,
     score_tag,
@@ -258,3 +261,241 @@ class TestScorePerson:
         u = SimpleNamespace(username="dave", display_name="Dave")
         # No .headline attribute — getattr fallback should handle it
         assert score_person("dave", u) >= 0.0
+
+
+# ── Normalisation / edge-case safety ──────────────────────────────────────────
+
+
+class TestNormalisationEdgeCases:
+    """Verify none of the normalisation helpers can produce NaN, ±Inf, or
+    values outside [0, 1], even for degenerate inputs."""
+
+    # _clamp
+    def test_clamp_negative_to_zero(self):
+        assert _clamp(-99.0) == 0.0
+
+    def test_clamp_over_one_to_one(self):
+        assert _clamp(5.0) == 1.0
+
+    def test_clamp_midrange_identity(self):
+        assert _clamp(0.7) == pytest.approx(0.7)
+
+    # _freshness
+    def test_freshness_none_returns_zero(self):
+        """No published_at → freshness = 0, not an exception or NaN."""
+        assert _freshness(None) == 0.0
+
+    def test_freshness_future_clamped(self):
+        """A timestamp in the future must not return > 1."""
+        future = datetime.now(UTC) + timedelta(days=30)
+        assert _freshness(future) <= 1.0
+
+    def test_freshness_today_near_one(self):
+        assert _freshness(datetime.now(UTC)) == pytest.approx(1.0, abs=1e-3)
+
+    def test_freshness_naive_datetime_handled(self):
+        """Timezone-naive datetimes should not raise."""
+        naive = datetime.now() - timedelta(days=10)
+        result = _freshness(naive)
+        assert 0.0 <= result <= 1.0
+
+    # _quality
+    def test_quality_zero_views_returns_zero(self):
+        assert _quality(0) == 0.0
+
+    def test_quality_negative_views_safe(self):
+        """Negative view-count must not produce a negative or NaN score."""
+        assert _quality(-100) == 0.0
+
+    def test_quality_large_views_capped_at_one(self):
+        assert _quality(10_000_000) == pytest.approx(1.0, abs=1e-3)
+
+    def test_quality_in_unit_interval(self):
+        for v in (0, 1, 50, 500, 5000, 10_000):
+            assert 0.0 <= _quality(v) <= 1.0
+
+    # score_post edge cases
+    def test_score_post_empty_query(self):
+        """Empty query → title score 0 but freshness/quality still contribute."""
+        post = _post("Flask Tutorial")
+        score = score_post("", post)
+        assert score >= 0.0
+
+    def test_score_post_none_title_safe(self):
+        post = SimpleNamespace(
+            title=None, view_count=0, version=1,
+            published_at=None, updated_at=None,
+        )
+        assert score_post("python", post) >= 0.0
+
+    def test_score_post_is_finite(self):
+        """Score must never be NaN or Inf."""
+        import math as _math
+        post = _post("Flask", view_count=999_999_999)
+        s = score_post("Flask", post, tag_slugs=["flask"], accepted_revision_count=99)
+        assert _math.isfinite(s)
+
+
+# ── Waterfall monotonicity ─────────────────────────────────────────────────────
+
+
+class TestWaterfallMonotonicity:
+    """The WEIGHTS ordering for title tiers must be strictly decreasing.
+
+    This class also asserts that *title_score()* actually returns each tier's
+    weight for a crafted input that isolates exactly that tier.
+    """
+
+    def test_weights_strictly_ordered(self):
+        """Invariant: exact > phrase > token > partial > 0."""
+        assert WEIGHTS["title_exact"] > WEIGHTS["title_phrase"]
+        assert WEIGHTS["title_phrase"] > WEIGHTS["title_token"]
+        assert WEIGHTS["title_token"] > WEIGHTS["title_partial"]
+        assert WEIGHTS["title_partial"] > 0.0
+
+    def test_exact_tier(self):
+        # Query == title (case-normalised)
+        assert title_score("flask", "Flask") == WEIGHTS["title_exact"]
+
+    def test_phrase_tier(self):
+        # Query is a substring of title but not equal
+        assert title_score("flask", "Learn Flask Today") == WEIGHTS["title_phrase"]
+
+    def test_token_tier(self):
+        # All tokens match but query is NOT a contiguous substring
+        # "guide flask" appears reversed in the title, so phrase test fails
+        assert title_score("guide flask", "The Complete Flask Guide") == WEIGHTS["title_token"]
+
+    def test_partial_tier(self):
+        # Only half the tokens match: "flask" ✓, "async" ✗
+        assert title_score("flask async", "Flask Intro") == WEIGHTS["title_partial"]
+
+    def test_no_match_tier(self):
+        assert title_score("kubernetes", "Flask Tutorial") == 0.0
+
+    def test_each_tier_strictly_less_than_previous(self):
+        """Scores returned for canonical examples preserve the ordering."""
+        s_exact   = title_score("flask",         "Flask")
+        s_phrase  = title_score("flask",         "Learn Flask Today")
+        s_token   = title_score("guide flask",   "The Complete Flask Guide")
+        s_partial = title_score("flask async",   "Flask Intro")
+        s_none    = title_score("kubernetes",    "Flask Tutorial")
+        assert s_exact > s_phrase > s_token > s_partial > s_none
+
+
+# ── Personalisation bounds ─────────────────────────────────────────────────────
+
+
+class TestPersonalisationBounds:
+    """Personalisation boosts must never promote a weaker match above a
+    stronger one.  Specifically:
+
+    Post A  exact title match + already read (no boost)
+    Post B  body-only match (zero title score) + unread (unread_boost)
+
+    A must still rank above B.
+    """
+
+    def test_title_exact_read_beats_body_only_unread(self):
+        fixed_dt = datetime(2024, 6, 1, tzinfo=UTC)
+        post_a = _post("Flask Tutorial", view_count=0, version=1,
+                       published_at=fixed_dt, updated_at=fixed_dt)
+        post_b = _post("Unrelated Title", view_count=0, version=1,
+                       published_at=fixed_dt, updated_at=fixed_dt)
+
+        # A: exact title match, authenticated user who has read the post
+        score_a = score_post("Flask Tutorial", post_a, read_version=1)
+
+        # B: no title match, authenticated user who has never read the post
+        score_b = score_post("Flask Tutorial", post_b, read_version=None)
+
+        assert score_a > score_b, (
+            f"Expected title-exact ({score_a:.4f}) > body-only+unread ({score_b:.4f})"
+        )
+
+    def test_title_match_beats_max_personalisation(self):
+        """title_exact alone must exceed the combined personalisation budget."""
+        max_personal = WEIGHTS["unread_boost"] + WEIGHTS["stale_read_boost"]
+        assert WEIGHTS["title_exact"] > max_personal, (
+            "title_exact weight must dominate full personalisation budget "
+            f"({WEIGHTS['title_exact']} vs {max_personal})"
+        )
+
+    def test_title_partial_beats_unread_boost(self):
+        """Even the weakest title signal (partial) must exceed unread_boost alone."""
+        assert WEIGHTS["title_partial"] > WEIGHTS["unread_boost"]
+
+    def test_personalisation_mutually_exclusive(self):
+        """unread_boost and stale_read_boost can never both fire for the same post.
+
+        unread (None) has no version, so read_version < post.version is
+        checked only for int read_version values.
+        """
+        fixed_dt = datetime(2024, 1, 1, tzinfo=UTC)
+        post = _post("Some Post", version=3,
+                     published_at=fixed_dt, updated_at=fixed_dt)
+
+        # Case: never-read (None) → only unread_boost, no stale_read_boost
+        s_never_read = score_post("test", post, read_version=None)
+        # Manual: unread_boost should be present; stale_read_boost should NOT
+        s_without_any = score_post("test", post, read_version=3)  # up to date, no boost
+        s_with_stale  = score_post("test", post, read_version=1)   # stale, only stale_boost
+
+        assert s_never_read - s_without_any == pytest.approx(WEIGHTS["unread_boost"])
+        assert s_with_stale - s_without_any == pytest.approx(WEIGHTS["stale_read_boost"])
+        # Never-read and stale are independent boosts; they can't share a post
+        assert s_never_read != s_with_stale  # different magnitudes confirms independence
+
+
+# ── Read-version mapping contract ─────────────────────────────────────────────
+
+
+class TestReadVersionMappingContract:
+    """Exhaustive tri-state contract for the read_version parameter.
+
+    _ANON → no personalisation signal applied (anonymous request)
+    None  → unread_boost added, stale_read_boost NOT added
+    int   → if < post.version: stale_read_boost, else no boost
+    """
+
+    def setup_method(self):
+        fixed_dt = datetime(2023, 1, 1, tzinfo=UTC)
+        self.post = _post("Contract Test", version=5,
+                          published_at=fixed_dt, updated_at=fixed_dt)
+        self.query = "contract test"
+
+    def _base(self, read_version):
+        return score_post(self.query, self.post, read_version=read_version)
+
+    def test_anon_has_no_personalisation(self):
+        """_ANON sentinel: same score as a fully-current authenticated reader."""
+        s_anon     = self._base(_ANON)
+        s_current  = self._base(5)   # read the latest version, no boost
+        assert s_anon == pytest.approx(s_current)
+
+    def test_none_adds_exactly_unread_boost(self):
+        s_never   = self._base(None)
+        s_current = self._base(5)
+        assert s_never - s_current == pytest.approx(WEIGHTS["unread_boost"])
+
+    def test_stale_version_adds_exactly_stale_boost(self):
+        s_stale   = self._base(1)   # last read v1, current is v5
+        s_current = self._base(5)
+        assert s_stale - s_current == pytest.approx(WEIGHTS["stale_read_boost"])
+
+    def test_current_version_adds_no_boost(self):
+        s_current  = self._base(5)
+        s_anon     = self._base(_ANON)
+        assert s_current == pytest.approx(s_anon)
+
+    def test_future_read_version_adds_no_boost(self):
+        """read_version > post.version shouldn't crash or add stale_boost."""
+        s_future   = self._base(99)
+        s_current  = self._base(5)
+        assert s_future == pytest.approx(s_current)
+
+    def test_unread_boost_greater_than_zero(self):
+        assert WEIGHTS["unread_boost"] > 0
+
+    def test_stale_read_boost_greater_than_zero(self):
+        assert WEIGHTS["stale_read_boost"] > 0
