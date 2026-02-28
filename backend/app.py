@@ -167,6 +167,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.newsletter import newsletter_bp
     from backend.routes.notifications import ssr_notifications_bp
     from backend.routes.pages import pages_bp
+    from backend.routes.drafts import ssr_drafts_bp
     from backend.routes.posts import ssr_posts_bp
     from backend.routes.revisions import ssr_revisions_bp
     from backend.routes.search import ssr_search_bp
@@ -182,6 +183,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(explore_bp)
     app.register_blueprint(ssr_auth_bp)
     app.register_blueprint(api_auth_bp)
+    app.register_blueprint(ssr_drafts_bp)
     app.register_blueprint(ssr_posts_bp)
     app.register_blueprint(api_posts_bp)
     app.register_blueprint(ssr_revisions_bp)

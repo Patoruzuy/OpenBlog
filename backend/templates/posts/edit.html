@@ -1,6 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Edit — {{ post.title }}{% endblock %}
 
+{% block head %}
+  <script src="{{ url_for('static', filename='js/editor.js') }}" defer></script>
+{% endblock %}
+
 {% block content %}
 <div class="container" style="max-width: 780px; padding-top: var(--space-xl);">
 
@@ -11,7 +15,10 @@
 
   <h1 class="page-title" style="margin-bottom: var(--space-lg);">Edit post</h1>
 
-  <form method="post" action="{{ url_for('posts.edit_post', slug=post.slug) }}" novalidate>
+  <form method="post" action="{{ url_for('posts.edit_post', slug=post.slug) }}" novalidate
+        id="post-compose-form"
+        data-post-slug="{{ post.slug }}"
+        data-autosave-revision="{{ post.autosave_revision }}">
 
     {# ── Title ────────────────────────────────────────────────────────── #}
     <div class="form-group" style="margin-bottom: var(--space-md);">
@@ -97,8 +104,7 @@
     {# ── Actions ──────────────────────────────────────────────────────── #}
     <div style="display: flex; gap: var(--space-sm); align-items: center;">
       <button type="submit" class="btn btn-primary">Save changes</button>
-      <a href="{{ url_for('posts.post_detail', slug=post.slug) }}" class="btn btn-ghost">Cancel</a>
-    </div>
+      <a href="{{ url_for('posts.post_detail', slug=post.slug) }}" class="btn btn-ghost">Cancel</a>      <span id="autosave-status" role="status" aria-live="polite" class="autosave-status"></span>    </div>
 
   </form>
 

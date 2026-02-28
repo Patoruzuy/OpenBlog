@@ -20,7 +20,9 @@
     {% endfor %}
   {% endwith %}
 
-  <form method="post" action="{{ url_for('posts.new_post') }}" id="post-compose-form">
+  <form method="post" action="{{ url_for('posts.new_post') }}" id="post-compose-form"
+        data-post-slug="{{ post.slug if post else '' }}"
+        data-autosave-revision="{{ post.autosave_revision if post else 0 }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     {# ── Title ────────────────────────────────────────────────────────────── #}

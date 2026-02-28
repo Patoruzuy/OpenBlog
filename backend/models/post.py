@@ -87,6 +87,16 @@ class Post(db.Model):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
+    # ── Autosave ───────────────────────────────────────────────────────────
+    last_autosaved_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None,
+        comment="Set by the autosave endpoint; NULL until first autosave."
+    )
+    autosave_revision: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0",
+        comment="Optimistic concurrency token; incremented on each autosave write."
+    )
+
     # ── Timestamps ─────────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)

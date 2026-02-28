@@ -151,7 +151,7 @@
                   <a class="avatar-menu__link" href="{{ url_for('users.profile', username=current_user.username) }}">{{ _('My profile') }}</a>
                 </li>
                 <li role="menuitem">
-                  <a class="avatar-menu__link" href="{{ url_for('posts.list_posts') }}?status=draft">{{ _('Drafts') }}</a>
+                  <a class="avatar-menu__link" href="{{ url_for('drafts.drafts_index') }}">{{ _('Drafts') }}</a>
                 </li>
                 <li role="menuitem">
                   <a class="avatar-menu__link" href="{{ url_for('settings.profile') }}">{{ _('Settings') }}</a>

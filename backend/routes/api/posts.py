@@ -348,6 +348,85 @@ def delete_post(slug: str):
 # ── Publish / Schedule ────────────────────────────────────────────────────────
 
 
+@api_posts_bp.post("/<slug>/autosave")
+@api_require_auth
+def autosave_post(slug: str):
+    """Background autosave endpoint for draft posts.
+
+    Accepts partial updates (title, markdown_body, excerpt, tags) and an
+    ``autosave_revision`` optimistic-concurrency token.  Returns the new
+    revision number so the client can synchronise its local counter.
+
+    Responses
+    ---------
+    200  { ok, post_id, slug, autosave_revision, saved_at_iso }
+    409  { conflict, autosave_revision, slug, saved_at_iso }  — revision mismatch
+    422  { error }  — post is not a draft
+    403  { error }  — not the author (or editor/admin)
+    404  { error }  — post not found
+    """
+    post = PostService.get_by_slug(slug)
+    if post is None:
+        return jsonify({"error": "Post not found."}), 404
+
+    user = get_current_user()
+    if not _can_edit(post, user):
+        return jsonify({"error": "Insufficient permissions."}), 403
+
+    body = request.get_json(silent=True) or {}
+    title = body.get("title")
+    markdown_body = body.get("markdown_body")
+    excerpt = body.get("excerpt")
+    raw_tags = body.get("tags")
+    tags: list[str] | None = None
+    if raw_tags is not None:
+        if isinstance(raw_tags, list):
+            tags = [str(t) for t in raw_tags]
+        elif isinstance(raw_tags, str):
+            tags = [t.strip() for t in raw_tags.split(",") if t.strip()]
+
+    # Validate sizes
+    if title is not None and len(str(title)) > 512:
+        return jsonify({"error": "Title too long (max 512 chars)."}), 400
+    if markdown_body is not None and len(str(markdown_body)) > 500_000:
+        return jsonify({"error": "Body too large (max 500 000 chars)."}), 400
+
+    try:
+        client_revision = int(body.get("autosave_revision", 0))
+    except (TypeError, ValueError):
+        client_revision = 0
+
+    try:
+        post = PostService.autosave(
+            post,
+            title=title,
+            markdown_body=markdown_body,
+            excerpt=excerpt,
+            tags=tags,
+            client_revision=client_revision,
+        )
+    except PostError as exc:
+        if exc.status_code == 409:
+            return jsonify({
+                "conflict": True,
+                "autosave_revision": post.autosave_revision,
+                "slug": post.slug,
+                "saved_at_iso": (
+                    post.last_autosaved_at.isoformat()
+                    if post.last_autosaved_at else None
+                ),
+            }), 409
+        return jsonify({"error": str(exc)}), exc.status_code
+
+    return jsonify({
+        "ok": True,
+        "post_id": post.id,
+        "slug": post.slug,
+        "autosave_revision": post.autosave_revision,
+        "saved_at_iso": post.last_autosaved_at.isoformat() if post.last_autosaved_at else None,
+    }), 200
+
+
 @api_posts_bp.post("/<slug>/publish")
 @api_require_role("admin", "editor")
 def publish_post(slug: str):

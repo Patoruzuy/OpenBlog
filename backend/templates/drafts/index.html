@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Drafts') }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 860px; padding-top: var(--space-xl);">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-lg);">
+    <h1 class="page-title" style="margin:0;">{{ _('Drafts') }}</h1>
+    <a href="{{ url_for('posts.new_post') }}" class="btn btn-primary">{{ _('New post') }}</a>
+  </div>
+
+  {# ── Search ────────────────────────────────────────────────────────────── #}
+  <form method="get" action="{{ url_for('drafts.drafts_index') }}" class="draft-search-form" style="margin-bottom:var(--space-md);">
+    <div style="display:flex; gap:var(--space-sm);">
+      <input
+        type="search"
+        name="search"
+        value="{{ search | e }}"
+        placeholder="{{ _('Filter drafts…') }}"
+        class="form-control"
+        style="max-width:320px;"
+        aria-label="{{ _('Search drafts by title') }}"
+      />
+      <button type="submit" class="btn btn-ghost">{{ _('Search') }}</button>
+      {% if search %}
+        <a href="{{ url_for('drafts.drafts_index') }}" class="btn btn-ghost">{{ _('Clear') }}</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {# ── Draft list ────────────────────────────────────────────────────────── #}
+  {% if posts %}
+    <ul class="draft-list" style="list-style:none;padding:0;margin:0;">
+      {% for post in posts %}
+        {%- set word_count = (post.markdown_body.split() | length) -%}
+        <li class="draft-row">
+          <div class="draft-row__main">
+            <a class="draft-row__title"
+               href="{{ url_for('posts.edit_post', slug=post.slug) }}">
+              {{ post.title or _('Untitled draft') }}
+            </a>
+            <div class="draft-row__meta">
+              {%- if post.last_autosaved_at %}
+                {{ _('Autosaved') }}
+                <time datetime="{{ post.last_autosaved_at.isoformat() }}"
+                      title="{{ post.last_autosaved_at.strftime('%Y-%m-%d %H:%M UTC') }}">
+                  {{ post.last_autosaved_at.strftime('%b %d, %Y') }}
+                </time>
+                &middot;
+              {%- endif %}
+              {{ _('Updated') }}
+              <time datetime="{{ post.updated_at.isoformat() }}"
+                    title="{{ post.updated_at.strftime('%Y-%m-%d %H:%M UTC') }}">
+                {{ post.updated_at.strftime('%b %d, %Y') }}
+              </time>
+              {% if post.tags %}
+                &middot;
+                <span>{{ post.tags | length }} {{ ngettext('tag', 'tags', post.tags | length) }}</span>
+              {% endif %}
+              &middot;
+              <span>{{ word_count }} {{ ngettext('word', 'words', word_count) }}</span>
+            </div>
+          </div>
+          <div class="draft-row__actions">
+            <a href="{{ url_for('posts.edit_post', slug=post.slug) }}"
+               class="btn btn-sm btn-ghost">{{ _('Continue editing') }}</a>
+            <form method="post"
+                  action="{{ url_for('drafts.delete_draft', slug=post.slug) }}"
+                  style="display:inline;"
+                  onsubmit="return confirm('{{ _('Delete this draft?') }}')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="btn btn-sm btn-danger-ghost">{{ _('Delete') }}</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {# ── Pagination ──────────────────────────────────────────────────────── #}
+    {% if pages > 1 %}
+      <nav class="pagination" style="margin-top:var(--space-lg);" aria-label="{{ _('Drafts pages') }}">
+        {% if page > 1 %}
+          <a class="page-link"
+             href="{{ url_for('drafts.drafts_index', page=page-1, search=search) }}">&larr; {{ _('Prev') }}</a>
+        {% endif %}
+        <span class="page-info">{{ _('Page %(p)s of %(t)s', p=page, t=pages) }}</span>
+        {% if page < pages %}
+          <a class="page-link"
+             href="{{ url_for('drafts.drafts_index', page=page+1, search=search) }}">{{ _('Next') }} &rarr;</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    {# ── Empty state ───────────────────────────────────────────────────── #}
+    <div class="empty-state" style="text-align:center; padding:var(--space-xl) 0;">
+      {% if search %}
+        <p class="empty-state-headline">{{ _('No drafts matching') }} <strong>&#8220;{{ search | e }}&#8221;</strong>.</p>
+        <a href="{{ url_for('drafts.drafts_index') }}" class="btn btn-ghost">{{ _('Clear filter') }}</a>
+      {% else %}
+        <p class="empty-state-headline">{{ _('No drafts yet.') }}</p>
+        <p style="color:var(--text-muted); margin-bottom:var(--space-md);">
+          {{ _('Start writing and your drafts will appear here.') }}
+        </p>
+        <a href="{{ url_for('posts.new_post') }}" class="btn btn-primary">{{ _('Write your first post') }}</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

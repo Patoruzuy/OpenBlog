@@ -183,7 +183,7 @@
     });
   }
 
-  // ── Unsaved-changes guard ───────────────────────────────────────────────
+  // ── Unsaved-changes guard (used for non-compose forms) ─────────────────
 
   function setupUnsavedGuard(form) {
     if (!form) return;
@@ -217,6 +217,183 @@
     });
   }
 
+  // ── Autosave controller ─────────────────────────────────────────────────
+
+  function setupAutosave(form) {
+    if (!form) return;
+
+    var statusEl  = document.getElementById("autosave-status");
+    var titleEl   = document.getElementById("post-title") || form.querySelector("[name=title]");
+    var bodyEl    = form.querySelector("[data-md-input]") || form.querySelector("[name=markdown_body]");
+    var tagsEl    = form.querySelector("[name=tags]");
+    var excerptEl = form.querySelector("[name=seo_description]");
+
+    // State
+    var pendingSlug       = form.dataset.postSlug || null;
+    var savedRevision     = parseInt(form.dataset.autosaveRevision || "0", 10);
+    var dirty             = false;
+    var saving            = false;
+    var debounceTimer     = null;
+    var throttleTimer     = null;
+    var conflictDetected  = false;
+
+    var DEBOUNCE_MS = 1600;
+    var THROTTLE_MS = 10000;
+
+    function setStatus(text, cls) {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      statusEl.className = "autosave-status" + (cls ? " autosave-status--" + cls : "");
+    }
+
+    function clearStatus() { setStatus("", ""); }
+
+    // ── Lazy draft creation (first save on /posts/new) ─────────────────
+
+    function createDraft() {
+      saving = true;
+      setStatus("Saving\u2026", "saving");
+      var title       = (titleEl && titleEl.value.trim()) || "Untitled";
+      var markdownBody = bodyEl ? bodyEl.value : "";
+      var tagsRaw     = tagsEl ? tagsEl.value : "";
+      var tags        = tagsRaw
+        ? tagsRaw.split(",").map(function (t) { return t.trim(); }).filter(Boolean)
+        : [];
+
+      fetch("/api/posts/", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title, markdown_body: markdownBody, tags: tags }),
+      })
+        .then(function (r) {
+          return r.json().then(function (d) { return { status: r.status, data: d }; });
+        })
+        .then(function (res) {
+          if (res.status === 201) {
+            pendingSlug   = res.data.slug;
+            savedRevision = res.data.autosave_revision || 0;
+            form.dataset.postSlug        = pendingSlug;
+            form.dataset.autosaveRevision = savedRevision;
+            if (window.history && window.history.replaceState) {
+              window.history.replaceState(
+                null, "",
+                "/posts/" + encodeURIComponent(pendingSlug) + "/edit"
+              );
+            }
+            dirty = false;
+            setStatus("Saved", "saved");
+            setTimeout(clearStatus, 4000);
+          } else {
+            setStatus("Save failed", "error");
+          }
+        })
+        .catch(function () {
+          setStatus("Offline \u2014 changes not saved", "offline");
+        })
+        .finally(function () { saving = false; });
+    }
+
+    // ── Autosave to existing draft ─────────────────────────────────────
+
+    function performAutosave() {
+      if (!dirty || saving || conflictDetected) return;
+      if (!pendingSlug) {
+        createDraft();
+        return;
+      }
+
+      saving = true;
+      setStatus("Saving\u2026", "saving");
+
+      var title        = titleEl   ? titleEl.value   : null;
+      var markdownBody = bodyEl    ? bodyEl.value     : null;
+      var excerpt      = excerptEl ? excerptEl.value.trim() || null : null;
+      var tagsRaw      = tagsEl    ? tagsEl.value     : null;
+      var tags         = tagsRaw !== null
+        ? tagsRaw.split(",").map(function (t) { return t.trim(); }).filter(Boolean)
+        : null;
+
+      fetch("/api/posts/" + encodeURIComponent(pendingSlug) + "/autosave", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title:            title,
+          markdown_body:    markdownBody,
+          excerpt:          excerpt,
+          tags:             tags,
+          autosave_revision: savedRevision,
+        }),
+      })
+        .then(function (r) {
+          return r.json().then(function (d) { return { status: r.status, data: d }; });
+        })
+        .then(function (res) {
+          if (res.status === 200 && res.data.ok) {
+            savedRevision             = res.data.autosave_revision;
+            form.dataset.autosaveRevision = savedRevision;
+            dirty = false;
+            setStatus("Saved", "saved");
+            setTimeout(clearStatus, 4000);
+          } else if (res.status === 409) {
+            conflictDetected = true;
+            var reloadBtn = document.createElement("button");
+            reloadBtn.type      = "button";
+            reloadBtn.textContent = "Reload";
+            reloadBtn.className = "btn btn-sm btn-ghost";
+            reloadBtn.style.marginLeft = "0.5rem";
+            reloadBtn.addEventListener("click", function () { window.location.reload(); });
+            setStatus("Conflict \u2014 reload to sync", "conflict");
+            if (statusEl) statusEl.appendChild(reloadBtn);
+          } else {
+            setStatus("Save failed", "error");
+          }
+        })
+        .catch(function () {
+          setStatus("Offline \u2014 changes not saved", "offline");
+        })
+        .finally(function () { saving = false; });
+    }
+
+    // ── Debounce + throttle input handler ─────────────────────────────
+
+    function scheduleAutosave() {
+      dirty = true;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function () {
+        if (!throttleTimer) {
+          performAutosave();
+          throttleTimer = setTimeout(function () { throttleTimer = null; }, THROTTLE_MS);
+        }
+      }, DEBOUNCE_MS);
+    }
+
+    form.addEventListener("input", scheduleAutosave);
+
+    // Immediate save on blur (e.g. user switches tab)
+    form.addEventListener("blur", function () {
+      if (dirty && !saving && !conflictDetected) {
+        clearTimeout(debounceTimer);
+        performAutosave();
+      }
+    }, true); // capture to catch child element blur
+
+    // Mark clean when the form is manually submitted
+    form.addEventListener("submit", function () {
+      dirty = false;
+      clearTimeout(debounceTimer);
+    });
+
+    // Warn before navigating away if there are unsaved changes
+    window.addEventListener("beforeunload", function (e) {
+      if (dirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+  }
+
   // ── Init all editors on page ────────────────────────────────────────────
 
   document.querySelectorAll("[data-md-editor]").forEach(function (editorEl) {
@@ -228,8 +405,14 @@
     setupTabs(editorEl, ta);
   });
 
-  // Init unsaved-changes guard on the post composer form
-  setupUnsavedGuard(document.getElementById("post-compose-form"));
+  // Compose / edit pages: use autosave controller (it owns beforeunload too).
+  // Other pages: fall back to the simple unsaved-changes guard.
+  var composeForm = document.getElementById("post-compose-form");
+  if (composeForm && "postSlug" in composeForm.dataset) {
+    setupAutosave(composeForm);
+  } else {
+    setupUnsavedGuard(composeForm);
+  }
 
   // Init slug sync
   setupSlugSync(

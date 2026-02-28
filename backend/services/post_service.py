@@ -42,7 +42,7 @@ class PostError(Exception):
 
 # Slugs that must never be assigned to a post because they collide with
 # static/wildcard routes.  Checked both here and in the SSR new-post form.
-RESERVED_SLUGS: frozenset[str] = frozenset({"new", "edit", "draft", "preview"})
+RESERVED_SLUGS: frozenset[str] = frozenset({"new", "edit", "draft", "drafts", "preview"})
 
 
 def _slugify(text: str) -> str:
@@ -399,6 +399,93 @@ class PostService:
             .order_by(Post.published_at.desc())
             .limit(1)
         )
+
+    # ── Autosave ─────────────────────────────────────────────────────────
+
+    @staticmethod
+    def autosave(
+        post: Post,
+        *,
+        title: str | None = None,
+        markdown_body: str | None = None,
+        excerpt: str | None = None,
+        tags: list[str] | None = None,
+        client_revision: int,
+    ) -> Post:
+        """Persist a background autosave of *post* without bumping ``version``.
+
+        Uses optimistic concurrency: if ``post.autosave_revision`` differs from
+        ``client_revision`` we raise ``PostError(409)`` so the caller can return
+        a conflict response without overwriting more-recent data.
+
+        Raises
+        ------
+        PostError(409)  if ``client_revision`` does not match ``post.autosave_revision``.
+        PostError(422)  if the post is not in draft status.
+        """
+        if post.status != PostStatus.draft:
+            raise PostError("Only drafts can be autosaved.", 422)
+
+        if post.autosave_revision != client_revision:
+            raise PostError("Autosave conflict: revision mismatch.", 409)
+
+        if title is not None:
+            title = title.strip()
+            if title:
+                post.title = title
+
+        if markdown_body is not None and markdown_body != post.markdown_body:
+            post.markdown_body = markdown_body
+            post.reading_time_minutes = reading_time_minutes(markdown_body)
+            # Do NOT bump post.version — autosave is not a user-visible milestone.
+
+        if excerpt is not None:
+            post.seo_description = excerpt.strip() or None
+
+        if tags is not None:
+            post.tags = _resolve_tags(tags)
+
+        post.autosave_revision += 1
+        post.last_autosaved_at = datetime.now(UTC)
+        db.session.commit()
+        return post
+
+    # ── Draft listing ──────────────────────────────────────────────────────
+
+    @staticmethod
+    def list_drafts_by_author(
+        author_id: int,
+        *,
+        page: int = 1,
+        per_page: int = 20,
+        search: str | None = None,
+    ) -> tuple[list[Post], int]:
+        """Return (drafts, total) for *author_id*, newest-updated first.
+
+        When *search* is supplied only drafts whose title matches (ILIKE) are
+        returned.  Results are ordered by ``updated_at`` descending.
+        """
+        base = (
+            select(Post)
+            .where(
+                Post.author_id == author_id,
+                Post.status == PostStatus.draft,
+            )
+            .order_by(Post.updated_at.desc())
+        )
+        if search:
+            like_pat = f"%{search}%"
+            base = base.where(Post.title.ilike(like_pat))
+
+        total: int = db.session.scalar(
+            select(func.count()).select_from(base.subquery())
+        ) or 0
+        posts = list(
+            db.session.scalars(
+                base.offset((page - 1) * per_page).limit(per_page)
+            ).all()
+        )
+        return posts, total
 
     @staticmethod
     def list_recently_updated(limit: int = 4) -> list[Post]:
