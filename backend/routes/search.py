@@ -75,7 +75,7 @@ def search_results():
 
     results: SearchResults
     if q:
-        results = SearchService.search(q, page, per_page)
+        results = SearchService.search(q, page, per_page, user_id=viewer.id if viewer else None)
     else:
         results = SearchResults(
             posts=[], tags=[], users=[],

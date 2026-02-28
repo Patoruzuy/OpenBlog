@@ -16,6 +16,7 @@ from flask import Blueprint, jsonify, request
 from backend.extensions import csrf
 from backend.routes.api.posts import _post_dict
 from backend.services.search_service import SearchService
+from backend.utils.auth import get_current_user
 
 api_search_bp = Blueprint("api_search", __name__, url_prefix="/api/search")
 csrf.exempt(api_search_bp)
@@ -35,7 +36,8 @@ def search():
     page = max(1, request.args.get("page", 1, type=int))
     per_page = min(100, max(1, request.args.get("per_page", 20, type=int)))
 
-    results = SearchService.search(q, page, per_page)
+    viewer = get_current_user()
+    results = SearchService.search(q, page, per_page, user_id=viewer.id if viewer else None)
     posts, total = results.posts, results.post_total
 
     return jsonify(
