@@ -49,6 +49,7 @@ from backend.models.workspace import WorkspaceMemberRole
 from backend.security.permissions import PermissionService
 from backend.services import invite_service as inv_svc
 from backend.services import workspace_service as ws_svc
+from backend.services import playbook_service as pb_svc
 from backend.utils.auth import get_current_user, require_auth
 from backend.utils.diff import compute_diff, parse_diff_lines
 
@@ -587,3 +588,113 @@ def revoke_invite(workspace_slug: str, invite_id: int):
         flash(str(exc), "error")
 
     return redirect(url_for("workspace.invites", workspace_slug=workspace_slug))
+
+
+# ── Playbook routes ───────────────────────────────────────────────────────────
+
+
+@workspace_bp.get("/<workspace_slug>/playbooks")
+@require_auth
+def playbooks_list(workspace_slug: str):
+    """List all playbooks in the workspace; any member may view."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(workspace_slug, user)
+    member = _current_member_role(workspace, user)
+
+    playbooks = pb_svc.list_workspace_playbooks(workspace)
+
+    return render_template(
+        "workspace/playbooks_list.html",
+        workspace=workspace,
+        playbooks=playbooks,
+        member=member,
+    )
+
+
+@workspace_bp.route("/<workspace_slug>/playbooks/new", methods=["GET", "POST"])
+@require_auth
+def new_playbook(workspace_slug: str):
+    """Create a new playbook; requires ``editor`` role or above."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.editor
+    )
+    member = _current_member_role(workspace, user)
+
+    templates = pb_svc.list_templates(public_only=True)
+
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        seo_description = request.form.get("seo_description", "").strip() or None
+        custom_slug = request.form.get("slug", "").strip() or None
+        raw_template_version_id = request.form.get("template_version_id", "").strip()
+        template_version_id: int | None = None
+        if raw_template_version_id.isdigit():
+            template_version_id = int(raw_template_version_id)
+
+        if not title:
+            flash("Title is required.", "error")
+            return render_template(
+                "workspace/playbook_new.html",
+                workspace=workspace,
+                member=member,
+                templates=templates,
+            )
+
+        try:
+            post = pb_svc.create_workspace_playbook(
+                workspace=workspace,
+                creator=user,
+                title=title,
+                seo_description=seo_description,
+                slug=custom_slug,
+                template_version_id=template_version_id,
+            )
+            db.session.commit()
+            flash(f"Playbook \u201c{post.title}\u201d created.", "success")
+            return redirect(
+                url_for(
+                    "workspace.playbook_detail",
+                    workspace_slug=workspace_slug,
+                    playbook_slug=post.slug,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001
+            db.session.rollback()
+            flash(str(exc), "error")
+
+    return render_template(
+        "workspace/playbook_new.html",
+        workspace=workspace,
+        member=member,
+        templates=templates,
+    )
+
+
+@workspace_bp.get("/<workspace_slug>/playbooks/<playbook_slug>")
+@require_auth
+def playbook_detail(workspace_slug: str, playbook_slug: str):
+    """View a workspace playbook; any member may read."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(workspace_slug, user)
+    member = _current_member_role(workspace, user)
+
+    post = pb_svc.get_workspace_playbook(workspace, playbook_slug)
+    if post is None:
+        abort(404)
+
+    from backend.utils.markdown import get_rendered_html  # noqa: PLC0415
+
+    rendered_html = get_rendered_html(post.id, post.markdown_body)
+    revisions = ws_svc.list_workspace_document_revisions(post)
+    release_notes = ws_svc.list_workspace_document_release_notes(post)
+
+    return render_template(
+        "workspace/playbook_detail.html",
+        workspace=workspace,
+        post=post,
+        rendered_html=rendered_html,
+        revisions=revisions,
+        release_notes=release_notes,
+        member=member,
+    )

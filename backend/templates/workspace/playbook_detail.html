@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <nav class="breadcrumbs">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span class="breadcrumbs__sep">/</span>
+    <a href="{{ url_for('workspace.playbooks_list', workspace_slug=workspace.slug) }}">Playbooks</a>
+    <span class="breadcrumbs__sep">/</span>
+    <span>{{ post.title }}</span>
+  </nav>
+
+  <div class="post-header">
+    <div class="post-header__meta">
+      <span class="badge badge--private">Private</span>
+      <span class="badge badge--kind badge--playbook">playbook</span>
+      <span class="badge badge--status badge--{{ post.status.value }}">{{ post.status.value }}</span>
+      {% if post.version > 1 %}
+        <span class="version-badge">v{{ post.version }}</span>
+      {% endif %}
+      {% if post.template_version %}
+        <span class="template-badge" title="Seeded from template v{{ post.template_version.version }}">
+          Template v{{ post.template_version.version }}
+        </span>
+      {% endif %}
+    </div>
+    <h1 class="post-title">{{ post.title }}</h1>
+    <div class="post-meta">
+      <span>{{ post.author.display_name or post.author.username }}</span>
+      <span class="post-meta-sep">&middot;</span>
+      <time datetime="{{ post.updated_at.isoformat() }}">
+        Updated {{ post.updated_at.strftime('%b %d, %Y') }}
+      </time>
+      <span class="post-meta-sep">&middot;</span>
+      {{ post.reading_time_minutes }} min read
+    </div>
+    {% if post.tags %}
+      <div class="post-tags">
+        {% for tag in post.tags %}
+          <span class="tag-badge">#{{ tag.slug }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="post-toolbar">
+    {% if member and member.role.value in ('owner', 'editor') %}
+      <a class="btn btn--ghost btn--sm"
+         href="{{ url_for('workspace.edit_document', workspace_slug=workspace.slug, doc_slug=post.slug) }}">
+        Edit
+      </a>
+    {% endif %}
+    <a class="btn btn--ghost btn--sm"
+       href="{{ url_for('workspace.changelog', workspace_slug=workspace.slug, slug=post.slug) }}">
+      Changelog
+    </a>
+    <a class="btn btn--ghost btn--sm"
+       href="{{ url_for('workspace.playbooks_list', workspace_slug=workspace.slug) }}">
+      ← All Playbooks
+    </a>
+  </div>
+
+  <article class="post-body prose">
+    {{ rendered_html | safe }}
+  </article>
+
+  <!-- Revision history -->
+  {% if revisions %}
+    <section class="workspace-revisions">
+      <h2>Revision History</h2>
+      <ul class="revision-list">
+        {% for rev in revisions %}
+          <li class="revision-item">
+            <span class="revision-status badge badge--{{ rev.status.value }}">{{ rev.status.value }}</span>
+            <span class="revision-summary">{{ rev.summary }}</span>
+            <span class="revision-author">by {{ rev.author.display_name or rev.author.username }}</span>
+            <time class="revision-date" datetime="{{ rev.created_at.isoformat() }}">
+              {{ rev.created_at.strftime('%b %d, %Y') }}
+            </time>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <!-- Release notes summary -->
+  {% if release_notes %}
+    <section class="workspace-changelog-summary">
+      <h2>Recent Changes</h2>
+      <ul class="changelog-list">
+        {% for note in release_notes[:5] %}
+          <li>
+            <span class="version-badge">v{{ note.version_number }}</span>
+            {{ note.summary }}
+          </li>
+        {% endfor %}
+      </ul>
+      {% if release_notes | length > 5 %}
+        <a href="{{ url_for('workspace.changelog', workspace_slug=workspace.slug, slug=post.slug) }}">
+          View full changelog →
+        </a>
+      {% endif %}
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}

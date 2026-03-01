@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}New Playbook — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+
+  <nav class="breadcrumbs">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span class="breadcrumbs__sep">/</span>
+    <a href="{{ url_for('workspace.playbooks_list', workspace_slug=workspace.slug) }}">Playbooks</a>
+    <span class="breadcrumbs__sep">/</span>
+    <span>New</span>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash flash--{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <h1 class="page-title">New Playbook</h1>
+
+  <form method="post" class="post-form">
+    {{ csrf_token_field() if csrf_token_field is defined }}
+
+    <div class="form-group">
+      <label for="title" class="form-label">Title <span class="required">*</span></label>
+      <input id="title" name="title" type="text" class="form-input" required
+             placeholder="Playbook title" autofocus />
+    </div>
+
+    <div class="form-group">
+      <label for="slug" class="form-label">Slug <span class="form-hint">(leave blank to auto-generate)</span></label>
+      <input id="slug" name="slug" type="text" class="form-input"
+             placeholder="my-playbook-slug" pattern="[a-z0-9\-]+" />
+    </div>
+
+    {% if templates %}
+    <div class="form-group">
+      <label for="template_version_id" class="form-label">
+        Start from a template
+        <span class="form-hint">(optional — pre-fills body from skeleton)</span>
+      </label>
+      <select id="template_version_id" name="template_version_id" class="form-input form-select">
+        <option value="">— blank playbook —</option>
+        {% for tmpl in templates %}
+          {% if tmpl.latest_version %}
+            <option value="{{ tmpl.latest_version.id }}">
+              {{ tmpl.name }} (v{{ tmpl.latest_version.version }})
+            </option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="form-group">
+      <label for="seo_description" class="form-label">Description</label>
+      <input id="seo_description" name="seo_description" type="text" class="form-input"
+             placeholder="Short description for listings" maxlength="512" />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">Create Playbook</button>
+      <a href="{{ url_for('workspace.playbooks_list', workspace_slug=workspace.slug) }}" class="btn btn--ghost">Cancel</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

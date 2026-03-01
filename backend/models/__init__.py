@@ -37,6 +37,7 @@ from backend.models.workspace import (
     WorkspaceMemberRole,
     WorkspaceVisibility,
 )
+from backend.models.playbook import PlaybookTemplate, PlaybookTemplateVersion
 from backend.models.post import Post
 from backend.models.post_release_note import PostReleaseNote
 from backend.models.post_version import PostVersion
@@ -61,6 +62,8 @@ __all__ = [
     "NewsletterSubscription",
     "Notification",
     "PinnedPost",
+    "PlaybookTemplate",
+    "PlaybookTemplateVersion",
     "Post",
     "PostReleaseNote",
     "PostTag",

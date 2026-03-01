@@ -29,11 +29,12 @@ class ExploreService:
         """Return paginated published posts, newest first."""
         from sqlalchemy.orm import joinedload  # noqa: PLC0415
 
-        # INV-001: public published posts only.
+        # INV-001: public published articles only (not playbooks/prompts/etc.).
         q = (
             select(Post)
             .where(
                 Post.workspace_id.is_(None),
+                Post.kind == "article",
                 Post.status == PostStatus.published,
                 Post.published_at.is_not(None),
             )
@@ -65,7 +66,8 @@ class ExploreService:
                 Post,
                 (Post.id == PostTag.c.post_id)
                 & (Post.status == PostStatus.published)
-                & Post.workspace_id.is_(None),
+                & Post.workspace_id.is_(None)
+                & (Post.kind == "article"),
             )
             .group_by(Tag.id)
             .order_by(post_count_col.desc(), Tag.name)

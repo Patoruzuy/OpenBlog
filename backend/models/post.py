@@ -106,6 +106,30 @@ class Post(db.Model):
         default=None,
     )
 
+    # ── Content kind ───────────────────────────────────────────────────────
+    # 'article'   — regular public blog post (default for all existing rows)
+    # 'playbook'  — workspace-scoped playbook instance
+    # 'prompt'    — workspace-scoped prompt document (reserved)
+    # 'framework' — workspace-scoped framework document (reserved)
+    kind: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="article", server_default="article"
+    )
+
+    # ── Template reference ─────────────────────────────────────────────────
+    # Set when a playbook was seeded from a PlaybookTemplateVersion.
+    template_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("playbook_templates.id", ondelete="SET NULL"),
+        nullable=True,
+        default=None,
+    )
+    template_version_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("playbook_template_versions.id", ondelete="SET NULL"),
+        nullable=True,
+        default=None,
+    )
+
     # ── Autosave ───────────────────────────────────────────────────────────
     last_autosaved_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -142,6 +166,16 @@ class Post(db.Model):
     workspace: Mapped[Workspace | None] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Workspace",
         foreign_keys="Post.workspace_id",
+    )
+    template: Mapped[object | None] = relationship(
+        "PlaybookTemplate",
+        foreign_keys="Post.template_id",
+        lazy="select",
+    )
+    template_version: Mapped[object | None] = relationship(
+        "PlaybookTemplateVersion",
+        foreign_keys="Post.template_version_id",
+        lazy="select",
     )
     tags: Mapped[list[Tag]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Tag", secondary="post_tags", back_populates="posts", lazy="select"
@@ -193,6 +227,8 @@ class Post(db.Model):
         ),
         Index("ix_posts_status_published_at", "status", "published_at"),
         Index("ix_posts_workspace_id", "workspace_id"),
+        Index("ix_posts_kind", "kind"),
+        Index("ix_posts_workspace_kind", "workspace_id", "kind"),
     )
 
     def __repr__(self) -> str:

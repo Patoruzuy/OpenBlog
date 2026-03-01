@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Playbooks — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <nav class="breadcrumbs">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span class="breadcrumbs__sep">/</span>
+    <span>Playbooks</span>
+  </nav>
+
+  <div class="page-header">
+    <div class="page-header__meta">
+      <span class="badge badge--private" title="Private workspace">Private</span>
+      <span class="badge badge--kind">Playbooks</span>
+    </div>
+    <h1 class="page-header__title">Playbooks</h1>
+    <p class="page-header__description">
+      Reusable, versioned operational playbooks for your team.
+    </p>
+  </div>
+
+  <div class="workspace-toolbar">
+    {% if member and member.role.value in ('owner', 'editor') %}
+      <a class="btn btn--primary" href="{{ url_for('workspace.new_playbook', workspace_slug=workspace.slug) }}">
+        + New Playbook
+      </a>
+    {% endif %}
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">
+      ← Documents
+    </a>
+    <span class="workspace-role-badge">
+      Your role: <strong>{{ member.role.value if member else '—' }}</strong>
+    </span>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash flash--{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if playbooks %}
+    <div class="post-cards-list">
+      {% for pb in playbooks %}
+        <article class="post-card">
+          <span class="post-card-title">
+            <a href="{{ url_for('workspace.playbook_detail', workspace_slug=workspace.slug, playbook_slug=pb.slug) }}">
+              {{ pb.title }}
+            </a>
+            <span class="badge badge--status badge--{{ pb.status.value }}">{{ pb.status.value }}</span>
+            <span class="badge badge--kind badge--playbook">playbook</span>
+          </span>
+          {% if pb.seo_description %}
+            <p class="post-card-summary">{{ pb.seo_description }}</p>
+          {% endif %}
+          <div class="post-card-meta">
+            <span>{{ pb.author.display_name or pb.author.username }}</span>
+            <span class="post-meta-sep">&middot;</span>
+            <time datetime="{{ pb.updated_at.isoformat() }}">
+              Updated {{ pb.updated_at.strftime('%b %d, %Y') }}
+            </time>
+            {% if pb.version > 1 %}
+              <span class="post-meta-sep">&middot;</span>
+              <span class="version-badge">v{{ pb.version }}</span>
+            {% endif %}
+            {% if pb.template_version %}
+              <span class="post-meta-sep">&middot;</span>
+              <span class="template-badge" title="Seeded from template">
+                Template v{{ pb.template_version.version }}
+              </span>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No playbooks yet.</p>
+      {% if member and member.role.value in ('owner', 'editor') %}
+        <a href="{{ url_for('workspace.new_playbook', workspace_slug=workspace.slug) }}">Create the first playbook.</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

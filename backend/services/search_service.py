@@ -155,6 +155,7 @@ class SearchService:
                 select(Post.id, Post.title, Post.slug, Post.markdown_body)
                 .where(
                     Post.workspace_id.is_(None),
+                    Post.kind == "article",
                     Post.status == PostStatus.published,
                     or_(tsvec.op("@@")(tsq), Post.title.ilike(like_pat)),
                 )
@@ -167,6 +168,7 @@ class SearchService:
                 select(Post.id, Post.title, Post.slug, Post.markdown_body)
                 .where(
                     Post.workspace_id.is_(None),
+                    Post.kind == "article",
                     Post.status == PostStatus.published,
                     or_(Post.title.like(like_pat), Post.markdown_body.like(like_pat)),
                 )
@@ -263,7 +265,10 @@ class SearchService:
 
         base = (
             select(Post)
-            .where(                Post.workspace_id.is_(None),                Post.status == PostStatus.published,
+            .where(
+                Post.workspace_id.is_(None),
+                Post.kind == "article",
+                Post.status == PostStatus.published,
                 or_(
                     Post.title.like(like_pat),
                     Post.markdown_body.like(like_pat),
@@ -319,7 +324,10 @@ class SearchService:
 
         base = (
             select(Post)
-            .where(                Post.workspace_id.is_(None),                Post.status == PostStatus.published,
+            .where(
+                Post.workspace_id.is_(None),
+                Post.kind == "article",
+                Post.status == PostStatus.published,
                 or_(
                     tsvec.op("@@")(tsq),
                     Post.id.in_(tag_post_ids),

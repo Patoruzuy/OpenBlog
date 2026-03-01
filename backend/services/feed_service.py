@@ -116,6 +116,7 @@ def _published_query(limit: int):
         select(Post)
         .where(
             Post.workspace_id.is_(None),
+            Post.kind == "article",
             Post.status == PostStatus.published,
             Post.published_at.is_not(None),
         )
