@@ -32,6 +32,15 @@ from backend.models.revision import Revision, RevisionStatus
 from backend.models.tag import PostTag, Tag
 from backend.models.user import User
 from backend.models.user_post_read import UserPostRead
+from backend.services.search_ranking import (
+    _ANON,
+    score_person,
+    score_post,
+    score_tag,
+)
+from backend.services.search_ranking import (
+    title_score as _title_score,
+)
 from backend.utils import metrics
 
 # Maximum characters kept from a body excerpt for the snippet helper.
@@ -98,11 +107,11 @@ class SearchService:
         if dialect == "postgresql":
             posts, post_total = SearchService._search_postgres(q, page, per_page)
             tags, tag_total = SearchService._search_tags_postgres(q)
-            users, user_total = SearchService._search_users_postgres(q, page, per_page)
+            users, user_total = SearchService._search_users(q, page, per_page)
         else:
             posts, post_total = SearchService._search_sqlite(q, page, per_page)
             tags, tag_total = SearchService._search_tags_sqlite(q)
-            users, user_total = SearchService._search_users_sqlite(q, page, per_page)
+            users, user_total = SearchService._search_users(q, page, per_page)
 
         # Apply weighted ranking heuristic to each result group.
         posts = SearchService._rank_posts(posts, q, user_id=user_id)
@@ -175,19 +184,11 @@ class SearchService:
         user_rows = db.session.execute(user_stmt).all()
 
         # Re-rank each suggest group by title / name relevance.
-        from backend.services.search_ranking import (
-            score_person as _score_person,
+        post_rows = sorted(
+            post_rows, key=lambda r: _title_score(q, r.title or ""), reverse=True
         )
-        from backend.services.search_ranking import (
-            score_tag as _score_tag,
-        )
-        from backend.services.search_ranking import (
-            title_score as _ts,
-        )
-
-        post_rows = sorted(post_rows, key=lambda r: _ts(q, r.title or ""), reverse=True)
-        tag_rows = sorted(tag_rows, key=lambda r: _score_tag(q, r), reverse=True)
-        user_rows = sorted(user_rows, key=lambda r: _score_person(q, r), reverse=True)
+        tag_rows = sorted(tag_rows, key=lambda r: score_tag(q, r), reverse=True)
+        user_rows = sorted(user_rows, key=lambda r: score_person(q, r), reverse=True)
 
         posts_out = [
             {
@@ -382,23 +383,12 @@ class SearchService:
         )
 
     @staticmethod
-    def _search_users_sqlite(
-        q: str, page: int, per_page: int
-    ) -> tuple[list[User], int]:
-        like_pat = f"%{q}%"
-        base = SearchService._public_user_base(like_pat).order_by(User.username)
-        total = (
-            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
-        )
-        users = list(
-            db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
-        )
-        return users, total
+    def _search_users(q: str, page: int, per_page: int) -> tuple[list[User], int]:
+        """Search user profiles by *q*.
 
-    @staticmethod
-    def _search_users_postgres(
-        q: str, page: int, per_page: int
-    ) -> tuple[list[User], int]:
+        ``_public_user_base`` uses ``.ilike()`` which is case-insensitive on
+        both SQLite and PostgreSQL, so a single implementation covers both.
+        """
         like_pat = f"%{q}%"
         base = SearchService._public_user_base(like_pat).order_by(User.username)
         total = (
@@ -537,8 +527,6 @@ class SearchService:
         if not posts:
             return posts
 
-        from backend.services.search_ranking import _ANON, score_post
-
         post_ids = [p.id for p in posts]
         read_map = SearchService._bulk_read_map(user_id, post_ids) if user_id else {}
         rev_counts = SearchService._bulk_revision_counts(post_ids)
@@ -570,8 +558,6 @@ class SearchService:
         """Re-rank *tags* by ``score_tag``."""
         if not tags:
             return tags
-        from backend.services.search_ranking import score_tag
-
         return sorted(tags, key=lambda t: -score_tag(query, t))
 
     @staticmethod
@@ -579,6 +565,4 @@ class SearchService:
         """Re-rank *users* by ``score_person``."""
         if not users:
             return users
-        from backend.services.search_ranking import score_person
-
         return sorted(users, key=lambda u: -score_person(query, u))

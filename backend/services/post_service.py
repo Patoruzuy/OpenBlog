@@ -126,6 +126,54 @@ def _resolve_tags(tag_names: list[str]) -> list[Tag]:
     return tags
 
 
+# ── Badge-award helpers ───────────────────────────────────────────────────────
+
+
+def _award_publish_badges(post: Post) -> None:
+    """Award publish-milestone badges to *post*'s author.
+
+    Called after a post transitions to ``published`` status.  Any failure is
+    swallowed so that badge errors can never prevent a post from publishing.
+    """
+    # Deferred imports break the circular dependency:
+    #   post_service → badge_service → (no post_service import).
+    from backend.models.tag import PostTag  # noqa: PLC0415
+    from backend.services.badge_service import BadgeService  # noqa: PLC0415
+
+    try:
+        published_count = (
+            db.session.scalar(
+                select(func.count(Post.id))
+                .where(Post.author_id == post.author_id)
+                .where(Post.status == PostStatus.published)
+            )
+            or 0
+        )
+
+        if published_count == 1:
+            BadgeService.award(post.author_id, "first_post")
+        if published_count >= 5:
+            BadgeService.award(post.author_id, "prolific_author")
+        if published_count >= 10:
+            BadgeService.award(post.author_id, "consistent_contributor")
+
+        distinct_tags = (
+            db.session.scalar(
+                select(func.count(func.distinct(PostTag.c.tag_id)))
+                .select_from(PostTag)
+                .join(Post, Post.id == PostTag.c.post_id)
+                .where(Post.author_id == post.author_id)
+                .where(Post.status == PostStatus.published)
+            )
+            or 0
+        )
+        if distinct_tags >= 3:
+            BadgeService.award(post.author_id, "topic_contributor")
+    except Exception:  # noqa: BLE001
+        # Badge hooks must never break the publish flow.
+        pass
+
+
 # ── Service ────────────────────────────────────────────────────────────────────
 
 
@@ -265,48 +313,7 @@ class PostService:
         db.session.commit()
         if post.status == PostStatus.published:
             metrics.posts_published.inc()
-            # ── Badge hooks on publish ────────────────────────────────────────
-            try:
-                from backend.services.badge_service import BadgeService  # noqa: PLC0415
-
-                # first_post: author's first published post
-                published_count = (
-                    db.session.scalar(
-                        select(func.count(Post.id))
-                        .where(Post.author_id == post.author_id)
-                        .where(Post.status == PostStatus.published)
-                    )
-                    or 0
-                )
-                if published_count == 1:
-                    BadgeService.award(post.author_id, "first_post")
-
-                # consistent_contributor: 10+ published posts
-                if published_count >= 10:
-                    BadgeService.award(post.author_id, "consistent_contributor")
-
-                # topic_contributor: published posts in 3+ distinct tags
-                from backend.models.tag import PostTag  # noqa: PLC0415
-
-                distinct_tags = (
-                    db.session.scalar(
-                        select(func.count(func.distinct(PostTag.c.tag_id)))
-                        .select_from(PostTag)
-                        .join(Post, Post.id == PostTag.c.post_id)
-                        .where(Post.author_id == post.author_id)
-                        .where(Post.status == PostStatus.published)
-                    )
-                    or 0
-                )
-                if distinct_tags >= 3:
-                    BadgeService.award(post.author_id, "topic_contributor")
-
-                # prolific_author: 5+ published posts
-                if published_count >= 5:
-                    BadgeService.award(post.author_id, "prolific_author")
-            except Exception:  # noqa: BLE001
-                # Badge hooks must never break the publish flow.
-                pass
+            _award_publish_badges(post)
         return post
 
     @staticmethod

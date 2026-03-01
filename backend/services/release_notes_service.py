@@ -29,6 +29,8 @@ Design notes
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from backend.extensions import db
 from backend.models.post_release_note import PostReleaseNote
 
@@ -40,11 +42,12 @@ def get_post_release_notes(post_id: int) -> list[PostReleaseNote]:
     The caller must ensure the post is published before surfacing these to
     anonymous visitors.
     """
-    return (
-        db.session.query(PostReleaseNote)
-        .filter(PostReleaseNote.post_id == post_id)
-        .order_by(PostReleaseNote.version_number.desc())
-        .all()
+    return list(
+        db.session.scalars(
+            select(PostReleaseNote)
+            .where(PostReleaseNote.post_id == post_id)
+            .order_by(PostReleaseNote.version_number.desc())
+        )
     )
 
 

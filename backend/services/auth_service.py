@@ -106,13 +106,13 @@ class AuthService:
             raise AuthError("Invalid email or password.")
 
         # Rehash transparently if argon2 parameters have been strengthened.
+        # Both mutations are committed together below to avoid two round-trips.
         if _ph.check_needs_rehash(user.password_hash):
             user.password_hash = _ph.hash(password)
-            db.session.commit()
 
         # Update last login timestamp.
         user.last_login_at = datetime.now(UTC)
-        db.session.commit()
+        db.session.commit()  # single commit covers rehash + last_login_at
 
         access_token, refresh_token = AuthService.issue_tokens(user)
         metrics.user_logins.labels(outcome="success").inc()
