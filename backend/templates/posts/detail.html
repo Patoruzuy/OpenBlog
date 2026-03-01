@@ -390,18 +390,21 @@
   /* ── Bookmark toggle ──── */
   const bookmarkBtn = document.getElementById("bookmark-btn");
   if (bookmarkBtn) {
-    fetch("/api/posts/{{ post.slug }}", { credentials: "same-origin" })
+    const _slug = "{{ post.slug }}";
+    const _tok  = localStorage.getItem("access_token");
+    const _ah   = _tok ? { "Authorization": "Bearer " + _tok, "Content-Type": "application/json" } : { "Content-Type": "application/json" };
+    // Sync initial state from API
+    fetch("/api/posts/" + _slug, { headers: _ah })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d && d.has_bookmarked != null) setBookmark(d.has_bookmarked); })
       .catch(() => {});
     bookmarkBtn.addEventListener("click", async () => {
       const cur = bookmarkBtn.dataset.bookmarked === "true";
-      const res = await fetch("/api/bookmarks/{{ post.id }}", {
+      const res = await fetch("/api/posts/" + _slug + "/bookmark", {
         method: cur ? "DELETE" : "POST",
-        credentials: "same-origin",
-        headers: { "X-CSRFToken": (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || "" }
+        headers: _ah,
       }).catch(() => null);
-      if (res && (res.ok || res.status === 204)) setBookmark(!cur);
+      if (res && res.ok) setBookmark(!cur);
     });
     function setBookmark(a) {
       bookmarkBtn.dataset.bookmarked = a ? "true" : "false";

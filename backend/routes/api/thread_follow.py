@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify
 
+from backend.extensions import csrf
 from backend.models.post import Post
 from backend.services.thread_subscription_service import ThreadSubscriptionService
 from backend.utils.auth import api_require_auth, get_current_user
 
 api_thread_follow_bp = Blueprint("api_thread_follow", __name__, url_prefix="/api/posts")
+csrf.exempt(api_thread_follow_bp)
 
 
 def _get_post_or_404(slug: str) -> Post:
