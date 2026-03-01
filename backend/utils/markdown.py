@@ -23,23 +23,41 @@ _EXTENSIONS = ["fenced_code", "tables"]
 
 # Tags produced by Python-Markdown with the above extensions.
 _ALLOWED_TAGS: list[str] = [
-    "h1", "h2", "h3", "h4", "h5", "h6",
-    "p", "br", "hr",
-    "strong", "em", "del", "s",
-    "code", "pre",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "p",
+    "br",
+    "hr",
+    "strong",
+    "em",
+    "del",
+    "s",
+    "code",
+    "pre",
     "blockquote",
-    "ul", "ol", "li",
+    "ul",
+    "ol",
+    "li",
     "a",
     "img",
-    "table", "thead", "tbody", "tr", "th", "td",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
 ]
 
 _ALLOWED_ATTRS: dict[str, list[str]] = {
-    "a":   ["href", "title", "rel"],
+    "a": ["href", "title", "rel"],
     "img": ["src", "alt", "title"],
     "code": ["class"],
-    "td":  ["align"],
-    "th":  ["align"],
+    "td": ["align"],
+    "th": ["align"],
 }
 
 _CACHE_KEY = "post:{id}:html"

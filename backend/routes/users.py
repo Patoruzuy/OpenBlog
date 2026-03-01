@@ -47,7 +47,9 @@ def profile(username: str):
         .where(Post.author_id == user.id, Post.status == PostStatus.published)
         .order_by(Post.published_at.desc())
     )
-    total_posts = db.session.scalar(sa_select(func.count()).select_from(base.subquery())) or 0
+    total_posts = (
+        db.session.scalar(sa_select(func.count()).select_from(base.subquery())) or 0
+    )
     posts = list(db.session.scalars(base.offset(0).limit(per_page)))
     total_pages = (total_posts + per_page - 1) // per_page if total_posts else 0
 
@@ -58,11 +60,15 @@ def profile(username: str):
     )
 
     # Pinned posts (always shown when profile is visible)
-    pinned_posts = PinnedPostService.get_pinned(user.id) if privacy_view.get("visible") else []
+    pinned_posts = (
+        PinnedPostService.get_pinned(user.id) if privacy_view.get("visible") else []
+    )
 
     # Contribution graph (self-view includes anonymous contributions)
     contrib_data = (
-        ContributionGraphService.get_contributions(user.id, viewer_is_self=viewer_is_self)
+        ContributionGraphService.get_contributions(
+            user.id, viewer_is_self=viewer_is_self
+        )
         if privacy_view.get("show_contributions")
         else {"weeks": [], "total": 0}
     )
@@ -72,6 +78,7 @@ def profile(username: str):
 
     # Recent activity — last 10 published posts (simple activity feed)
     from backend.models.comment import Comment
+
     recent_posts_q = list(
         db.session.scalars(
             sa_select(Post)
@@ -94,7 +101,9 @@ def profile(username: str):
         activity.append({"type": "post", "obj": p, "at": p.published_at})
     for c in recent_comments_q:
         activity.append({"type": "comment", "obj": c, "at": c.created_at})
-    activity.sort(key=lambda x: x["at"] or __import__("datetime").datetime.min, reverse=True)
+    activity.sort(
+        key=lambda x: x["at"] or __import__("datetime").datetime.min, reverse=True
+    )
     recent_activity = activity[:10]
 
     return render_template(
@@ -115,4 +124,3 @@ def profile(username: str):
         user_badges=user_badges,
         recent_activity=recent_activity,
     )
-

@@ -64,23 +64,27 @@ class Revision(db.Model):
         Integer, ForeignKey("post_versions.id", ondelete="SET NULL"), nullable=True
     )
     base_version_number: Mapped[int] = mapped_column(
-        Integer, nullable=False,
-        comment="Snapshot of Post.version at the time this revision was submitted."
+        Integer,
+        nullable=False,
+        comment="Snapshot of Post.version at the time this revision was submitted.",
     )
 
     # ── Content ────────────────────────────────────────────────────────────
     proposed_markdown: Mapped[str] = mapped_column(
-        Text, nullable=False,
-        comment="Full proposed markdown body (not a patch). Diff is derived."
+        Text,
+        nullable=False,
+        comment="Full proposed markdown body (not a patch). Diff is derived.",
     )
     summary: Mapped[str] = mapped_column(
-        String(512), nullable=False,
-        comment="Required one-line description of the change (like a commit message)."
+        String(512),
+        nullable=False,
+        comment="Required one-line description of the change (like a commit message).",
     )
     # Nullable derived cache — safe to recompute from base_version + proposed_markdown.
     diff_cache: Mapped[str | None] = mapped_column(
-        Text, nullable=True,
-        comment="Cached unified diff. Recomputed on accept/display; not authoritative."
+        Text,
+        nullable=True,
+        comment="Cached unified diff. Recomputed on accept/display; not authoritative.",
     )
 
     # ── Status ─────────────────────────────────────────────────────────────
@@ -94,7 +98,9 @@ class Revision(db.Model):
         Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     rejection_note: Mapped[str | None] = mapped_column(Text, nullable=True)
-    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # ── Contribution identity snapshot ─────────────────────────────────────
     # Captured at submission time from the author's then-current privacy
@@ -102,16 +108,19 @@ class Revision(db.Model):
     # identity mode that was active when the revision was submitted, even
     # if the author later changes their settings.
     public_identity_mode: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
-        comment="Identity mode at submission time: public|pseudonymous|anonymous"
+        String(20),
+        nullable=True,
+        comment="Identity mode at submission time: public|pseudonymous|anonymous",
     )
     public_display_name_snapshot: Mapped[str | None] = mapped_column(
-        String(200), nullable=True,
-        comment="Display name or pseudonym captured at submission time."
+        String(200),
+        nullable=True,
+        comment="Display name or pseudonym captured at submission time.",
     )
     public_avatar_snapshot: Mapped[str | None] = mapped_column(
-        String(512), nullable=True,
-        comment="Avatar URL captured at submission time (may be None for anonymous)."
+        String(512),
+        nullable=True,
+        comment="Avatar URL captured at submission time (may be None for anonymous).",
     )
 
     # ── Timestamps ─────────────────────────────────────────────────────────

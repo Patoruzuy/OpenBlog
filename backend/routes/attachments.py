@@ -18,10 +18,7 @@ Security
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from flask import Blueprint, abort, jsonify, request, send_file
-from sqlalchemy import select
 
 from backend.extensions import csrf, db
 from backend.models.comment import Comment
@@ -37,6 +34,7 @@ csrf.exempt(api_attachments_bp)
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
+
 
 @api_attachments_bp.post("/comments/<int:comment_id>/attachments")
 @api_require_auth
@@ -58,7 +56,10 @@ def upload_attachment(comment_id: int):
         abort(404)
 
     # Only allow upload by the comment author, editor, or admin.
-    if comment.author_id != user.id and user.role not in (UserRole.editor, UserRole.admin):
+    if comment.author_id != user.id and user.role not in (
+        UserRole.editor,
+        UserRole.admin,
+    ):
         abort(403)
 
     file = request.files.get("file")
@@ -89,7 +90,7 @@ def upload_attachment(comment_id: int):
 
     try:
         stored_path, sha256 = MediaService.store(file, attachment.id, ext)
-    except OSError as exc:
+    except OSError:
         db.session.rollback()
         return jsonify({"error": "Storage error; please try again."}), 500
 
@@ -103,18 +104,23 @@ def upload_attachment(comment_id: int):
     attachment.storage_status = "stored"
     db.session.commit()
 
-    return jsonify({
-        "id": attachment.id,
-        "original_filename": attachment.original_filename,
-        "mime_type": attachment.mime_type,
-        "size_bytes": attachment.size_bytes,
-        "is_image": attachment.is_image,
-        "download_url": f"/attachments/comments/{attachment.id}",
-        "preview_url": f"/attachments/comments/{attachment.id}/preview" if attachment.is_image else None,
-    }), 201
+    return jsonify(
+        {
+            "id": attachment.id,
+            "original_filename": attachment.original_filename,
+            "mime_type": attachment.mime_type,
+            "size_bytes": attachment.size_bytes,
+            "is_image": attachment.is_image,
+            "download_url": f"/attachments/comments/{attachment.id}",
+            "preview_url": f"/attachments/comments/{attachment.id}/preview"
+            if attachment.is_image
+            else None,
+        }
+    ), 201
 
 
 # ── Download ──────────────────────────────────────────────────────────────────
+
 
 def _get_accessible_attachment(attachment_id: int) -> CommentAttachment:
     """Fetch an attachment the current viewer is allowed to access.
@@ -139,7 +145,10 @@ def _get_accessible_attachment(attachment_id: int) -> CommentAttachment:
         viewer = get_current_user()
         if viewer is None:
             abort(404)  # use 404 to avoid leaking draft existence
-        if viewer.id != post.author_id and viewer.role not in (UserRole.editor, UserRole.admin):
+        if viewer.id != post.author_id and viewer.role not in (
+            UserRole.editor,
+            UserRole.admin,
+        ):
             abort(404)
 
     if attachment.stored_path is None:
@@ -176,7 +185,10 @@ def preview_attachment(attachment_id: int):
     if not attachment.is_image:
         # Redirect to regular download for non-image types.
         from flask import redirect, url_for  # noqa: PLC0415
-        return redirect(url_for("attachments.download_attachment", attachment_id=attachment_id))
+
+        return redirect(
+            url_for("attachments.download_attachment", attachment_id=attachment_id)
+        )
 
     abs_path = MediaService.resolve_path(attachment.stored_path)  # type: ignore[arg-type]
     if not abs_path.exists():
@@ -195,6 +207,7 @@ def preview_attachment(attachment_id: int):
 
 # ── Delete ────────────────────────────────────────────────────────────────────
 
+
 @api_attachments_bp.delete("/attachments/<int:attachment_id>")
 @api_require_auth
 def delete_attachment(attachment_id: int):
@@ -210,7 +223,10 @@ def delete_attachment(attachment_id: int):
         abort(404)
 
     # Only the uploader, editor, or admin may delete.
-    if attachment.uploader_id != user.id and user.role not in (UserRole.editor, UserRole.admin):
+    if attachment.uploader_id != user.id and user.role not in (
+        UserRole.editor,
+        UserRole.admin,
+    ):
         abort(403)
 
     from datetime import UTC, datetime  # noqa: PLC0415

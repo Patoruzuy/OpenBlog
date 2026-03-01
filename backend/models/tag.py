@@ -21,8 +21,12 @@ from backend.extensions import db
 PostTag = Table(
     "post_tags",
     db.metadata,
-    Column("post_id", Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True),
-    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "post_id", Integer, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True
+    ),
+    Column(
+        "tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True
+    ),
 )
 
 
@@ -32,8 +36,12 @@ class Tag(db.Model):
     __tablename__ = "tags"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
-    slug: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    name: Mapped[str] = mapped_column(
+        String(64), nullable=False, unique=True, index=True
+    )
+    slug: Mapped[str] = mapped_column(
+        String(64), nullable=False, unique=True, index=True
+    )
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
     color: Mapped[str | None] = mapped_column(
         String(7), nullable=True, comment="Hex color code, e.g. '#58a6ff'"

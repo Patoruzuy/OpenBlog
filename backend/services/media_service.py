@@ -18,7 +18,6 @@ Security design
 from __future__ import annotations
 
 import hashlib
-import os
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -30,8 +29,21 @@ if TYPE_CHECKING:
 
 #: Extensions that may be uploaded at all.
 ALLOWED_EXTENSIONS: frozenset[str] = frozenset(
-    {".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf",
-     ".txt", ".log", ".json", ".yaml", ".yml", ".toml", ".md"}
+    {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp",
+        ".gif",
+        ".pdf",
+        ".txt",
+        ".log",
+        ".json",
+        ".yaml",
+        ".yml",
+        ".toml",
+        ".md",
+    }
 )
 
 #: Extensions that produce inline images (safe to serve with Content-Disposition: inline).
@@ -40,13 +52,13 @@ IMAGE_EXTENSIONS: frozenset[str] = frozenset({".png", ".jpg", ".jpeg", ".webp", 
 #: Magic-byte → MIME mapping for the types we allow.
 #: Key is the leading bytes (hex); value is canonical MIME type.
 _MAGIC: list[tuple[bytes, str]] = [
-    (b"\x89PNG",             "image/png"),
-    (b"\xff\xd8\xff",        "image/jpeg"),
-    (b"RIFF",                "image/webp"),   # checked further below
-    (b"GIF87a",              "image/gif"),
-    (b"GIF89a",              "image/gif"),
-    (b"WEBP",                "image/webp"),   # offset 8 in RIFF container
-    (b"%PDF",                "application/pdf"),
+    (b"\x89PNG", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"RIFF", "image/webp"),  # checked further below
+    (b"GIF87a", "image/gif"),
+    (b"GIF89a", "image/gif"),
+    (b"WEBP", "image/webp"),  # offset 8 in RIFF container
+    (b"%PDF", "application/pdf"),
 ]
 
 #: MIME types that are safe for inline image preview.
@@ -62,10 +74,11 @@ TEXT_EXTENSIONS: frozenset[str] = frozenset(
 
 # ── Content sniffing ──────────────────────────────────────────────────────────
 
+
 def sniff_mime(header: bytes) -> str | None:
     """Return a MIME type by inspecting the first *header* bytes, or None."""
     for magic, mime in _MAGIC:
-        if header[:len(magic)] == magic:
+        if header[: len(magic)] == magic:
             # RIFF containers: verify WEBP signature at offset 8
             if magic == b"RIFF":
                 if len(header) >= 12 and header[8:12] == b"WEBP":
@@ -96,6 +109,7 @@ def safe_mime_for_extension(ext: str) -> str:
 
 # ── MediaService ──────────────────────────────────────────────────────────────
 
+
 class MediaError(Exception):
     """Raised for file validation failures in MediaService."""
 
@@ -121,13 +135,15 @@ class MediaService:
     def _max_bytes() -> int:
         from flask import current_app  # noqa: PLC0415
 
-        return int(current_app.config.get("MAX_COMMENT_ATTACHMENT_BYTES", 5 * 1024 * 1024))
+        return int(
+            current_app.config.get("MAX_COMMENT_ATTACHMENT_BYTES", 5 * 1024 * 1024)
+        )
 
     # ── Validation ────────────────────────────────────────────────────────
 
     @staticmethod
     def validate_upload(
-        file: "FileStorage",
+        file: FileStorage,
         declared_size: int | None = None,
     ) -> tuple[str, str, str, bool]:
         """Validate *file* and return ``(mime_type, ext, safe_filename, is_image)``.
@@ -196,7 +212,7 @@ class MediaService:
 
     @staticmethod
     def store(
-        file: "FileStorage",
+        file: FileStorage,
         attachment_id: int,
         ext: str,
     ) -> tuple[str, str]:
@@ -221,9 +237,7 @@ class MediaService:
 
         abs_path.write_bytes(body)
 
-        rel_path = str(
-            Path(MediaService._SUBDIR) / str(attachment_id) / stored_name
-        )
+        rel_path = str(Path(MediaService._SUBDIR) / str(attachment_id) / stored_name)
         return rel_path, sha256
 
     @staticmethod

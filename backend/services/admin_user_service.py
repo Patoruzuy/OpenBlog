@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import desc, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import joinedload
 
 from backend.extensions import db
@@ -53,13 +53,15 @@ class AdminUserService:
 
         _SORT = {
             "created_desc": User.created_at.desc(),
-            "created_asc":  User.created_at.asc(),
+            "created_asc": User.created_at.asc(),
             "username_asc": User.username.asc(),
-            "rep_desc":     User.reputation_score.desc(),
+            "rep_desc": User.reputation_score.desc(),
         }
         query = query.order_by(_SORT.get(sort, User.created_at.desc()))
 
-        total = db.session.scalar(select(func.count()).select_from(query.subquery())) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(query.subquery())) or 0
+        )
         offset = (page - 1) * _PAGE_SIZE
         items = list(db.session.scalars(query.offset(offset).limit(_PAGE_SIZE)).all())
         return items, total
@@ -98,7 +100,7 @@ class AdminUserService:
             "user": user,
             "privacy": privacy,
             "revision_counts": {
-                "pending":  rev_counts.get(RevisionStatus.pending, 0),
+                "pending": rev_counts.get(RevisionStatus.pending, 0),
                 "accepted": rev_counts.get(RevisionStatus.accepted, 0),
                 "rejected": rev_counts.get(RevisionStatus.rejected, 0),
             },

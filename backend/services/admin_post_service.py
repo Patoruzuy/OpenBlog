@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import desc, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import joinedload
 
 from backend.extensions import db
@@ -29,10 +29,7 @@ class AdminPostService:
         sort: str = "updated_desc",
     ) -> tuple[list[Post], int]:
         """Paginated, filterable post list for the admin."""
-        query = (
-            select(Post)
-            .options(joinedload(Post.author), joinedload(Post.tags))
-        )
+        query = select(Post).options(joinedload(Post.author), joinedload(Post.tags))
 
         if status:
             try:
@@ -47,22 +44,20 @@ class AdminPostService:
             query = query.join(Post.tags).where(Tag.slug == tag_slug)
         if q:
             like = f"%{q.lower()}%"
-            query = query.where(
-                or_(Post.title.ilike(like), Post.slug.ilike(like))
-            )
+            query = query.where(or_(Post.title.ilike(like), Post.slug.ilike(like)))
 
         _SORT = {
             "updated_desc": Post.updated_at.desc(),
-            "updated_asc":  Post.updated_at.asc(),
+            "updated_asc": Post.updated_at.asc(),
             "created_desc": Post.created_at.desc(),
-            "views_desc":   Post.view_count.desc(),
-            "title_asc":    Post.title.asc(),
+            "views_desc": Post.view_count.desc(),
+            "title_asc": Post.title.asc(),
         }
         query = query.order_by(_SORT.get(sort, Post.updated_at.desc()))
 
-        total = db.session.scalar(
-            select(func.count()).select_from(query.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(query.subquery())) or 0
+        )
         offset = (page - 1) * _PAGE_SIZE
         items = list(
             db.session.scalars(query.offset(offset).limit(_PAGE_SIZE)).unique().all()

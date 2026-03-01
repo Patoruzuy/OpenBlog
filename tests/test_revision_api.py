@@ -101,7 +101,9 @@ class TestSubmitRevision:
         )
         assert resp.status_code == 404
 
-    def test_submit_missing_proposed_markdown_400(self, auth_client, contributor, pub_post):
+    def test_submit_missing_proposed_markdown_400(
+        self, auth_client, contributor, pub_post
+    ):
         _, tok = contributor
         resp = auth_client.post(
             f"/api/posts/{pub_post.slug}/revisions",
@@ -155,9 +157,7 @@ class TestListPostRevisions:
         self, auth_client, editor, pending_revision, pub_post
     ):
         _, tok = editor
-        resp = auth_client.get(
-            f"/api/posts/{pub_post.slug}/revisions", headers=_h(tok)
-        )
+        resp = auth_client.get(f"/api/posts/{pub_post.slug}/revisions", headers=_h(tok))
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["total"] == 1
@@ -165,9 +165,7 @@ class TestListPostRevisions:
 
     def test_reader_gets_403(self, auth_client, reader, pub_post):
         _, tok = reader
-        resp = auth_client.get(
-            f"/api/posts/{pub_post.slug}/revisions", headers=_h(tok)
-        )
+        resp = auth_client.get(f"/api/posts/{pub_post.slug}/revisions", headers=_h(tok))
         assert resp.status_code == 403
 
     def test_status_filter(self, auth_client, editor, pending_revision, pub_post):
@@ -221,9 +219,7 @@ class TestListPendingRevisions:
 class TestGetRevision:
     def test_editor_can_get_revision(self, auth_client, editor, pending_revision):
         _, tok = editor
-        resp = auth_client.get(
-            f"/api/revisions/{pending_revision.id}", headers=_h(tok)
-        )
+        resp = auth_client.get(f"/api/revisions/{pending_revision.id}", headers=_h(tok))
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["id"] == pending_revision.id
@@ -236,16 +232,12 @@ class TestGetRevision:
 
     def test_reader_gets_403(self, auth_client, reader, pending_revision):
         _, tok = reader
-        resp = auth_client.get(
-            f"/api/revisions/{pending_revision.id}", headers=_h(tok)
-        )
+        resp = auth_client.get(f"/api/revisions/{pending_revision.id}", headers=_h(tok))
         assert resp.status_code == 403
 
     def test_stale_flag_false_when_fresh(self, auth_client, editor, pending_revision):
         _, tok = editor
-        resp = auth_client.get(
-            f"/api/revisions/{pending_revision.id}", headers=_h(tok)
-        )
+        resp = auth_client.get(f"/api/revisions/{pending_revision.id}", headers=_h(tok))
         assert resp.get_json()["is_stale"] is False
 
 
@@ -313,9 +305,7 @@ class TestAcceptRevision:
         db.session.expire(pub_post)
         assert pub_post.version == original_version + 1
 
-    def test_accept_already_accepted_400(
-        self, auth_client, editor, pending_revision
-    ):
+    def test_accept_already_accepted_400(self, auth_client, editor, pending_revision):
         _, tok = editor
         auth_client.post(
             f"/api/revisions/{pending_revision.id}/accept", headers=_h(tok)
@@ -349,9 +339,7 @@ class TestAcceptRevision:
 
 
 class TestRejectRevision:
-    def test_reject_returns_200_rejected(
-        self, auth_client, editor, pending_revision
-    ):
+    def test_reject_returns_200_rejected(self, auth_client, editor, pending_revision):
         _, tok = editor
         resp = auth_client.post(
             f"/api/revisions/{pending_revision.id}/reject",
@@ -373,9 +361,7 @@ class TestRejectRevision:
         assert resp.status_code == 200
         assert resp.get_json()["rejection_note"] is None
 
-    def test_reject_already_rejected_400(
-        self, auth_client, editor, pending_revision
-    ):
+    def test_reject_already_rejected_400(self, auth_client, editor, pending_revision):
         _, tok = editor
         auth_client.post(
             f"/api/revisions/{pending_revision.id}/reject", headers=_h(tok)

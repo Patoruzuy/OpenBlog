@@ -23,7 +23,9 @@ class Badge(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # Stable machine-readable key used by BadgeService, e.g. 'first_accepted_revision'
-    key: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    key: Mapped[str] = mapped_column(
+        String(64), nullable=False, unique=True, index=True
+    )
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     icon_url: Mapped[str | None] = mapped_column(String(512), nullable=True)

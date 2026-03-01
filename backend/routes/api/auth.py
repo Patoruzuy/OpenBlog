@@ -17,9 +17,15 @@ from __future__ import annotations
 from flask import Blueprint, jsonify
 
 from backend.extensions import csrf, limiter
+from backend.schemas import (
+    LoginSchema,
+    LogoutSchema,
+    RefreshSchema,
+    RegisterSchema,
+    load_json,
+)
 from backend.services.auth_service import AuthError, AuthService
 from backend.utils.auth import api_require_auth, get_current_user
-from backend.schemas import LoginSchema, LogoutSchema, RefreshSchema, RegisterSchema, load_json
 
 api_auth_bp = Blueprint("api_auth", __name__, url_prefix="/api/auth")
 

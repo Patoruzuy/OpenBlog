@@ -25,11 +25,14 @@ class AdminAnalyticsService:
         # ── Traffic ────────────────────────────────────────────────────────
 
         # Total page-view events in period
-        total_views = db.session.scalar(
-            select(func.count(AnalyticsEvent.id))
-            .where(AnalyticsEvent.event_type == "post_view")
-            .where(AnalyticsEvent.occurred_at >= since)
-        ) or 0
+        total_views = (
+            db.session.scalar(
+                select(func.count(AnalyticsEvent.id))
+                .where(AnalyticsEvent.event_type == "post_view")
+                .where(AnalyticsEvent.occurred_at >= since)
+            )
+            or 0
+        )
 
         # Top posts by views (all time — reflects long-term performance)
         top_posts = list(
@@ -60,7 +63,9 @@ class AdminAnalyticsService:
         rev_funnel_all = {
             row[0]: row[1]
             for row in db.session.execute(
-                select(Revision.status, func.count(Revision.id)).group_by(Revision.status)
+                select(Revision.status, func.count(Revision.id)).group_by(
+                    Revision.status
+                )
             ).all()
         }
 
@@ -68,25 +73,35 @@ class AdminAnalyticsService:
         #   pending  — submitted in window (regardless of review outcome)
         #   accepted — reviewed (accepted) in window
         #   rejected — reviewed (rejected) in window
-        rev_submitted_period = db.session.scalar(
-            select(func.count(Revision.id))
-            .where(Revision.created_at >= since)
-        ) or 0
-        rev_accepted_period = db.session.scalar(
-            select(func.count(Revision.id))
-            .where(Revision.status == RevisionStatus.accepted)
-            .where(Revision.reviewed_at >= since)
-        ) or 0
-        rev_rejected_period = db.session.scalar(
-            select(func.count(Revision.id))
-            .where(Revision.status == RevisionStatus.rejected)
-            .where(Revision.reviewed_at >= since)
-        ) or 0
+        rev_submitted_period = (
+            db.session.scalar(
+                select(func.count(Revision.id)).where(Revision.created_at >= since)
+            )
+            or 0
+        )
+        rev_accepted_period = (
+            db.session.scalar(
+                select(func.count(Revision.id))
+                .where(Revision.status == RevisionStatus.accepted)
+                .where(Revision.reviewed_at >= since)
+            )
+            or 0
+        )
+        rev_rejected_period = (
+            db.session.scalar(
+                select(func.count(Revision.id))
+                .where(Revision.status == RevisionStatus.rejected)
+                .where(Revision.reviewed_at >= since)
+            )
+            or 0
+        )
 
         # Average review latency (Python-side to stay SQLite-compatible)
         reviewed_pairs = db.session.execute(
             select(Revision.created_at, Revision.reviewed_at)
-            .where(Revision.status.in_([RevisionStatus.accepted, RevisionStatus.rejected]))
+            .where(
+                Revision.status.in_([RevisionStatus.accepted, RevisionStatus.rejected])
+            )
             .where(Revision.reviewed_at.isnot(None))
             .where(Revision.reviewed_at >= since)
         ).all()
@@ -113,17 +128,24 @@ class AdminAnalyticsService:
         # ── Contributors ───────────────────────────────────────────────────
 
         # Active contributors (submitted ≥1 revision in window)
-        active_contributors = db.session.scalar(
-            select(func.count(func.distinct(Revision.author_id)))
-            .where(Revision.created_at >= since)
-        ) or 0
+        active_contributors = (
+            db.session.scalar(
+                select(func.count(func.distinct(Revision.author_id))).where(
+                    Revision.created_at >= since
+                )
+            )
+            or 0
+        )
 
         # Accepted contributions in window (for stat card)
-        accepted_contribs = db.session.scalar(
-            select(func.count(Revision.id))
-            .where(Revision.status == RevisionStatus.accepted)
-            .where(Revision.reviewed_at >= since)
-        ) or 0
+        accepted_contribs = (
+            db.session.scalar(
+                select(func.count(Revision.id))
+                .where(Revision.status == RevisionStatus.accepted)
+                .where(Revision.reviewed_at >= since)
+            )
+            or 0
+        )
 
         # First-time contributors: authors whose very first revision is in this window
         author_first = (
@@ -131,9 +153,14 @@ class AdminAnalyticsService:
             .group_by(Revision.author_id)
             .subquery()
         )
-        first_time_contributors = db.session.scalar(
-            select(func.count()).select_from(author_first).where(author_first.c.first_at >= since)
-        ) or 0
+        first_time_contributors = (
+            db.session.scalar(
+                select(func.count())
+                .select_from(author_first)
+                .where(author_first.c.first_at >= since)
+            )
+            or 0
+        )
 
         # Top contributors by accepted revisions in window (internal view; no emails exposed)
         top_contrib_rows = db.session.execute(
@@ -221,40 +248,41 @@ class AdminAnalyticsService:
 
         return {
             # traffic
-            "total_views":   total_views,
-            "top_posts":     top_posts,
-            "pv_by_day":     [{"date": str(r.day), "views": r.views} for r in pv_by_day],
+            "total_views": total_views,
+            "top_posts": top_posts,
+            "pv_by_day": [{"date": str(r.day), "views": r.views} for r in pv_by_day],
             # revisions — all-time funnel kept for reference
             "rev_funnel": {
-                "pending":  rev_funnel_all.get(RevisionStatus.pending, 0),
+                "pending": rev_funnel_all.get(RevisionStatus.pending, 0),
                 "accepted": rev_funnel_all.get(RevisionStatus.accepted, 0),
                 "rejected": rev_funnel_all.get(RevisionStatus.rejected, 0),
             },
             # revisions — period-windowed
             "rev_submitted_period": rev_submitted_period,
-            "rev_accepted_period":  rev_accepted_period,
-            "rev_rejected_period":  rev_rejected_period,
-            "avg_review_days":      avg_review_days,
-            "acceptance_rate":      acceptance_rate,
+            "rev_accepted_period": rev_accepted_period,
+            "rev_rejected_period": rev_rejected_period,
+            "avg_review_days": avg_review_days,
+            "acceptance_rate": acceptance_rate,
             # contributors
-            "active_contributors":    active_contributors,
-            "accepted_contribs":      accepted_contribs,
+            "active_contributors": active_contributors,
+            "accepted_contribs": accepted_contribs,
             "first_time_contributors": first_time_contributors,
-            "top_contributors":        top_contributors,
+            "top_contributors": top_contributors,
             # users
-            "signups_by_day": [{"date": str(r.day), "users": r.users} for r in signups_by_day],
+            "signups_by_day": [
+                {"date": str(r.day), "users": r.users} for r in signups_by_day
+            ],
             # topics
             "top_tags": [
                 {"name": r.name, "slug": r.slug, "count": r.post_count}
                 for r in top_tags
             ],
             # content freshness
-            "stale_posts":       stale_posts,
+            "stale_posts": stale_posts,
             "low_traffic_posts": low_traffic_posts,
             # comments
             "comments_by_day": [
-                {"date": str(r.day), "comments": r.comments}
-                for r in comments_by_day
+                {"date": str(r.day), "comments": r.comments} for r in comments_by_day
             ],
             "days": days,
         }

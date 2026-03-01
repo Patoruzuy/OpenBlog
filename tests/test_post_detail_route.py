@@ -7,13 +7,11 @@ multiple templates (search results, bookmarks, admin, profile).
 
 from __future__ import annotations
 
-import pytest
 from flask import url_for
 
 from backend.extensions import db as _db
 from backend.models.post import Post, PostStatus
 from backend.models.user import User, UserRole
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -113,14 +111,14 @@ class TestPostDetailRendering:
     def test_draft_visible_to_editor(self, client, db_session):
         author = _make_user(_db, role="contributor")
         editor = User(
-            email="ed@test.com", username="uu_editor",
-            password_hash="x", role=UserRole.editor,
+            email="ed@test.com",
+            username="uu_editor",
+            password_hash="x",
+            role=UserRole.editor,
         )
         _db.session.add(editor)
         _db.session.commit()
-        post = _make_post(
-            _db, author, slug="editor-draft", status=PostStatus.draft
-        )
+        post = _make_post(_db, author, slug="editor-draft", status=PostStatus.draft)
         _login(client, editor)
         resp = client.get(f"/posts/{post.slug}")
         assert resp.status_code == 200
@@ -128,8 +126,10 @@ class TestPostDetailRendering:
     def test_draft_hidden_from_other_contributor(self, client, db_session):
         author = _make_user(_db, role="contributor")
         other = User(
-            email="other@test.com", username="uu_other",
-            password_hash="x", role=UserRole.contributor,
+            email="other@test.com",
+            username="uu_other",
+            password_hash="x",
+            role=UserRole.contributor,
         )
         _db.session.add(other)
         _db.session.commit()

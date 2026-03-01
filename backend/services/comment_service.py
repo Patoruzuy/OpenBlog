@@ -77,7 +77,9 @@ class CommentService:
         # not surface to the caller — a failed notification must never prevent
         # a comment from being saved.
         try:
-            from backend.tasks.notifications import notify_thread_comment_created  # noqa: PLC0415
+            from backend.tasks.notifications import (
+                notify_thread_comment_created,  # noqa: PLC0415
+            )
 
             notify_thread_comment_created.delay(
                 {

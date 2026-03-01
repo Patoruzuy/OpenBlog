@@ -17,9 +17,9 @@ from flask import Blueprint, jsonify, request
 from backend.extensions import csrf
 from backend.models.post import PostStatus
 from backend.models.user import User
+from backend.schemas import UpdateProfileSchema, load_json
 from backend.services.user_service import UserService, UserServiceError
 from backend.utils.auth import api_require_auth, get_current_user
-from backend.schemas import UpdateProfileSchema, load_json
 
 api_users_bp = Blueprint("api_users", __name__, url_prefix="/api/users")
 csrf.exempt(api_users_bp)
@@ -90,9 +90,7 @@ def get_profile(username: str):
     viewer = get_current_user()
     # Pass viewer_id only when the viewer is a different user — avoids a
     # self-referential "is_following" field appearing on own-profile requests.
-    viewer_id = (
-        viewer.id if (viewer is not None and viewer.id != user.id) else None
-    )
+    viewer_id = viewer.id if (viewer is not None and viewer.id != user.id) else None
     return jsonify(_user_dict(user, viewer_id=viewer_id))
 
 
@@ -118,8 +116,13 @@ def update_profile(username: str):
     # Only forward keys the caller actually sent; absent fields must not
     # overwrite existing values (partial update semantics).
     _profile_fields = {
-        "display_name", "bio", "avatar_url",
-        "website_url", "github_url", "tech_stack", "location",
+        "display_name",
+        "bio",
+        "avatar_url",
+        "website_url",
+        "github_url",
+        "tech_stack",
+        "location",
     }
     kwargs = {k: data[k] for k in _profile_fields if k in raw}
     try:
@@ -256,7 +259,9 @@ def list_user_posts(username: str):
     )
     from sqlalchemy import func
 
-    total = _db.session.scalar(sa_select(func.count()).select_from(base.subquery())) or 0
+    total = (
+        _db.session.scalar(sa_select(func.count()).select_from(base.subquery())) or 0
+    )
     posts = list(
         _db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
     )
@@ -269,7 +274,9 @@ def list_user_posts(username: str):
                     "id": p.id,
                     "slug": p.slug,
                     "title": p.title,
-                    "published_at": p.published_at.isoformat() if p.published_at else None,
+                    "published_at": p.published_at.isoformat()
+                    if p.published_at
+                    else None,
                     "reading_time_minutes": p.reading_time_minutes,
                     "tags": [{"slug": t.slug, "name": t.name} for t in p.tags],
                 }

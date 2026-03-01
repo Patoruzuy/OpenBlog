@@ -56,9 +56,7 @@ class ContributionIdentityService:
             )
             # Only include the avatar if the privacy settings permit it
             avatar_url = (
-                user.avatar_url
-                if (privacy is None or privacy.show_avatar)
-                else None
+                user.avatar_url if (privacy is None or privacy.show_avatar) else None
             )
         else:  # public
             display_name = user.display_name or user.username
@@ -106,7 +104,9 @@ class ContributionIdentityService:
 
         return {
             "mode": mode_str,
-            "display_name": public_display_name_snapshot if not is_anonymous else "Anonymous",
+            "display_name": public_display_name_snapshot
+            if not is_anonymous
+            else "Anonymous",
             "avatar_url": public_avatar_snapshot if not is_anonymous else None,
             "is_anonymous": is_anonymous,
             "is_pseudonymous": mode_str == IdentityMode.pseudonymous.value,

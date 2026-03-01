@@ -152,9 +152,7 @@ class TestResolveAndDismiss:
             target_id=pub_post.id,
             reason="misinformation",
         )
-        dismissed = ReportService.resolve(
-            report.id, resolver_id=alice.id, dismiss=True
-        )
+        dismissed = ReportService.resolve(report.id, resolver_id=alice.id, dismiss=True)
         assert dismissed.status == "dismissed"
 
     def test_resolve_nonexistent_raises_404(self, alice, db_session):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from sqlalchemy import func, select
 
 from backend.extensions import db
-from backend.models.pinned_post import PinnedPost, _MAX_PINNED
+from backend.models.pinned_post import _MAX_PINNED, PinnedPost
 from backend.models.post import Post
 
 
@@ -17,7 +17,6 @@ class PinnedPostError(Exception):
 
 
 class PinnedPostService:
-
     @staticmethod
     def get_pinned(user_id: int) -> list[Post]:
         """Return pinned posts for *user_id*, ordered by position ascending."""
@@ -61,11 +60,16 @@ class PinnedPostService:
         if existing is not None:
             raise PinnedPostError("Post is already pinned.", 409)
 
-        count = db.session.scalar(
-            select(func.count(PinnedPost.id)).where(PinnedPost.user_id == user_id)
-        ) or 0
+        count = (
+            db.session.scalar(
+                select(func.count(PinnedPost.id)).where(PinnedPost.user_id == user_id)
+            )
+            or 0
+        )
         if count >= _MAX_PINNED:
-            raise PinnedPostError(f"You can have at most {_MAX_PINNED} pinned posts.", 400)
+            raise PinnedPostError(
+                f"You can have at most {_MAX_PINNED} pinned posts.", 400
+            )
 
         pinned = PinnedPost(user_id=user_id, post_id=post_id, position=count + 1)
         db.session.add(pinned)

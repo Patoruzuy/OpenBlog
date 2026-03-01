@@ -5,18 +5,19 @@ All tests use the ``auth_client`` + ``db_session`` fixtures (SQLite in-memory).
 
 from __future__ import annotations
 
-import json
-
 from backend.extensions import db as _db
 from backend.models.portal import IdentityMode, ProfileVisibility, UserPrivacySettings
 from backend.services.auth_service import AuthService
-from backend.services.post_service import PostService
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 
 def _make_post(
-    client, token: str, title: str, body: str = "Body text", tags: list[str] | None = None
+    client,
+    token: str,
+    title: str,
+    body: str = "Body text",
+    tags: list[str] | None = None,
 ) -> dict:
     """Create and publish a post via API, return the post dict."""
     payload: dict = {"title": title, "markdown_body": body}
@@ -44,7 +45,9 @@ def _make_public_user(username: str, display_name: str | None = None):
     return u
 
 
-def _add_privacy(user, visibility: str = "public", searchable: bool = True, mode: str = "public"):
+def _add_privacy(
+    user, visibility: str = "public", searchable: bool = True, mode: str = "public"
+):
     priv = UserPrivacySettings(
         user_id=user.id,
         profile_visibility=visibility,
@@ -89,7 +92,7 @@ class TestSearchResultsRoute:
         assert resp.status_code == 200
         # highlight_terms wraps each word in <mark> tags so the raw title string
         # never appears verbatim; we assert that a result-card was rendered instead.
-        assert b'result-title' in resp.data
+        assert b"result-title" in resp.data
 
     def test_topics_tab_renders(self, auth_client, make_user_token):
         _, token = make_user_token(role="editor")
@@ -233,7 +236,10 @@ class TestSuggestEndpoint:
 
 class TestRecentSearches:
     def test_recent_searches_stored_for_authenticated_user(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         """Recent search queries are stored and returned via suggest."""
         user, token = make_user_token()

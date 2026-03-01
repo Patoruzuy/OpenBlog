@@ -8,15 +8,14 @@ from backend.models.post import Post
 from backend.services.thread_subscription_service import ThreadSubscriptionService
 from backend.utils.auth import api_require_auth, get_current_user
 
-api_thread_follow_bp = Blueprint(
-    "api_thread_follow", __name__, url_prefix="/api/posts"
-)
+api_thread_follow_bp = Blueprint("api_thread_follow", __name__, url_prefix="/api/posts")
 
 
 def _get_post_or_404(slug: str) -> Post:
     post = Post.query.filter_by(slug=slug).first()
     if post is None:
         from flask import abort
+
         abort(404)
     return post
 

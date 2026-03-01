@@ -61,7 +61,9 @@ class TestUpvotePost:
         VoteService.upvote(bob.id, "post", published_post.id)
         assert VoteService.has_voted(bob.id, "post", published_post.id) is True
 
-    def test_upvote_credits_author_reputation(self, alice, bob, published_post, db_session):
+    def test_upvote_credits_author_reputation(
+        self, alice, bob, published_post, db_session
+    ):
         from backend.extensions import db as _db
 
         before = alice.reputation_score or 0
@@ -119,7 +121,9 @@ class TestUnvotePost:
             VoteService.unvote(bob.id, "post", published_post.id)
         assert exc_info.value.status_code == 404
 
-    def test_reputation_never_goes_negative(self, alice, bob, published_post, db_session):
+    def test_reputation_never_goes_negative(
+        self, alice, bob, published_post, db_session
+    ):
         from backend.extensions import db as _db
 
         alice.reputation_score = 0
@@ -139,7 +143,9 @@ class TestVoteComment:
         VoteService.upvote(alice.id, "comment", bob_comment.id)
         assert VoteService.vote_count("comment", bob_comment.id) == 1
 
-    def test_comment_vote_no_reputation_change(self, alice, bob, bob_comment, db_session):
+    def test_comment_vote_no_reputation_change(
+        self, alice, bob, bob_comment, db_session
+    ):
         from backend.extensions import db as _db
 
         before = bob.reputation_score or 0
@@ -172,7 +178,9 @@ class TestQueries:
         from backend.services.auth_service import AuthService
 
         carol_user = AuthService.register(
-            email="carol_vote@example.com", username="carol_vote", password="StrongPass123!!"
+            email="carol_vote@example.com",
+            username="carol_vote",
+            password="StrongPass123!!",
         )
         VoteService.upvote(bob.id, "post", published_post.id)
         VoteService.upvote(carol_user.id, "post", published_post.id)

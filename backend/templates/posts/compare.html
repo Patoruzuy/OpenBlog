@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Compare') }} v{{ from_version }} &rarr; v{{ to_version }} &mdash; {{ post.title }}{% endblock %}
+
+{% block canonical %}
+<link rel="canonical" href="{{ absolute_url(url_with_query('posts.compare', slug=post.slug, _qs={'from': from_version, 'to': to_version})) }}" />
+{% endblock %}
+
+{% block og_meta %}
+<meta property="og:url" content="{{ absolute_url(url_with_query('posts.compare', slug=post.slug, _qs={'from': from_version, 'to': to_version})) }}" />
+<meta property="og:title" content="{{ _('Compare v%(from)s → v%(to)s', **{'from': from_version, 'to': to_version}) }} — {{ post.title }}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="{{ config.SITE_NAME }}" />
+<meta name="twitter:card" content="summary" />
+<meta name="robots" content="noindex, follow" />
+{% endblock %}
+
+{% block content %}
+<div class="container rev-detail">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────── #}
+  <nav class="rev-breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('posts.list_posts') }}">&larr; {{ _('All posts') }}</a>
+    <span aria-hidden="true">/</span>
+    <a href="{{ url_for('posts.post_detail', slug=post.slug) }}">{{ post.title }}</a>
+    <span aria-hidden="true">/</span>
+    <span>{{ _('Compare') }}</span>
+  </nav>
+
+  {# ── Header ───────────────────────────────────────────────────────────── #}
+  <header class="rev-hd">
+    <div class="rev-hd-main">
+      <div class="rev-hd-title-row">
+        <h1 class="rev-hd-title">
+          {{ _('Compare v%(from)s → v%(to)s', **{'from': from_version, 'to': to_version}) }}
+        </h1>
+      </div>
+
+      <div class="rev-hd-meta">
+        <span class="rev-meta-chip">
+          <span class="rev-meta-chip__label">{{ _('Post') }}</span>
+          <a href="{{ url_for('posts.post_detail', slug=post.slug) }}"
+             class="rev-meta-chip__val">{{ post.title }}</a>
+        </span>
+        {% if not versions_missing %}
+          {% if additions or deletions %}
+            <span class="rev-meta-chip">
+              <span class="rev-meta-chip__label--add">+{{ additions }}</span>
+              <span class="rev-meta-chip__label--del">&minus;{{ deletions }}</span>
+            </span>
+          {% endif %}
+        {% endif %}
+        <button id="compare-share-btn" class="btn btn-sm btn-ghost" type="button"
+                data-share-url="{{ request.url }}">
+          &#x1F517; {{ _('Copy link') }}
+        </button>
+      </div>
+
+      {# ── Swap notice ──────────────────────────────────────────────────── #}
+      {% if was_swapped %}
+        <p class="compare-swapped-notice" role="status">
+          {{ _('Showing v%(from)s → v%(to)s (inputs were swapped)', **{'from': from_version, 'to': to_version}) }}
+        </p>
+      {% endif %}
+    </div>
+  </header>
+
+  {# ── Context selector ─────────────────────────────────────────────────── #}
+  {% if not versions_missing %}
+    <form class="compare-ctx-form" method="GET"
+          action="{{ url_for('posts.compare', slug=post.slug) }}">
+      <input type="hidden" name="from" value="{{ from_version }}" />
+      <input type="hidden" name="to"   value="{{ to_version }}" />
+      <label class="compare-ctx-label" for="ctx-lines">{{ _('Context lines') }}</label>
+      <select id="ctx-lines" name="context" class="compare-ctx-select"
+              onchange="this.form.submit()">
+        {% for n in [0, 1, 3, 5, 10] %}
+          <option value="{{ n }}" {{ 'selected' if context == n else '' }}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  {% endif %}
+
+  {# ── Diff view or "version not available" notice ──────────────────────── #}
+  {% if versions_missing %}
+    <div class="compare-missing" role="alert">
+      <p>
+        {{ _('Version snapshot not available for:') }}
+        {% for v in versions_missing %}
+          <span class="version-badge">v{{ v }}</span>
+        {% endfor %}
+      </p>
+      <p class="compare-missing-hint">
+        {{ _('Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot.') }}
+      </p>
+      <a href="{{ url_for('revisions.revision_list') }}" class="btn btn-ghost btn-sm">
+        {{ _('View revision history') }}
+      </a>
+    </div>
+  {% else %}
+    {# Reuse the standard diff viewer partial #}
+    {% set diff_label = _('Compare v%(from)s → v%(to)s for %(title)s',
+                          **{'from': from_version, 'to': to_version, 'title': post.title}) %}
+    {% include 'partials/diff_viewer.html' %}
+  {% endif %}
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var btn = document.getElementById('compare-share-btn');
+  if (!btn) return;
+  var originalText = btn.textContent;
+  btn.addEventListener('click', function () {
+    var url = btn.dataset.shareUrl || location.href;
+    if (navigator.share) {
+      navigator.share({ url: url }).catch(function () {});
+    } else {
+      navigator.clipboard.writeText(url)
+        .then(function () {
+          btn.textContent = '\u2705 {{ _('Copied!') }}';
+          setTimeout(function () { btn.textContent = originalText; }, 2000);
+        })
+        .catch(function () {});
+    }
+  });
+}());
+</script>
+{% endblock %}

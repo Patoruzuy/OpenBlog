@@ -10,83 +10,15 @@ POST /revisions/<id>/reject   reject [editor/admin]
 
 from __future__ import annotations
 
-import re
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 
 from backend.extensions import db
-from backend.models.revision import Revision, RevisionStatus
 from backend.services.post_service import PostService
 from backend.services.revision_service import RevisionError, RevisionService
 from backend.utils.auth import get_current_user, require_auth, require_role
+from backend.utils.diff import parse_diff_lines as _parse_diff_lines
 
 ssr_revisions_bp = Blueprint("revisions", __name__, url_prefix="/revisions")
-
-_HUNK_RE = re.compile(r"^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@(.*)")
-
-
-def _parse_diff_lines(diff_text: str) -> list[dict]:
-    """Parse a unified diff string into structured line objects for template rendering.
-
-    Each line is a dict with keys:
-        sign      — '+', '-', or ' ' (context)
-        content   — the line text (without the leading sign)
-        kind      — 'add', 'del', or 'ctx'
-        is_hunk   — True if this is a hunk header (@@ line)
-        old_num   — original file line number (None for add/hunk)
-        new_num   — new file line number (None for del/hunk)
-    """
-    lines: list[dict] = []
-    old_num = 0
-    new_num = 0
-    for raw in (diff_text or "").splitlines():
-        if raw.startswith("+++") or raw.startswith("---"):
-            continue  # skip file headers
-        if raw.startswith("@@"):
-            m = _HUNK_RE.match(raw)
-            if m:
-                old_num = int(m.group(1))
-                new_num = int(m.group(2))
-            lines.append({
-                "sign": "",
-                "content": raw,
-                "kind": "hunk",
-                "is_hunk": True,
-                "old_num": None,
-                "new_num": None,
-            })
-        elif raw.startswith("+"):
-            lines.append({
-                "sign": "+",
-                "content": raw[1:],
-                "kind": "add",
-                "is_hunk": False,
-                "old_num": None,
-                "new_num": new_num,
-            })
-            new_num += 1
-        elif raw.startswith("-"):
-            lines.append({
-                "sign": "-",
-                "content": raw[1:],
-                "kind": "del",
-                "is_hunk": False,
-                "old_num": old_num,
-                "new_num": None,
-            })
-            old_num += 1
-        else:
-            lines.append({
-                "sign": " ",
-                "content": raw[1:] if raw else "",
-                "kind": "ctx",
-                "is_hunk": False,
-                "old_num": old_num,
-                "new_num": new_num,
-            })
-            old_num += 1
-            new_num += 1
-    return lines
-
 
 
 @ssr_revisions_bp.get("/")
@@ -95,17 +27,15 @@ def revision_list():
     page = max(1, request.args.get("page", 1, type=int))
     status_filter = request.args.get("status", "pending")
 
-    try:
-        status_enum = RevisionStatus(status_filter)
-    except ValueError:
-        status_enum = RevisionStatus.pending
-
     if status_filter == "all":
         # List all revisions across posts — reuse list_pending logic with a broader query
         from sqlalchemy import select
+
         from backend.models.revision import Revision as Rev
+
         per_page = 20
         from sqlalchemy import func
+
         q = select(Rev).order_by(Rev.created_at.desc())
         total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         revisions = list(
@@ -149,12 +79,10 @@ def revision_detail(revision_id: int):
     deletions = sum(1 for ln in diff_lines if ln["kind"] == "del")
 
     # Staleness check
-    post = db.session.get_or_404 if hasattr(db.session, "get_or_404") else None
     from backend.models.post import Post
+
     post_obj = db.session.get(Post, revision.post_id)
-    is_stale = (
-        post_obj is not None and post_obj.version > revision.base_version_number
-    )
+    is_stale = post_obj is not None and post_obj.version > revision.base_version_number
 
     return render_template(
         "revisions/detail.html",
@@ -205,7 +133,7 @@ def reject_revision(revision_id: int):
 @require_auth
 def submit_revision(slug: str):
     """Submit a revision proposal for a published post."""
-    from backend.models.post import Post, PostStatus
+    from backend.models.post import PostStatus
 
     post = PostService.get_by_slug(slug)
     if post is None:
@@ -233,7 +161,9 @@ def submit_revision(slug: str):
                 summary=summary,
             )
             flash("Your revision has been submitted for review.", "success")
-            return redirect(url_for("revisions.revision_detail", revision_id=revision.id))
+            return redirect(
+                url_for("revisions.revision_detail", revision_id=revision.id)
+            )
         except RevisionError as exc:
             flash(str(exc), "error")
 

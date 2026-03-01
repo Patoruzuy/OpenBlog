@@ -19,7 +19,11 @@ class TestRegister:
     def test_success_returns_201_and_tokens(self, auth_client):
         resp = auth_client.post(
             "/api/auth/register",
-            json={"email": "new@example.com", "username": "newuser", "password": "StrongPass123!!"},
+            json={
+                "email": "new@example.com",
+                "username": "newuser",
+                "password": "StrongPass123!!",
+            },
         )
         assert resp.status_code == 201
         data = resp.get_json()
@@ -49,7 +53,8 @@ class TestRegister:
 
     def test_missing_username_returns_400(self, auth_client):
         resp = auth_client.post(
-            "/api/auth/register", json={"email": "x@y.com", "password": "StrongPass123!!"}
+            "/api/auth/register",
+            json={"email": "x@y.com", "password": "StrongPass123!!"},
         )
         assert resp.status_code == 400
 
@@ -62,13 +67,21 @@ class TestRegister:
     def test_short_password_returns_400(self, auth_client):
         resp = auth_client.post(
             "/api/auth/register",
-            json={"email": "short@example.com", "username": "shortpw", "password": "abc"},
+            json={
+                "email": "short@example.com",
+                "username": "shortpw",
+                "password": "abc",
+            },
         )
         assert resp.status_code == 400
         assert "15 characters" in resp.get_json()["error"]
 
     def test_duplicate_email_returns_409(self, auth_client):
-        payload = {"email": "dup@example.com", "username": "user1", "password": "StrongPass123!!"}
+        payload = {
+            "email": "dup@example.com",
+            "username": "user1",
+            "password": "StrongPass123!!",
+        }
         auth_client.post("/api/auth/register", json=payload)
         payload["username"] = "user2"
         resp = auth_client.post("/api/auth/register", json=payload)
@@ -77,11 +90,19 @@ class TestRegister:
     def test_duplicate_username_returns_409(self, auth_client):
         auth_client.post(
             "/api/auth/register",
-            json={"email": "a@example.com", "username": "sameuser", "password": "StrongPass123!!"},
+            json={
+                "email": "a@example.com",
+                "username": "sameuser",
+                "password": "StrongPass123!!",
+            },
         )
         resp = auth_client.post(
             "/api/auth/register",
-            json={"email": "b@example.com", "username": "sameuser", "password": "StrongPass123!!"},
+            json={
+                "email": "b@example.com",
+                "username": "sameuser",
+                "password": "StrongPass123!!",
+            },
         )
         assert resp.status_code == 409
 
@@ -156,7 +177,11 @@ class TestRefreshAndLogout:
         """Register + login, return the token dict."""
         auth_client.post(
             "/api/auth/register",
-            json={"email": "rt@example.com", "username": "rtuser", "password": "StrongPass123!!"},
+            json={
+                "email": "rt@example.com",
+                "username": "rtuser",
+                "password": "StrongPass123!!",
+            },
         )
         resp = auth_client.post(
             "/api/auth/login",
@@ -224,7 +249,11 @@ class TestMe:
     def access_token(self, auth_client):
         auth_client.post(
             "/api/auth/register",
-            json={"email": "me@example.com", "username": "meuser", "password": "StrongPass123!!"},
+            json={
+                "email": "me@example.com",
+                "username": "meuser",
+                "password": "StrongPass123!!",
+            },
         )
         resp = auth_client.post(
             "/api/auth/login",
@@ -253,5 +282,7 @@ class TestMe:
         assert resp.status_code == 401
 
     def test_me_wrong_scheme_returns_401(self, auth_client):
-        resp = auth_client.get("/api/auth/me", headers={"Authorization": "Basic abc123"})
+        resp = auth_client.get(
+            "/api/auth/me", headers={"Authorization": "Basic abc123"}
+        )
         assert resp.status_code == 401

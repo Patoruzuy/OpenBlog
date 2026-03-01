@@ -87,7 +87,9 @@ class AuthService:
         ------
         AuthError(401)  invalid credentials or deactivated account.
         """
-        user = db.session.scalar(select(User).where(User.email == email.lower().strip()))
+        user = db.session.scalar(
+            select(User).where(User.email == email.lower().strip())
+        )
         if user is None:
             metrics.user_logins.labels(outcome="failure").inc()
             raise AuthError("Invalid email or password.")
@@ -147,7 +149,9 @@ class AuthService:
     @staticmethod
     def issue_tokens(user: User) -> tuple[str, str]:
         """Issue a fresh ``(access_token, refresh_token)`` pair."""
-        return AuthService.issue_access_token(user), AuthService.issue_refresh_token(user)
+        return AuthService.issue_access_token(user), AuthService.issue_refresh_token(
+            user
+        )
 
     @staticmethod
     def issue_access_token(user: User) -> str:
@@ -349,4 +353,3 @@ class AuthService:
             user.is_email_verified = True
             db.session.commit()
         return user
-

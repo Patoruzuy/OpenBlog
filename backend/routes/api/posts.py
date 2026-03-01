@@ -25,12 +25,17 @@ from backend.extensions import csrf, db
 from backend.models.comment import Comment
 from backend.models.post import PostStatus
 from backend.models.user import UserRole
+from backend.schemas import (
+    CreatePostSchema,
+    PublishPostSchema,
+    UpdatePostSchema,
+    load_json,
+)
 from backend.services.bookmark_service import BookmarkService
 from backend.services.post_service import PostError, PostService
 from backend.services.vote_service import VoteService
 from backend.utils.auth import api_require_auth, api_require_role, get_current_user
 from backend.utils.markdown import get_rendered_html
-from backend.schemas import CreatePostSchema, PublishPostSchema, UpdatePostSchema, load_json
 
 api_posts_bp = Blueprint("api_posts", __name__, url_prefix="/api/posts")
 csrf.exempt(api_posts_bp)
@@ -89,9 +94,7 @@ def _post_dict(
             "username": post.author.username,
             "display_name": post.author.display_name,
         },
-        "tags": [
-            {"id": t.id, "name": t.name, "slug": t.slug} for t in post.tags
-        ],
+        "tags": [{"id": t.id, "name": t.name, "slug": t.slug} for t in post.tags],
         "seo_title": post.seo_title,
         "seo_description": post.seo_description,
         "og_image_url": post.og_image_url,
@@ -407,24 +410,31 @@ def autosave_post(slug: str):
         )
     except PostError as exc:
         if exc.status_code == 409:
-            return jsonify({
-                "conflict": True,
-                "autosave_revision": post.autosave_revision,
-                "slug": post.slug,
-                "saved_at_iso": (
-                    post.last_autosaved_at.isoformat()
-                    if post.last_autosaved_at else None
-                ),
-            }), 409
+            return jsonify(
+                {
+                    "conflict": True,
+                    "autosave_revision": post.autosave_revision,
+                    "slug": post.slug,
+                    "saved_at_iso": (
+                        post.last_autosaved_at.isoformat()
+                        if post.last_autosaved_at
+                        else None
+                    ),
+                }
+            ), 409
         return jsonify({"error": str(exc)}), exc.status_code
 
-    return jsonify({
-        "ok": True,
-        "post_id": post.id,
-        "slug": post.slug,
-        "autosave_revision": post.autosave_revision,
-        "saved_at_iso": post.last_autosaved_at.isoformat() if post.last_autosaved_at else None,
-    }), 200
+    return jsonify(
+        {
+            "ok": True,
+            "post_id": post.id,
+            "slug": post.slug,
+            "autosave_revision": post.autosave_revision,
+            "saved_at_iso": post.last_autosaved_at.isoformat()
+            if post.last_autosaved_at
+            else None,
+        }
+    ), 200
 
 
 @api_posts_bp.post("/<slug>/publish")
@@ -448,7 +458,9 @@ def publish_post(slug: str):
         try:
             publish_at = datetime.fromisoformat(raw)
         except (ValueError, TypeError):
-            return jsonify({"error": "publish_at must be an ISO-8601 datetime string."}), 400
+            return jsonify(
+                {"error": "publish_at must be an ISO-8601 datetime string."}
+            ), 400
 
     try:
         post = PostService.publish(post, at=publish_at)

@@ -21,9 +21,7 @@ class ContributionGraphService:
     _WEEKS = 52  # columns in the grid
 
     @staticmethod
-    def get_contributions(
-        user_id: int, *, viewer_is_self: bool = False
-    ) -> dict:
+    def get_contributions(user_id: int, *, viewer_is_self: bool = False) -> dict:
         """Return 52-week grid data.
 
         Returns
@@ -39,15 +37,18 @@ class ContributionGraphService:
         """
         today = datetime.date.today()
         grid_end = today
-        grid_start = grid_end - datetime.timedelta(weeks=ContributionGraphService._WEEKS) + datetime.timedelta(days=1)
+        grid_start = (
+            grid_end
+            - datetime.timedelta(weeks=ContributionGraphService._WEEKS)
+            + datetime.timedelta(days=1)
+        )
 
         stmt = select(Post.published_at).where(
             and_(
                 Post.author_id == user_id,
                 Post.status == PostStatus.published,
-                Post.published_at >= datetime.datetime.combine(
-                    grid_start, datetime.time.min
-                ),
+                Post.published_at
+                >= datetime.datetime.combine(grid_start, datetime.time.min),
                 Post.published_at
                 <= datetime.datetime.combine(grid_end, datetime.time.max),
             )

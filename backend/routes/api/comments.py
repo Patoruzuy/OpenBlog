@@ -20,11 +20,11 @@ from backend.extensions import csrf, db
 from backend.models.comment import Comment
 from backend.models.post import PostStatus
 from backend.models.user import UserRole
+from backend.schemas import CreateCommentSchema, UpdateCommentSchema, load_json
 from backend.services.comment_service import CommentError, CommentService
 from backend.services.post_service import PostService
 from backend.services.vote_service import VoteService
 from backend.utils.auth import api_require_auth, get_current_user
-from backend.schemas import CreateCommentSchema, UpdateCommentSchema, load_json
 
 api_comments_bp = Blueprint("api_comments", __name__, url_prefix="/api")
 csrf.exempt(api_comments_bp)
@@ -160,9 +160,7 @@ def update_comment(comment_id: int):
     if err:
         return err
     try:
-        comment = CommentService.update(
-            comment, data["body"], editor_id=user.id
-        )
+        comment = CommentService.update(comment, data["body"], editor_id=user.id)
     except CommentError as exc:
         return jsonify({"error": exc.message}), exc.status_code
 

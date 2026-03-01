@@ -12,8 +12,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 from backend.extensions import db as _db
-from backend.models.post import Post
-from backend.models.tag import Tag
 from backend.services.auth_service import AuthService
 from backend.services.post_service import PostService
 from backend.services.read_history_service import ReadHistoryService
@@ -31,17 +29,23 @@ def _uid() -> int:
 
 def _make_author():
     n = _uid()
-    return AuthService.register(f"rank{n}@test.com", f"rankauthor{n}", "StrongPass123!!")
+    return AuthService.register(
+        f"rank{n}@test.com", f"rankauthor{n}", "StrongPass123!!"
+    )
 
 
-def _make_post(author_id: int, title: str, body: str = "", tags: list[str] | None = None):
+def _make_post(
+    author_id: int, title: str, body: str = "", tags: list[str] | None = None
+):
     post = PostService.create(author_id, title, body, tags=tags or [])
     return PostService.publish(post)
 
 
 def _make_reader():
     n = _uid()
-    return AuthService.register(f"reader{n}@test.com", f"rankreader{n}", "StrongPass123!!")
+    return AuthService.register(
+        f"reader{n}@test.com", f"rankreader{n}", "StrongPass123!!"
+    )
 
 
 # ── Title-match ranking ────────────────────────────────────────────────────────
@@ -52,7 +56,9 @@ class TestRankingTitleVsBody:
         """A post whose *title* matches the query should rank above one that
         only matches in the body."""
         author = _make_author()
-        body_match = _make_post(author.id, "Unrelated Topic", "This covers Python deeply.")
+        body_match = _make_post(
+            author.id, "Unrelated Topic", "This covers Python deeply."
+        )
         title_match = _make_post(author.id, "Python Tutorial", "General intro post.")
 
         results = SearchService.search("Python")
@@ -102,8 +108,12 @@ class TestRankingTagMatch:
         """A post tagged 'flask' should rank above an untagged post when
         searching for 'flask', assuming equal title relevance."""
         author = _make_author()
-        no_tag = _make_post(author.id, "Web Framework Overview", "Learn about flask here.")
-        tagged = _make_post(author.id, "Web Framework Overview", "Generic body.", tags=["flask"])
+        no_tag = _make_post(
+            author.id, "Web Framework Overview", "Learn about flask here."
+        )
+        tagged = _make_post(
+            author.id, "Web Framework Overview", "Generic body.", tags=["flask"]
+        )
 
         results = SearchService.search("flask")
         posts = results.posts
@@ -138,8 +148,8 @@ class TestRankingUnreadBoost:
     def test_anonymous_gets_no_unread_boost(self, db_session):  # noqa: ARG002
         """Anonymous search (user_id=None) should NOT apply unread boost."""
         author = _make_author()
-        p1 = _make_post(author.id, "Anonymous Test Post A", "Content A.")
-        p2 = _make_post(author.id, "Anonymous Test Post B", "Content B.")
+        _make_post(author.id, "Anonymous Test Post A", "Content A.")
+        _make_post(author.id, "Anonymous Test Post B", "Content B.")
 
         results_anon = SearchService.search("Anonymous Test Post", user_id=None)
         # Just verify it returns results without error.

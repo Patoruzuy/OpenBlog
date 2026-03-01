@@ -14,7 +14,9 @@ class RegisterSchema(BaseSchema):
     username = fields.Str(required=True, validate=validate.Length(min=2, max=50))
     # Password length is enforced as a business rule in AuthService, not here.
     password = fields.Str(required=True)
-    display_name = fields.Str(load_default=None, allow_none=True, validate=validate.Length(max=100))
+    display_name = fields.Str(
+        load_default=None, allow_none=True, validate=validate.Length(max=100)
+    )
 
 
 class LoginSchema(BaseSchema):

@@ -101,9 +101,7 @@ class BadgeService:
         """
         badges: list[Badge] = []
         for spec in _DEFAULT_BADGES:
-            existing = db.session.scalar(
-                select(Badge).where(Badge.key == spec["key"])
-            )
+            existing = db.session.scalar(select(Badge).where(Badge.key == spec["key"]))
             if existing is None:
                 badge = Badge(
                     key=spec["key"],
@@ -116,7 +114,7 @@ class BadgeService:
                 badges.append(badge)
             else:
                 badges.append(existing)
-        db.session.commit()
+        # db.session.commit()  # REMOVED: let caller commit
         return badges
 
     # ── Award ─────────────────────────────────────────────────────────────────
@@ -148,16 +146,21 @@ class BadgeService:
         if badge is None:
             raise BadgeError(f"Unknown badge key: {badge_key!r}.", 404)
 
+        # Create the savepoint BEFORE adding the object so that
+        # begin_nested()'s auto-flush does not include the new row
+        # (which would raise IntegrityError before sp is assigned).
+        sp = db.session.begin_nested()
         user_badge = UserBadge(user_id=user_id, badge_id=badge.id)
         db.session.add(user_badge)
         try:
             db.session.flush()
+            sp.commit()
         except IntegrityError:
-            # Already awarded — roll back the failed insert and return None.
-            db.session.rollback()
+            # Already awarded — roll back to savepoint so the outer
+            # transaction remains intact, then return None.
+            sp.rollback()
             return None
 
-        db.session.commit()
         return user_badge
 
     # ── Query helpers ─────────────────────────────────────────────────────────

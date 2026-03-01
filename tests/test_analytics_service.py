@@ -163,7 +163,9 @@ class TestFlushQueuedEvents:
             redis = app.extensions["redis"]
             redis.delete("analytics:event_queue")
 
-            AnalyticsService.queue_event("post_view", post_id=pub_post.id, session_id="s1")
+            AnalyticsService.queue_event(
+                "post_view", post_id=pub_post.id, session_id="s1"
+            )
             AnalyticsService.flush_queued_events()
 
             events = list(

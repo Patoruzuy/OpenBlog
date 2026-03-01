@@ -71,7 +71,9 @@ class TestListUserBadges:
         assert resp.status_code == 200
         assert resp.get_json() == []
 
-    def test_returns_awarded_badges(self, auth_client, regular_user, seeded, db_session):
+    def test_returns_awarded_badges(
+        self, auth_client, regular_user, seeded, db_session
+    ):
         user, _ = regular_user
         BadgeService.award(user.id, "first_accepted_revision")
         resp = auth_client.get(f"/api/users/{user.username}/badges")
@@ -102,7 +104,9 @@ class TestListUserBadges:
 
 
 class TestAwardBadge:
-    def test_admin_can_award_badge(self, auth_client, admin, regular_user, seeded, db_session):
+    def test_admin_can_award_badge(
+        self, auth_client, admin, regular_user, seeded, db_session
+    ):
         _, admin_tok = admin
         user, _ = regular_user
         resp = auth_client.post(
@@ -144,7 +148,9 @@ class TestAwardBadge:
         )
         assert resp.status_code == 403
 
-    def test_unauthenticated_gets_401(self, auth_client, regular_user, seeded, db_session):
+    def test_unauthenticated_gets_401(
+        self, auth_client, regular_user, seeded, db_session
+    ):
         user, _ = regular_user
         resp = auth_client.post(
             f"/api/users/{user.username}/badges",

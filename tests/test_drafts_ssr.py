@@ -103,11 +103,11 @@ class TestDraftsIndex:
 
     def test_multiple_drafts_listed(self, auth_client, alice):
         _add_draft(alice, title="Draft Alpha", slug="draft-alpha")
-        _add_draft(alice, title="Draft Beta",  slug="draft-beta")
+        _add_draft(alice, title="Draft Beta", slug="draft-beta")
         _login(auth_client, alice.id)
         resp = auth_client.get("/drafts/")
         assert b"Draft Alpha" in resp.data
-        assert b"Draft Beta"  in resp.data
+        assert b"Draft Beta" in resp.data
 
     # ── Search filter ──────────────────────────────────────────────────────
 
@@ -149,8 +149,9 @@ class TestDeleteDraft:
         assert "/drafts" in resp.headers["Location"]
         # Confirm deleted from DB
         with app.app_context():
-            from backend.models.post import Post as P2
             from backend.extensions import db as _db
+            from backend.models.post import Post as P2
+
             found = _db.session.get(P2, draft.id)
             assert found is None
 

@@ -25,17 +25,24 @@ class Comment(db.Model):
     )
     # Nullable self-FK for threading; top-level comments have parent_id=None.
     parent_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("comments.id", ondelete="CASCADE"), nullable=True, index=True
+        Integer,
+        ForeignKey("comments.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
 
     body: Mapped[str] = mapped_column(Text, nullable=False)
     is_deleted: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False,
-        comment="Soft-delete: preserve thread structure, body replaced with tombstone text."
+        Boolean,
+        nullable=False,
+        default=False,
+        comment="Soft-delete: preserve thread structure, body replaced with tombstone text.",
     )
     is_flagged: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False,
-        comment="Moderation flag: hidden from public until reviewed."
+        Boolean,
+        nullable=False,
+        default=False,
+        comment="Moderation flag: hidden from public until reviewed.",
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -50,16 +57,19 @@ class Comment(db.Model):
 
     # ── Contribution identity snapshot ──────────────────────────
     public_identity_mode: Mapped[str | None] = mapped_column(
-        String(20), nullable=True,
-        comment="Identity mode at post time: public|pseudonymous|anonymous"
+        String(20),
+        nullable=True,
+        comment="Identity mode at post time: public|pseudonymous|anonymous",
     )
     public_display_name_snapshot: Mapped[str | None] = mapped_column(
-        String(200), nullable=True,
-        comment="Display name or pseudonym captured at post time."
+        String(200),
+        nullable=True,
+        comment="Display name or pseudonym captured at post time.",
     )
     public_avatar_snapshot: Mapped[str | None] = mapped_column(
-        String(512), nullable=True,
-        comment="Avatar URL captured at post time (may be None for anonymous)."
+        String(512),
+        nullable=True,
+        comment="Avatar URL captured at post time (may be None for anonymous).",
     )
 
     # ── Relationships ──────────────────────────────────────────────────────
@@ -89,9 +99,9 @@ class Comment(db.Model):
         overlaps="comment",
     )
 
-    __table_args__ = (
-        Index("ix_comments_post_parent", "post_id", "parent_id"),
-    )
+    __table_args__ = (Index("ix_comments_post_parent", "post_id", "parent_id"),)
 
     def __repr__(self) -> str:
-        return f"<Comment id={self.id} post_id={self.post_id} author_id={self.author_id}>"
+        return (
+            f"<Comment id={self.id} post_id={self.post_id} author_id={self.author_id}>"
+        )

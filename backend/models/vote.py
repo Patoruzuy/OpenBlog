@@ -36,7 +36,9 @@ class Vote(db.Model):
     user: Mapped[User] = relationship("User")  # type: ignore[name-defined]  # noqa: F821
 
     __table_args__ = (
-        UniqueConstraint("user_id", "target_type", "target_id", name="uq_votes_user_target"),
+        UniqueConstraint(
+            "user_id", "target_type", "target_id", name="uq_votes_user_target"
+        ),
         Index("ix_votes_target", "target_type", "target_id"),
     )
 

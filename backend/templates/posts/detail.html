@@ -1,13 +1,34 @@
 {% extends "base.html" %}
 {% block title %}{{ post.title }}{% endblock %}
 
-{% block head %}
+{% block og_meta %}
 <meta name="description" content="{{ post.seo_description or post.title }}" />
-{% if post.og_image_url %}
-  <meta property="og:image" content="{{ post.og_image_url }}" />
-{% endif %}
+<meta property="og:url" content="{{ absolute_url(url_for('posts.post_detail', slug=post.slug)) }}" />
 <meta property="og:title" content="{{ post.seo_title or post.title }}" />
+<meta property="og:description" content="{{ post.seo_description or post.title }}" />
 <meta property="og:type" content="article" />
+<meta property="og:site_name" content="{{ config.SITE_NAME }}" />
+{% if post.og_image_url %}
+  <meta property="og:image" content="{{ absolute_url(post.og_image_url) }}" />
+{% endif %}
+{% if post.published_at %}
+  <meta property="article:published_time" content="{{ post.published_at.isoformat() }}" />
+{% endif %}
+{% if post.updated_at %}
+  <meta property="article:modified_time" content="{{ post.updated_at.isoformat() }}" />
+{% endif %}
+{% for tag in post.tags %}
+  <meta property="article:tag" content="{{ tag.name }}" />
+{% endfor %}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{ post.seo_title or post.title }}" />
+<meta name="twitter:description" content="{{ post.seo_description or post.title }}" />
+{% if post.og_image_url %}
+  <meta name="twitter:image" content="{{ absolute_url(post.og_image_url) }}" />
+{% endif %}
+{% endblock %}
+
+{% block head %}
 <script src="{{ url_for('static', filename='js/editor.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/comments.js') }}" defer></script>
 {% endblock %}
@@ -36,8 +57,8 @@
         <span class="version-badge version-badge--current">v{{ post.version }}</span>
       </span>
       <a class="updated-banner__link btn btn-sm btn-ghost"
-         href="{{ url_for('revisions.revision_list') }}">
-        {{ _('View revision history') }}
+         href="{{ url_with_query('posts.compare', slug=post.slug, _qs={'from': last_read_version, 'to': post.version}) }}">
+        {{ _('Compare changes') }}
       </a>
     </div>
   {% endif %}
@@ -123,6 +144,30 @@
   </footer>
 
 </div>
+
+{# ── Changelog ───────────────────────────────────────────────────────────── #}
+{% if release_notes %}
+<section class="changelog container" id="changelog">
+  <h2 class="changelog-title">{{ _('Changelog') }}</h2>
+  <ol class="changelog-list">
+    {% for note in release_notes %}
+    <li class="changelog-entry">
+      <span class="changelog-version">v{{ note.version_number }}</span>
+      <time class="changelog-date" datetime="{{ note.created_at.isoformat() }}">
+        {{ note.created_at.strftime('%b %d, %Y') }}
+      </time>
+      <span class="changelog-summary">{{ note.summary }}</span>
+      {% if note.version_number > 1 %}
+        <a class="changelog-diff-link"
+           href="{{ url_with_query('posts.compare', slug=post.slug, _qs={'from': note.version_number - 1, 'to': note.version_number}) }}">
+          {{ _('View diff') }}
+        </a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
 
 {# ── Comments ─────────────────────────────────────────────────────────────── #}
 <section class="comments container" id="comments">

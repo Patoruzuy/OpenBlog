@@ -13,9 +13,12 @@ from flask import Blueprint, abort, flash, redirect, render_template, request, u
 from backend.models.post import PostStatus
 from backend.routes.tags import _TAG_DESCRIPTIONS
 from backend.services.analytics_service import AnalyticsService
-from backend.services.post_service import PostError, PostService, RESERVED_SLUGS
+from backend.services.post_service import RESERVED_SLUGS, PostError, PostService
+from backend.services.post_version_service import PostVersionService
 from backend.services.read_history_service import ReadHistoryService
+from backend.services.release_notes_service import get_post_release_notes
 from backend.utils.auth import get_current_user, require_auth, require_role
+from backend.utils.diff import compute_diff, parse_diff_lines
 from backend.utils.markdown import (  # noqa: F401
     get_rendered_html,
     invalidate_html_cache,
@@ -58,6 +61,7 @@ def list_posts():
 # ── /posts/new — writing surface ─────────────────────────────────────────────
 # Declared *before* /<slug> so Flask never treats "new" as a slug.
 
+
 @ssr_posts_bp.route("/new", methods=["GET", "POST"])
 @require_auth
 @require_role("contributor")
@@ -77,10 +81,14 @@ def new_post():
         try:
             # Validate custom slug if provided
             from backend.services.post_service import _slugify  # noqa: PLC0415
+
             if custom_slug:
                 normalized = _slugify(custom_slug)
                 if normalized in RESERVED_SLUGS:
-                    flash(f"Slug '{normalized}' is reserved — please choose another.", "error")
+                    flash(
+                        f"Slug '{normalized}' is reserved — please choose another.",
+                        "error",
+                    )
                     return render_template("posts/new.html", form_data=request.form)
                 custom_slug = normalized
 
@@ -94,11 +102,15 @@ def new_post():
 
             # Override auto-generated slug if a valid custom one was provided
             if custom_slug and custom_slug != post.slug:
-                from backend.extensions import db  # noqa: PLC0415
                 from sqlalchemy import select  # noqa: PLC0415
+
+                from backend.extensions import db  # noqa: PLC0415
                 from backend.models.post import Post  # noqa: PLC0415
+
                 clash = db.session.scalar(
-                    select(Post.id).where(Post.slug == custom_slug).where(Post.id != post.id)
+                    select(Post.id)
+                    .where(Post.slug == custom_slug)
+                    .where(Post.id != post.id)
                 )
                 if clash is None:
                     post.slug = custom_slug
@@ -149,6 +161,7 @@ def post_detail(slug: str):
 
     # Increment view count and queue an analytics event (both best-effort).
     from backend.extensions import db
+
     post.view_count += 1
     db.session.commit()
 
@@ -162,12 +175,14 @@ def post_detail(slug: str):
     )
 
     post_html = get_rendered_html(post.id, post.markdown_body)
+    release_notes = get_post_release_notes(post.id)
 
     return render_template(
         "posts/detail.html",
         post=post,
         post_html=post_html,
         last_read_version=last_read_version,
+        release_notes=release_notes,
     )
 
 
@@ -209,3 +224,84 @@ def edit_post(slug: str):
 
     current_tags = ", ".join(t.slug for t in post.tags) if post.tags else ""
     return render_template("posts/edit.html", post=post, current_tags=current_tags)
+
+
+@ssr_posts_bp.get("/<slug>/compare")
+def compare(slug: str):
+    """Show a version-to-version diff for a published post.
+
+    Query params
+    ------------
+    from    : int, required — base (older) version number
+    to      : int, optional — head (newer) version number; defaults to the
+              post's current version when omitted, so ``?from=1`` compares
+              v1 against the latest.  When *from* > *to* the values are
+              swapped (and the template notes this to the user).
+    context : int, optional — context lines in the diff (default 3, capped 0–99)
+    """
+    post = PostService.get_by_slug(slug)
+    if post is None:
+        abort(404)
+
+    user = get_current_user()
+    # Non-published posts only visible to author / editors
+    if post.status != PostStatus.published:
+        if user is None:
+            abort(404)
+        is_editor = user.role.value in {"admin", "editor"}
+        if post.author_id != user.id and not is_editor:
+            abort(404)
+
+    # ── Parse & validate query params ────────────────────────────────────
+    try:
+        from_v = int(request.args["from"])
+    except (KeyError, ValueError):
+        abort(400)
+
+    try:
+        to_v = int(request.args.get("to", post.version))
+    except ValueError:
+        abort(400)
+
+    # Normalise order; remember if a swap happened so the UI can tell the user
+    was_swapped = from_v > to_v
+    if was_swapped:
+        from_v, to_v = to_v, from_v
+
+    if from_v == to_v or from_v < 1 or to_v > post.version:
+        abort(400)
+
+    context = min(max(request.args.get("context", 3, type=int), 0), 99)
+
+    # ── Fetch version snapshots ───────────────────────────────────────────
+    old_md = PostVersionService.get_markdown_for_version(post.id, from_v)
+    new_md = PostVersionService.get_markdown_for_version(post.id, to_v)
+
+    versions_missing: list[int] = []
+    if old_md is None:
+        versions_missing.append(from_v)
+    if new_md is None:
+        versions_missing.append(to_v)
+
+    diff_lines: list[dict] = []
+    additions = 0
+    deletions = 0
+
+    if not versions_missing:
+        diff_text = compute_diff(old_md, new_md, context=context)
+        diff_lines = parse_diff_lines(diff_text)
+        additions = sum(1 for ln in diff_lines if ln["kind"] == "add")
+        deletions = sum(1 for ln in diff_lines if ln["kind"] == "del")
+
+    return render_template(
+        "posts/compare.html",
+        post=post,
+        from_version=from_v,
+        to_version=to_v,
+        context=context,
+        diff_lines=diff_lines,
+        additions=additions,
+        deletions=deletions,
+        versions_missing=versions_missing,
+        was_swapped=was_swapped,
+    )

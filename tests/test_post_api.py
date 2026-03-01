@@ -153,9 +153,7 @@ class TestGetPost:
     def test_author_can_see_own_draft(self, auth_client, make_user_token):
         _, token = make_user_token(role="contributor")
         post_data = _create_post(auth_client, token, title="My Draft")
-        resp = auth_client.get(
-            f"/api/posts/{post_data['slug']}", headers=_auth(token)
-        )
+        resp = auth_client.get(f"/api/posts/{post_data['slug']}", headers=_auth(token))
         assert resp.status_code == 200
 
     def test_editor_can_see_any_draft(self, auth_client, make_user_token):
@@ -306,6 +304,7 @@ class TestPublishPost:
 
     def test_schedule_with_future_date(self, auth_client, make_user_token):
         from datetime import UTC, datetime, timedelta
+
         _, token = make_user_token(role="editor")
         post_data = _create_post(auth_client, token, title="Future Post")
         future = (datetime.now(UTC) + timedelta(days=7)).isoformat()
@@ -319,6 +318,7 @@ class TestPublishPost:
 
     def test_schedule_past_date_returns_400(self, auth_client, make_user_token):
         from datetime import UTC, datetime, timedelta
+
         _, token = make_user_token(role="editor")
         post_data = _create_post(auth_client, token, title="Past Sched")
         past = (datetime.now(UTC) - timedelta(hours=1)).isoformat()

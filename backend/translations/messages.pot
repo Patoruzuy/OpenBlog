@@ -495,3 +495,167 @@ msgstr ""
 msgid "Start writing posts and add tags to create topics."
 msgstr ""
 
+#: backend/templates/index.html
+msgid "Recently improved"
+msgstr ""
+
+#: backend/templates/index.html
+msgid "Posts that got better through accepted community revisions."
+msgstr ""
+
+#: backend/templates/index.html
+msgid "Improved"
+msgstr ""
+
+#: backend/templates/index.html
+#, python-format
+msgid "Accepted revisions: %(n)s"
+msgstr ""
+
+#: backend/templates/index.html
+msgid "Last improved: "
+msgstr ""
+
+#: backend/templates/index.html
+#, python-format
+msgid "by %(name)s"
+msgstr ""
+
+#: backend/templates/index.html
+msgid "No recently improved posts yet."
+msgstr ""
+
+#: backend/templates/index.html
+msgid "All improvements"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Improvements"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Posts improved through accepted community revisions."
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Time window filter"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Last 7 days"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Last 30 days"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Last 90 days"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "All time"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "Improvements pagination"
+msgstr ""
+
+#: backend/templates/improvements/index.html
+msgid "No improvements yet for this window."
+msgstr ""
+
+
+#: backend/templates/posts/detail.html
+msgid "Compare changes"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Compare"
+msgstr ""
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Compare v%(from)s \u2192 v%(to)s"
+msgstr ""
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Compare v%(from)s \u2192 v%(to)s for %(title)s"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Context lines"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Version snapshot not available for:"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot."
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "View revision history"
+msgstr ""
+
+#: backend/templates/posts/detail.html
+msgid "Compare changes"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Compare"
+msgstr ""
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Compare v%(from)s \u2192 v%(to)s"
+msgstr ""
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Compare v%(from)s \u2192 v%(to)s for %(title)s"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Context lines"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Version snapshot not available for:"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot."
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "View revision history"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Copy link"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Copied!"
+msgstr ""
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Showing v%(from)s \u2192 v%(to)s (inputs were swapped)"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Copy link"
+msgstr ""
+
+#: backend/templates/posts/compare.html
+msgid "Copied!"
+msgstr ""
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Showing v%(from)s -> v%(to)s (inputs were swapped)"
+msgstr ""

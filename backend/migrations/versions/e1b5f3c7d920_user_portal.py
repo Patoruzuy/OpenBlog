@@ -46,6 +46,7 @@ depends_on = None
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _is_pg() -> bool:
     return op.get_context().dialect.name == "postgresql"
 
@@ -53,6 +54,7 @@ def _is_pg() -> bool:
 # ──────────────────────────────────────────────────────────────────────────────
 # upgrade
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def upgrade() -> None:
     # ── 1. user_privacy_settings ─────────────────────────────────────────────
@@ -73,13 +75,25 @@ def upgrade() -> None:
             server_default="public",
         ),
         sa.Column("pseudonymous_alias", sa.String(length=80), nullable=True),
-        sa.Column("show_avatar", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column(
+            "show_avatar", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
         sa.Column("show_bio", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("show_location", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("show_social_links", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("show_repositories", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("show_contributions", sa.Boolean(), nullable=False, server_default=sa.true()),
-        sa.Column("searchable_profile", sa.Boolean(), nullable=False, server_default=sa.true()),
+        sa.Column(
+            "show_location", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
+        sa.Column(
+            "show_social_links", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
+        sa.Column(
+            "show_repositories", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
+        sa.Column(
+            "show_contributions", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
+        sa.Column(
+            "searchable_profile", sa.Boolean(), nullable=False, server_default=sa.true()
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -158,7 +172,9 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Integer(), nullable=False),
         sa.Column(
             "source",
-            sa.Enum("manual", "github", "gitlab", "other", name="repository_source_enum"),
+            sa.Enum(
+                "manual", "github", "gitlab", "other", name="repository_source_enum"
+            ),
             nullable=False,
             server_default="manual",
         ),
@@ -168,7 +184,9 @@ def upgrade() -> None:
         sa.Column("language", sa.String(length=60), nullable=True),
         sa.Column("stars_cached", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("forks_cached", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column("is_featured", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column(
+            "is_featured", sa.Boolean(), nullable=False, server_default=sa.false()
+        ),
         sa.Column("is_public", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("external_repo_id", sa.String(length=100), nullable=True),
@@ -194,19 +212,38 @@ def upgrade() -> None:
     op.add_column("users", sa.Column("headline", sa.String(length=200), nullable=True))
 
     # ── 7. New columns on revisions ───────────────────────────────────────────
-    op.add_column("revisions", sa.Column("public_identity_mode", sa.String(length=20), nullable=True))
-    op.add_column("revisions", sa.Column("public_display_name_snapshot", sa.String(length=200), nullable=True))
-    op.add_column("revisions", sa.Column("public_avatar_snapshot", sa.String(length=512), nullable=True))
+    op.add_column(
+        "revisions",
+        sa.Column("public_identity_mode", sa.String(length=20), nullable=True),
+    )
+    op.add_column(
+        "revisions",
+        sa.Column("public_display_name_snapshot", sa.String(length=200), nullable=True),
+    )
+    op.add_column(
+        "revisions",
+        sa.Column("public_avatar_snapshot", sa.String(length=512), nullable=True),
+    )
 
     # ── 8. New columns on comments ────────────────────────────────────────────
-    op.add_column("comments", sa.Column("public_identity_mode", sa.String(length=20), nullable=True))
-    op.add_column("comments", sa.Column("public_display_name_snapshot", sa.String(length=200), nullable=True))
-    op.add_column("comments", sa.Column("public_avatar_snapshot", sa.String(length=512), nullable=True))
+    op.add_column(
+        "comments",
+        sa.Column("public_identity_mode", sa.String(length=20), nullable=True),
+    )
+    op.add_column(
+        "comments",
+        sa.Column("public_display_name_snapshot", sa.String(length=200), nullable=True),
+    )
+    op.add_column(
+        "comments",
+        sa.Column("public_avatar_snapshot", sa.String(length=512), nullable=True),
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # downgrade
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def downgrade() -> None:
     # ── Snapshot columns ──────────────────────────────────────────────────────
@@ -222,13 +259,17 @@ def downgrade() -> None:
     op.drop_index("ix_user_repositories_user_id", table_name="user_repositories")
     op.drop_table("user_repositories")
 
-    op.drop_index("ix_user_connected_accounts_user_id", table_name="user_connected_accounts")
+    op.drop_index(
+        "ix_user_connected_accounts_user_id", table_name="user_connected_accounts"
+    )
     op.drop_table("user_connected_accounts")
 
     op.drop_index("ix_user_social_links_user_id", table_name="user_social_links")
     op.drop_table("user_social_links")
 
-    op.drop_index("ix_user_privacy_settings_user_id", table_name="user_privacy_settings")
+    op.drop_index(
+        "ix_user_privacy_settings_user_id", table_name="user_privacy_settings"
+    )
     op.drop_table("user_privacy_settings")
 
     # ── Enum types (PostgreSQL only) ──────────────────────────────────────────

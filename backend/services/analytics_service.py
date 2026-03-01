@@ -214,15 +214,10 @@ class AnalyticsService:
 
         post = db.session.get(Post, post_id)
 
-        base_q = select(AnalyticsEvent).where(
-            AnalyticsEvent.post_id == post_id
-        )
+        base_q = select(AnalyticsEvent).where(AnalyticsEvent.post_id == post_id)
 
         total_events: int = (
-            db.session.scalar(
-                select(func.count()).select_from(base_q.subquery())
-            )
-            or 0
+            db.session.scalar(select(func.count()).select_from(base_q.subquery())) or 0
         )
 
         views: int = (
@@ -280,8 +275,7 @@ class AnalyticsService:
             "unique_sessions": unique_sessions,
             "views_last_30_days": views_last_30,
             "top_referrers": [
-                {"referrer": row.referrer, "count": row.count}
-                for row in referrer_rows
+                {"referrer": row.referrer, "count": row.count} for row in referrer_rows
             ],
         }
 

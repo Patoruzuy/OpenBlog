@@ -7,8 +7,8 @@ anonymous/authenticated personalisation paths.
 
 from __future__ import annotations
 
-
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
 
 def _auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
@@ -95,7 +95,9 @@ class TestApiSearchRanking:
         assert resp.status_code == 200
         assert resp.get_json()["total"] == 0
 
-    def test_anonymous_search_returns_results(self, client, make_user_token, db_session):  # noqa: ARG002
+    def test_anonymous_search_returns_results(
+        self, client, make_user_token, db_session
+    ):  # noqa: ARG002
         """Unauthenticated requests should still get search results."""
         _, token = make_user_token(role="editor")
         _make_post(client, token, "Public Anon Search Post")

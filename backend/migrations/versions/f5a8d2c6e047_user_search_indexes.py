@@ -19,7 +19,6 @@ these for optimal ``LIKE '%q%'`` performance:
 
 from __future__ import annotations
 
-import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -32,8 +31,7 @@ depends_on = None
 def upgrade() -> None:
     # Functional index on lower(username) — helps prefix / ILIKE queries.
     op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_users_username_lower "
-        "ON users (lower(username))"
+        "CREATE INDEX IF NOT EXISTS ix_users_username_lower ON users (lower(username))"
     )
     # Functional index on lower(display_name) — nullable column.
     op.execute(

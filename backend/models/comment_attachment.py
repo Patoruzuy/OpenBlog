@@ -60,9 +60,9 @@ class CommentAttachment(db.Model):
     )
 
     # ── Relationships ──────────────────────────────────────────────────────
-    comment: Mapped[Comment | None] = relationship(
+    comment: Mapped[Comment | None] = relationship(  # noqa: F821
         "Comment", back_populates="attachments", overlaps="attachments"
-    )  # type: ignore[name-defined]  # noqa: F821
+    )  # type: ignore[name-defined]
     uploader: Mapped[User] = relationship("User")  # type: ignore[name-defined]  # noqa: F821
 
     __table_args__ = ()

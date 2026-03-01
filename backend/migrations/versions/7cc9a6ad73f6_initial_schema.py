@@ -32,19 +32,28 @@ def upgrade() -> None:
     # ── Enum types (PostgreSQL only) ───────────────────────────────────────
     # sa.Enum creates the TYPE in PG; SQLite ignores it.
     user_role = sa.Enum(
-        "admin", "editor", "contributor", "reader",
+        "admin",
+        "editor",
+        "contributor",
+        "reader",
         name="user_role",
     )
     post_status = sa.Enum(
-        "draft", "published", "scheduled", "archived",
+        "draft",
+        "published",
+        "scheduled",
+        "archived",
         name="post_status",
     )
     revision_status = sa.Enum(
-        "pending", "accepted", "rejected",
+        "pending",
+        "accepted",
+        "rejected",
         name="revision_status",
     )
     vote_target = sa.Enum(
-        "post", "comment",
+        "post",
+        "comment",
         name="vote_target_type",
     )
 
@@ -62,12 +71,18 @@ def upgrade() -> None:
         sa.Column("oauth_id", sa.String(128), nullable=True),
         # Role & status
         sa.Column(
-            "role", user_role, nullable=False,
+            "role",
+            user_role,
+            nullable=False,
             server_default="reader",
         ),
         sa.Column("is_active", sa.Boolean, nullable=False, server_default=sa.true()),
-        sa.Column("is_email_verified", sa.Boolean, nullable=False, server_default=sa.false()),
-        sa.Column("is_shadow_banned", sa.Boolean, nullable=False, server_default=sa.false()),
+        sa.Column(
+            "is_email_verified", sa.Boolean, nullable=False, server_default=sa.false()
+        ),
+        sa.Column(
+            "is_shadow_banned", sa.Boolean, nullable=False, server_default=sa.false()
+        ),
         # Reputation
         sa.Column("reputation_score", sa.Integer, nullable=False, server_default="0"),
         # Profile
@@ -107,18 +122,21 @@ def upgrade() -> None:
         sa.Column("title", sa.String(512), nullable=False),
         sa.Column("markdown_body", sa.Text, nullable=False, server_default=""),
         # Status & versioning
+        sa.Column("status", post_status, nullable=False, server_default="draft"),
         sa.Column(
-            "status", post_status, nullable=False, server_default="draft"
-        ),
-        sa.Column(
-            "version", sa.Integer, nullable=False, server_default="1",
-            comment="Monotonically increasing; bumped on every accepted revision."
+            "version",
+            sa.Integer,
+            nullable=False,
+            server_default="1",
+            comment="Monotonically increasing; bumped on every accepted revision.",
         ),
         sa.Column("is_featured", sa.Boolean, nullable=False, server_default=sa.false()),
         # Scheduling
         sa.Column("publish_at", sa.DateTime(timezone=True), nullable=True),
         # Metrics
-        sa.Column("reading_time_minutes", sa.Integer, nullable=False, server_default="1"),
+        sa.Column(
+            "reading_time_minutes", sa.Integer, nullable=False, server_default="1"
+        ),
         sa.Column("view_count", sa.Integer, nullable=False, server_default="0"),
         # SEO
         sa.Column("seo_title", sa.String(512), nullable=True),
@@ -127,7 +145,8 @@ def upgrade() -> None:
         sa.Column("og_image_url", sa.String(512), nullable=True),
         # Authorship
         sa.Column(
-            "author_id", sa.Integer,
+            "author_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
@@ -172,7 +191,9 @@ def upgrade() -> None:
         sa.Column("name", sa.String(64), nullable=False),
         sa.Column("slug", sa.String(64), nullable=False),
         sa.Column("description", sa.Text, nullable=True),
-        sa.Column("color", sa.String(7), nullable=True, comment="Hex colour, e.g. #3776ab"),
+        sa.Column(
+            "color", sa.String(7), nullable=True, comment="Hex colour, e.g. #3776ab"
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -187,12 +208,14 @@ def upgrade() -> None:
     op.create_table(
         "post_tags",
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="CASCADE"),
             primary_key=True,
         ),
         sa.Column(
-            "tag_id", sa.Integer,
+            "tag_id",
+            sa.Integer,
             sa.ForeignKey("tags.id", ondelete="CASCADE"),
             primary_key=True,
         ),
@@ -203,17 +226,20 @@ def upgrade() -> None:
         "post_versions",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "author_id", sa.Integer,
+            "author_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
         sa.Column(
-            "accepted_by_id", sa.Integer,
+            "accepted_by_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -226,7 +252,9 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.UniqueConstraint("post_id", "version_number", name="uq_post_versions_post_version"),
+        sa.UniqueConstraint(
+            "post_id", "version_number", name="uq_post_versions_post_version"
+        ),
     )
     op.create_index("ix_post_versions_post_id", "post_versions", ["post_id"])
     op.create_index("ix_post_versions_author_id", "post_versions", ["author_id"])
@@ -236,28 +264,32 @@ def upgrade() -> None:
         "revisions",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "author_id", sa.Integer,
+            "author_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "base_version_id", sa.Integer,
+            "base_version_id",
+            sa.Integer,
             sa.ForeignKey("post_versions.id", ondelete="SET NULL"),
             nullable=True,
         ),
         sa.Column("proposed_markdown", sa.Text, nullable=False),
         sa.Column("summary", sa.String(512), nullable=False),
+        sa.Column("status", revision_status, nullable=False, server_default="pending"),
         sa.Column(
-            "status", revision_status, nullable=False, server_default="pending"
+            "diff", sa.JSON, nullable=True, comment="Derived unified diff (cached)"
         ),
-        sa.Column("diff", sa.JSON, nullable=True, comment="Derived unified diff (cached)"),
         sa.Column(
-            "reviewed_by_id", sa.Integer,
+            "reviewed_by_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -284,17 +316,20 @@ def upgrade() -> None:
         "comments",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "author_id", sa.Integer,
+            "author_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "parent_id", sa.Integer,
+            "parent_id",
+            sa.Integer,
             sa.ForeignKey("comments.id", ondelete="CASCADE"),
             nullable=True,
         ),
@@ -323,7 +358,8 @@ def upgrade() -> None:
         "votes",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "user_id", sa.Integer,
+            "user_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
@@ -336,7 +372,9 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.UniqueConstraint(
-            "user_id", "target_type", "target_id",
+            "user_id",
+            "target_type",
+            "target_id",
             name="uq_votes_user_target",
         ),
     )
@@ -348,12 +386,14 @@ def upgrade() -> None:
         "bookmarks",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "user_id", sa.Integer,
+            "user_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="CASCADE"),
             nullable=False,
         ),
@@ -372,12 +412,14 @@ def upgrade() -> None:
         "follows",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "follower_id", sa.Integer,
+            "follower_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "following_id", sa.Integer,
+            "following_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
@@ -415,27 +457,32 @@ def upgrade() -> None:
         "user_badges",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "user_id", sa.Integer,
+            "user_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "badge_id", sa.Integer,
+            "badge_id",
+            sa.Integer,
             sa.ForeignKey("badges.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column(
-            "awarded_by_id", sa.Integer,
+            "awarded_by_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="SET NULL"),
             nullable=True,
         ),
         sa.Column(
-            "revision_id", sa.Integer,
+            "revision_id",
+            sa.Integer,
             sa.ForeignKey("revisions.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -454,7 +501,8 @@ def upgrade() -> None:
         "notifications",
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column(
-            "user_id", sa.Integer,
+            "user_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
@@ -466,17 +514,20 @@ def upgrade() -> None:
         sa.Column("is_read", sa.Boolean, nullable=False, server_default=sa.false()),
         # Optional context links
         sa.Column(
-            "actor_id", sa.Integer,
+            "actor_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="CASCADE"),
             nullable=True,
         ),
         sa.Column(
-            "revision_id", sa.Integer,
+            "revision_id",
+            sa.Integer,
             sa.ForeignKey("revisions.id", ondelete="CASCADE"),
             nullable=True,
         ),
@@ -496,12 +547,14 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("event_type", sa.String(64), nullable=False),
         sa.Column(
-            "post_id", sa.Integer,
+            "post_id",
+            sa.Integer,
             sa.ForeignKey("posts.id", ondelete="SET NULL"),
             nullable=True,
         ),
         sa.Column(
-            "user_id", sa.Integer,
+            "user_id",
+            sa.Integer,
             sa.ForeignKey("users.id", ondelete="SET NULL"),
             nullable=True,
         ),
@@ -518,9 +571,13 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
     )
-    op.create_index("ix_analytics_events_event_type", "analytics_events", ["event_type"])
+    op.create_index(
+        "ix_analytics_events_event_type", "analytics_events", ["event_type"]
+    )
     op.create_index("ix_analytics_events_post_id", "analytics_events", ["post_id"])
-    op.create_index("ix_analytics_events_created_at", "analytics_events", ["created_at"])
+    op.create_index(
+        "ix_analytics_events_created_at", "analytics_events", ["created_at"]
+    )
 
 
 def downgrade() -> None:

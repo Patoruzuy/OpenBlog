@@ -51,6 +51,7 @@ def publish_scheduled_posts() -> dict:
     if due:
         db.session.commit()
         from backend.utils import metrics  # noqa: PLC0415
+
         for _ in due:
             metrics.posts_published.inc()
 

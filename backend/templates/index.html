@@ -107,7 +107,65 @@
   </section>
 </div>
 
-{# ─── 5. Open revisions ───────────────────────────────────────────────────── #}
+{# ─── 5. Recently improved ────────────────────────────────────────────────── #}
+<div class="container">
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">{{ _('Recently improved') }}</span>
+      <a class="section-link" href="{{ url_for('improvements.improvements_index', days='30') }}">{{ _('All improvements') }} &rarr;</a>
+    </div>
+    <p class="section-blurb">
+      {{ _('Posts that got better through accepted community revisions.') }}
+    </p>
+    {% if recently_improved %}
+      <div class="post-rows">
+        {% for entry in recently_improved %}
+          <a class="post-row" href="{{ url_for('posts.post_detail', slug=entry.post.slug) }}">
+            <div class="post-row-content">
+              <div class="post-row-title">
+                {{ entry.post.title }}
+                <span class="badge badge--improved">{{ _('Improved') }}</span>
+              </div>
+              <div class="post-row-meta">
+                <span>{{ entry.post.author.display_name or entry.post.author.username }}</span>
+                <span>&middot;</span>
+                <span>{{ _('Accepted revisions: %(n)s', n=entry.accepted_count_in_window) }}</span>
+                <span>&middot;</span>
+                <span>{{ _('Last improved: ') }}
+                  <time datetime="{{ entry.last_accepted_at.isoformat() }}">
+                    {{ entry.last_accepted_at.strftime('%b %d, %Y') }}
+                  </time>
+                </span>
+                {% if entry.last_accepted_by_display %}
+                  <span>&middot;</span>
+                  <span>{{ _('by %(name)s', name=entry.last_accepted_by_display) }}</span>
+                {% endif %}
+                {% if entry.post.version > 1 %}
+                  <span>&middot;</span>
+                  <span class="version-badge">v{{ entry.post.version }}</span>
+                {% endif %}
+              </div>
+            </div>
+            {% if entry.post.tags %}
+              <div class="post-row-tags">
+                {% for tag in entry.post.tags[:2] %}
+                  <span class="tag-badge">#{{ tag.slug }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="home-invite">
+        <span class="home-invite-line">{{ _('No recently improved posts yet.') }}</span>
+        <a href="{{ url_for('posts.list_posts') }}" class="home-invite-action">{{ _('Browse posts') }} &rarr;</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+{# ─── 6. Open revisions ───────────────────────────────────────────────────── #}
 <div class="container">
   <section class="section">
     <div class="section-header">
@@ -132,7 +190,7 @@
   </section>
 </div>
 
-{# ─── 6. Learning paths (static, curated) ────────────────────────────────── #}
+{# ─── 7. Learning paths (static, curated) ────────────────────────────────── #}
 <div class="container">
   <section class="section">
     <div class="section-header">
@@ -164,7 +222,7 @@
   </section>
 </div>
 
-{# ─── 7. Topic explorer ───────────────────────────────────────────────────── #}
+{# ─── 8. Topic explorer ───────────────────────────────────────────────────── #}
 {% if top_tags %}
   <div class="container">
     <section class="section">
@@ -181,7 +239,7 @@
   </div>
 {% endif %}
 
-{# ─── 8. How it works ────────────────────────────────────────────────────── #}
+{# ─── 9. How it works ────────────────────────────────────────────────────── #}
 <div class="container" id="how-it-works">
   <section class="section">
     <div class="section-header">

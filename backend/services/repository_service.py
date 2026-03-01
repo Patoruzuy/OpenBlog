@@ -32,7 +32,9 @@ class RepositoryService:
     # ── Read ──────────────────────────────────────────────────────────────────
 
     @staticmethod
-    def get_for_user(user_id: int, *, public_only: bool = False) -> list[UserRepository]:
+    def get_for_user(
+        user_id: int, *, public_only: bool = False
+    ) -> list[UserRepository]:
         """Return all repositories for *user_id*, ordered by sort_order asc."""
         stmt = (
             select(UserRepository)
@@ -80,7 +82,9 @@ class RepositoryService:
         if not repo_name:
             raise RepositoryServiceError("Repository name is required.")
         if len(repo_name) > 200:
-            raise RepositoryServiceError("Repository name must be 200 characters or fewer.")
+            raise RepositoryServiceError(
+                "Repository name must be 200 characters or fewer."
+            )
 
         repo_url_clean = validate_url(repo_url.strip(), field="repo_url")
 
@@ -179,9 +183,7 @@ class RepositoryService:
         ------
         RepositoryServiceError(400) if any ID is invalid/not owned by the user.
         """
-        existing = {
-            r.id: r for r in RepositoryService.get_for_user(user_id)
-        }
+        existing = {r.id: r for r in RepositoryService.get_for_user(user_id)}
         for pos, repo_id in enumerate(ordered_ids):
             if repo_id not in existing:
                 raise RepositoryServiceError(

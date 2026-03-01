@@ -27,7 +27,9 @@ class EmailDeliveryLog(db.Model):
     subject: Mapped[str] = mapped_column(String(200), nullable=False)
 
     # "queued" | "sent" | "failed"
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="queued", index=True)
+    status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="queued", index=True
+    )
 
     # Optional provider-assigned message ID (e.g. SMTP message-ID header)
     provider_message_id: Mapped[str | None] = mapped_column(String(200), nullable=True)

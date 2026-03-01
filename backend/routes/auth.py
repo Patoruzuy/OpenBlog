@@ -67,7 +67,9 @@ def register():
         display_name = (request.form.get("display_name") or "").strip() or None
         password = request.form.get("password") or ""
         try:
-            user = AuthService.register(email, username, password, display_name=display_name)
+            user = AuthService.register(
+                email, username, password, display_name=display_name
+            )
             session.clear()
             session["user_id"] = user.id
             session.permanent = True
@@ -75,6 +77,7 @@ def register():
             # Send email verification in background.
             try:
                 from backend.tasks.email import send_verification_email  # noqa: PLC0415
+
                 token = AuthService.generate_email_verification_token(user)
                 send_verification_email.delay(user.email, token)
             except Exception as exc:
@@ -98,6 +101,7 @@ def logout():
 
 # ── Password reset ─────────────────────────────────────────────────────────────
 
+
 @ssr_auth_bp.route("/forgot-password", methods=["GET", "POST"])
 @limiter.limit("5 per hour")
 def forgot_password():
@@ -105,18 +109,24 @@ def forgot_password():
     if request.method == "POST":
         email = (request.form.get("email") or "").strip().lower()
         # Silently succeed even if email not found to prevent enumeration.
+        from sqlalchemy import select  # noqa: PLC0415
+
         from backend.extensions import db  # noqa: PLC0415
         from backend.models.user import User  # noqa: PLC0415
-        from sqlalchemy import select  # noqa: PLC0415
 
         user = db.session.scalar(select(User).where(User.email == email))
         if user and user.password_hash:
             try:
-                from backend.tasks.email import send_password_reset_email  # noqa: PLC0415
+                from backend.tasks.email import (
+                    send_password_reset_email,  # noqa: PLC0415
+                )
+
                 token = AuthService.generate_password_reset_token(user)
                 send_password_reset_email.delay(user.email, token)
             except Exception as exc:
-                current_app.logger.warning("Failed to send password reset email: %s", exc)
+                current_app.logger.warning(
+                    "Failed to send password reset email: %s", exc
+                )
         flash(
             "If that email exists in our system, a password reset link has been sent.",
             "info",
@@ -152,6 +162,7 @@ def reset_password(token: str):
 
 # ── Email verification ─────────────────────────────────────────────────────────
 
+
 @ssr_auth_bp.get("/verify/<token>")
 def verify_email(token: str):
     """Verify the user's email address via link in the verification email."""
@@ -177,6 +188,7 @@ def resend_verification():
     if user and not user.is_email_verified:
         try:
             from backend.tasks.email import send_verification_email  # noqa: PLC0415
+
             token = AuthService.generate_email_verification_token(user)
             send_verification_email.delay(user.email, token)
         except Exception as exc:
@@ -186,4 +198,3 @@ def resend_verification():
         flash("Your email is already verified.", "success")
 
     return redirect(request.referrer or url_for("index.index"))
-

@@ -13,8 +13,6 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
-
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 
@@ -37,7 +35,9 @@ def _create_draft(client, token: str, **overrides) -> dict:
 def _autosave(client, token: str, slug: str, **fields) -> tuple[int, dict]:
     """Call the autosave endpoint and return (status_code, json_body)."""
     payload = {"autosave_revision": 0, **fields}
-    resp = client.post(f"/api/posts/{slug}/autosave", json=payload, headers=_auth(token))
+    resp = client.post(
+        f"/api/posts/{slug}/autosave", json=payload, headers=_auth(token)
+    )
     return resp.status_code, resp.get_json()
 
 
@@ -83,8 +83,9 @@ class TestAutosaveHappyPath:
         draft = _create_draft(auth_client, token)
         _autosave(auth_client, token, draft["slug"])
         with app.app_context():
-            from backend.models.post import Post
             from backend.extensions import db
+            from backend.models.post import Post
+
             post = db.session.execute(
                 db.select(Post).filter_by(slug=draft["slug"])
             ).scalar_one()
@@ -94,21 +95,29 @@ class TestAutosaveHappyPath:
         _, token = make_user_token(role="contributor")
         draft = _create_draft(auth_client, token)
         with app.app_context():
-            from backend.models.post import Post
             from backend.extensions import db
-            before = db.session.execute(
-                db.select(Post).filter_by(slug=draft["slug"])
-            ).scalar_one().version
+            from backend.models.post import Post
+
+            before = (
+                db.session.execute(db.select(Post).filter_by(slug=draft["slug"]))
+                .scalar_one()
+                .version
+            )
         _autosave(auth_client, token, draft["slug"], title="Changed Title")
         with app.app_context():
-            from backend.models.post import Post
             from backend.extensions import db
-            after = db.session.execute(
-                db.select(Post).filter_by(slug=draft["slug"])
-            ).scalar_one().version
+            from backend.models.post import Post
+
+            after = (
+                db.session.execute(db.select(Post).filter_by(slug=draft["slug"]))
+                .scalar_one()
+                .version
+            )
         assert before == after
 
-    def test_response_contains_slug_and_saved_at_iso(self, auth_client, make_user_token):
+    def test_response_contains_slug_and_saved_at_iso(
+        self, auth_client, make_user_token
+    ):
         _, token = make_user_token(role="contributor")
         draft = _create_draft(auth_client, token)
         _, data = _autosave(auth_client, token, draft["slug"])
@@ -129,7 +138,9 @@ class TestAutosaveHappyPath:
         _, contrib_token = make_user_token(role="contributor")
         _, editor_token = make_user_token(role="editor")
         draft = _create_draft(auth_client, contrib_token)
-        status, data = _autosave(auth_client, editor_token, draft["slug"], title="Editor fix")
+        status, data = _autosave(
+            auth_client, editor_token, draft["slug"], title="Editor fix"
+        )
         assert status == 200
         assert data["ok"] is True
 
@@ -170,9 +181,7 @@ class TestAutosaveConflict:
         # Advance the revision by one successful autosave
         _autosave(auth_client, token, draft["slug"])
         # Now send a stale revision (still 0)
-        status, data = _autosave(
-            auth_client, token, draft["slug"], autosave_revision=0
-        )
+        status, data = _autosave(auth_client, token, draft["slug"], autosave_revision=0)
         assert status == 409
         assert data.get("conflict") is True
 
@@ -197,9 +206,7 @@ class TestAutosaveNonDraft:
         _, token = make_user_token(role="editor")
         draft = _create_draft(auth_client, token)
         # Publish first
-        auth_client.post(
-            f"/api/posts/{draft['slug']}/publish", headers=_auth(token)
-        )
+        auth_client.post(f"/api/posts/{draft['slug']}/publish", headers=_auth(token))
         status, _ = _autosave(auth_client, token, draft["slug"])
         assert status == 422
 

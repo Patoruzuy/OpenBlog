@@ -19,6 +19,11 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN poetry install --only=main --no-ansi && rm -rf "$POETRY_CACHE_DIR"
 
+# Copy translations and compile .po → .mo inside the builder venv.
+# Compiling here keeps the runtime image clean (no compile step at start-up).
+COPY backend/translations ./backend/translations
+RUN .venv/bin/python -m babel.messages.frontend compile -d backend/translations
+
 # ── Stage 2: Runtime ──────────────────────────────────────────────────────────
 FROM python:3.12-slim AS runtime
 
@@ -40,6 +45,10 @@ COPY --from=builder /app/.venv /app/.venv
 COPY backend/ ./backend/
 COPY alembic.ini ./
 COPY gunicorn.conf.py ./
+
+# Overlay the pre-compiled .mo files from the builder stage so the runtime
+# image never needs pybabel or a compile step.
+COPY --from=builder /app/backend/translations ./backend/translations
 
 # Ensure non-root user owns the app
 RUN chown -R openblog:openblog /app

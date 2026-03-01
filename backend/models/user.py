@@ -45,8 +45,12 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # ── Identity ───────────────────────────────────────────────────────────
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
-    username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
+    username: Mapped[str] = mapped_column(
+        String(64), unique=True, nullable=False, index=True
+    )
     display_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     password_hash: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
@@ -62,9 +66,13 @@ class User(db.Model):
         server_default=UserRole.reader.value,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    is_email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_email_verified: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
     # Shadow-ban: user sees own content as normal; others do not see it.
-    is_shadow_banned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_shadow_banned: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
 
     # ── Reputation ─────────────────────────────────────────────────────────
     reputation_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -75,7 +83,9 @@ class User(db.Model):
     website_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     github_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     tech_stack: Mapped[str | None] = mapped_column(
-        Text, nullable=True, comment="Comma-separated tech tags, e.g. 'Python,Flask,PostgreSQL'"
+        Text,
+        nullable=True,
+        comment="Comma-separated tech tags, e.g. 'Python,Flask,PostgreSQL'",
     )
     location: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # Short tagline shown under the display name on the profile card
@@ -91,7 +101,9 @@ class User(db.Model):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # ── Relationships ──────────────────────────────────────────────────────
     posts: Mapped[list[Post]] = relationship(  # type: ignore[name-defined]  # noqa: F821
@@ -138,4 +150,6 @@ class User(db.Model):
     )
 
     def __repr__(self) -> str:
-        return f"<User id={self.id} username={self.username!r} role={self.role.value!r}>"
+        return (
+            f"<User id={self.id} username={self.username!r} role={self.role.value!r}>"
+        )

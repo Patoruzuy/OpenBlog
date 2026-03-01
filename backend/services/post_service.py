@@ -42,15 +42,19 @@ class PostError(Exception):
 
 # Slugs that must never be assigned to a post because they collide with
 # static/wildcard routes.  Checked both here and in the SSR new-post form.
-RESERVED_SLUGS: frozenset[str] = frozenset({"new", "edit", "draft", "drafts", "preview"})
+RESERVED_SLUGS: frozenset[str] = frozenset(
+    {"new", "edit", "draft", "drafts", "preview"}
+)
 
 
 def _slugify(text: str) -> str:
     """Convert *text* to a lower-case, hyphen-separated, URL-safe string."""
     text = text.lower().strip()
-    text = re.sub(r"[^\w\s-]", "", text)   # strip punctuation (keep word chars, spaces, -)
-    text = re.sub(r"[\s_]+", "-", text)    # spaces / underscores → hyphen
-    text = re.sub(r"-{2,}", "-", text)     # collapse repeated hyphens
+    text = re.sub(
+        r"[^\w\s-]", "", text
+    )  # strip punctuation (keep word chars, spaces, -)
+    text = re.sub(r"[\s_]+", "-", text)  # spaces / underscores → hyphen
+    text = re.sub(r"-{2,}", "-", text)  # collapse repeated hyphens
     return text.strip("-") or "untitled"
 
 
@@ -61,11 +65,14 @@ def _unique_slug(base: str) -> str:
     rather than one round-trip per counter value.  Reserved slugs are treated
     as already-taken so they always get a numeric suffix.
     """
-    existing = set(
-        db.session.scalars(
-            select(Post.slug).where(Post.slug.like(f"{base}%"))
-        ).all()
-    ) | RESERVED_SLUGS
+    existing = (
+        set(
+            db.session.scalars(
+                select(Post.slug).where(Post.slug.like(f"{base}%"))
+            ).all()
+        )
+        | RESERVED_SLUGS
+    )
     if base not in existing:
         return base
     counter = 2
@@ -219,7 +226,9 @@ class PostService:
             post.seo_description = seo_description or None
         if og_image_url is not None:
             try:
-                post.og_image_url = validate_url(og_image_url or None, field="og_image_url")
+                post.og_image_url = validate_url(
+                    og_image_url or None, field="og_image_url"
+                )
             except ValueError as exc:
                 raise PostError(str(exc), 400) from exc
 
@@ -261,11 +270,14 @@ class PostService:
                 from backend.services.badge_service import BadgeService  # noqa: PLC0415
 
                 # first_post: author's first published post
-                published_count = db.session.scalar(
-                    select(func.count(Post.id))
-                    .where(Post.author_id == post.author_id)
-                    .where(Post.status == PostStatus.published)
-                ) or 0
+                published_count = (
+                    db.session.scalar(
+                        select(func.count(Post.id))
+                        .where(Post.author_id == post.author_id)
+                        .where(Post.status == PostStatus.published)
+                    )
+                    or 0
+                )
                 if published_count == 1:
                     BadgeService.award(post.author_id, "first_post")
 
@@ -276,13 +288,16 @@ class PostService:
                 # topic_contributor: published posts in 3+ distinct tags
                 from backend.models.tag import PostTag  # noqa: PLC0415
 
-                distinct_tags = db.session.scalar(
-                    select(func.count(func.distinct(PostTag.c.tag_id)))
-                    .select_from(PostTag)
-                    .join(Post, Post.id == PostTag.c.post_id)
-                    .where(Post.author_id == post.author_id)
-                    .where(Post.status == PostStatus.published)
-                ) or 0
+                distinct_tags = (
+                    db.session.scalar(
+                        select(func.count(func.distinct(PostTag.c.tag_id)))
+                        .select_from(PostTag)
+                        .join(Post, Post.id == PostTag.c.post_id)
+                        .where(Post.author_id == post.author_id)
+                        .where(Post.status == PostStatus.published)
+                    )
+                    or 0
+                )
                 if distinct_tags >= 3:
                     BadgeService.award(post.author_id, "topic_contributor")
 
@@ -341,13 +356,11 @@ class PostService:
         if tag_slug:
             base = base.join(Post.tags).where(Tag.slug == tag_slug)
 
-        total: int = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total: int = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         posts = list(
-            db.session.scalars(
-                base.offset((page - 1) * per_page).limit(per_page)
-            ).all()
+            db.session.scalars(base.offset((page - 1) * per_page).limit(per_page)).all()
         )
         return posts, total
 
@@ -362,13 +375,11 @@ class PostService:
         if tag_slug:
             base = base.join(Post.tags).where(Tag.slug == tag_slug)
 
-        total: int = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total: int = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         posts = list(
-            db.session.scalars(
-                base.offset((page - 1) * per_page).limit(per_page)
-            ).all()
+            db.session.scalars(base.offset((page - 1) * per_page).limit(per_page)).all()
         )
         return posts, total
 
@@ -477,13 +488,11 @@ class PostService:
             like_pat = f"%{search}%"
             base = base.where(Post.title.ilike(like_pat))
 
-        total: int = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total: int = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         posts = list(
-            db.session.scalars(
-                base.offset((page - 1) * per_page).limit(per_page)
-            ).all()
+            db.session.scalars(base.offset((page - 1) * per_page).limit(per_page)).all()
         )
         return posts, total
 

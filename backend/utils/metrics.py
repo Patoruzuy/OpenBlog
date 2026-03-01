@@ -129,9 +129,7 @@ def init_metrics(app) -> PrometheusMetrics:  # type: ignore[return]
     flask_m.info("app_info", "OpenBlog application metadata", version="0.1.0")
     _flask_metrics = flask_m
 
-    build_info.info(
-        {"version": "0.1.0", "env": app.config.get("ENV", "development")}
-    )
+    build_info.info({"version": "0.1.0", "env": app.config.get("ENV", "development")})
 
     _register_sqlalchemy_hooks(app)
     _register_celery_signals()

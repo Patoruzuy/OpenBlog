@@ -61,12 +61,8 @@ def upgrade() -> None:
 
     # ── Add new columns ────────────────────────────────────────────────────
     with op.batch_alter_table("analytics_events") as batch_op:
-        batch_op.add_column(
-            sa.Column("user_agent_hash", sa.String(64), nullable=True)
-        )
-        batch_op.add_column(
-            sa.Column("country_code", sa.String(2), nullable=True)
-        )
+        batch_op.add_column(sa.Column("user_agent_hash", sa.String(64), nullable=True))
+        batch_op.add_column(sa.Column("country_code", sa.String(2), nullable=True))
 
     # ── Drop old indexes ───────────────────────────────────────────────────
     # These were created by the initial migration; drop before recreating.
@@ -131,9 +127,7 @@ def downgrade() -> None:
     op.create_index(
         "ix_analytics_events_event_type", "analytics_events", ["event_type"]
     )
-    op.create_index(
-        "ix_analytics_events_post_id", "analytics_events", ["post_id"]
-    )
+    op.create_index("ix_analytics_events_post_id", "analytics_events", ["post_id"])
     op.create_index(
         "ix_analytics_events_created_at", "analytics_events", ["created_at"]
     )

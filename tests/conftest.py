@@ -17,10 +17,11 @@ client backed by the live in-memory SQLite database.
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import fakeredis
 import pytest
 from sqlalchemy import text as sa_text
-from unittest.mock import patch
 
 from backend.app import create_app
 from backend.extensions import db as _db
@@ -141,4 +142,3 @@ def make_user_token(app, db_session):  # noqa: ARG002
         return user, token
 
     return _make
-

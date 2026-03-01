@@ -21,7 +21,9 @@ class NewsletterSubscription(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # Normalised to lowercase at insertion time.
-    email: Mapped[str] = mapped_column(String(254), nullable=False, unique=True, index=True)
+    email: Mapped[str] = mapped_column(
+        String(254), nullable=False, unique=True, index=True
+    )
 
     # Optional link to a registered user account.
     user_id: Mapped[int | None] = mapped_column(
@@ -33,7 +35,9 @@ class NewsletterSubscription(db.Model):
     # "active"  → confirmed subscriber
     # "unsubscribed" → opted out
     # "bounced" → hard bounce recorded
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending", index=True)
+    status: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="pending", index=True
+    )
 
     # ── Timestamps ─────────────────────────────────────────────────────────
     subscribed_at: Mapped[datetime] = mapped_column(
@@ -53,7 +57,9 @@ class NewsletterSubscription(db.Model):
         DateTime(timezone=True), nullable=True
     )
     # Long-lived; rotated on each new subscription cycle
-    unsubscribe_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    unsubscribe_token_hash: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
 
     # ── Metadata ───────────────────────────────────────────────────────────
     # How the subscription was initiated — "footer_form" | "settings" | etc.

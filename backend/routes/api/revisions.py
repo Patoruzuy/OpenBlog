@@ -23,10 +23,10 @@ from flask import Blueprint, jsonify, request
 
 from backend.extensions import csrf
 from backend.models.revision import RevisionStatus
+from backend.schemas import RejectRevisionSchema, SubmitRevisionSchema, load_json
 from backend.services.post_service import PostService
 from backend.services.revision_service import RevisionError, RevisionService
 from backend.utils.auth import api_require_auth, api_require_role, get_current_user
-from backend.schemas import RejectRevisionSchema, SubmitRevisionSchema, load_json
 
 api_revisions_bp = Blueprint("api_revisions", __name__, url_prefix="/api")
 csrf.exempt(api_revisions_bp)

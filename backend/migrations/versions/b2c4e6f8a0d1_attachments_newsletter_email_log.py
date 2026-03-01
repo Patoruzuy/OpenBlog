@@ -5,8 +5,8 @@ Revises: a1b3c5d7e9f2
 Create Date: 2026-02-27 00:00:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = "b2c4e6f8a0d1"
 down_revision = "a1b3c5d7e9f2"
@@ -27,15 +27,24 @@ def upgrade() -> None:
         # Add new columns
         batch_op.add_column(sa.Column("stored_path", sa.String(500), nullable=True))
         batch_op.add_column(sa.Column("sha256", sa.String(64), nullable=True))
-        batch_op.add_column(sa.Column("is_image", sa.Boolean(), nullable=False, server_default="0"))
-        batch_op.add_column(sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True))
+        batch_op.add_column(
+            sa.Column("is_image", sa.Boolean(), nullable=False, server_default="0")
+        )
+        batch_op.add_column(
+            sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True)
+        )
 
     # ── 2. newsletter_subscriptions ────────────────────────────────────────
     op.create_table(
         "newsletter_subscriptions",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("email", sa.String(254), nullable=False),
-        sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "user_id",
+            sa.Integer(),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
         sa.Column("status", sa.String(16), nullable=False, server_default="pending"),
         sa.Column("subscribed_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("confirmed_at", sa.DateTime(timezone=True), nullable=True),
@@ -48,9 +57,18 @@ def upgrade() -> None:
         sa.Column("last_sent_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_newsletter_subscriptions_email", "newsletter_subscriptions", ["email"], unique=True)
-    op.create_index("ix_newsletter_subscriptions_status", "newsletter_subscriptions", ["status"])
-    op.create_index("ix_newsletter_subscriptions_user_id", "newsletter_subscriptions", ["user_id"])
+    op.create_index(
+        "ix_newsletter_subscriptions_email",
+        "newsletter_subscriptions",
+        ["email"],
+        unique=True,
+    )
+    op.create_index(
+        "ix_newsletter_subscriptions_status", "newsletter_subscriptions", ["status"]
+    )
+    op.create_index(
+        "ix_newsletter_subscriptions_user_id", "newsletter_subscriptions", ["user_id"]
+    )
 
     # ── 3. email_delivery_logs ─────────────────────────────────────────────
     op.create_table(
@@ -67,7 +85,9 @@ def upgrade() -> None:
         sa.Column("sent_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_email_delivery_logs_to_email", "email_delivery_logs", ["to_email"])
+    op.create_index(
+        "ix_email_delivery_logs_to_email", "email_delivery_logs", ["to_email"]
+    )
     op.create_index("ix_email_delivery_logs_status", "email_delivery_logs", ["status"])
 
 
@@ -76,9 +96,15 @@ def downgrade() -> None:
     op.drop_index("ix_email_delivery_logs_to_email", table_name="email_delivery_logs")
     op.drop_table("email_delivery_logs")
 
-    op.drop_index("ix_newsletter_subscriptions_user_id", table_name="newsletter_subscriptions")
-    op.drop_index("ix_newsletter_subscriptions_status", table_name="newsletter_subscriptions")
-    op.drop_index("ix_newsletter_subscriptions_email", table_name="newsletter_subscriptions")
+    op.drop_index(
+        "ix_newsletter_subscriptions_user_id", table_name="newsletter_subscriptions"
+    )
+    op.drop_index(
+        "ix_newsletter_subscriptions_status", table_name="newsletter_subscriptions"
+    )
+    op.drop_index(
+        "ix_newsletter_subscriptions_email", table_name="newsletter_subscriptions"
+    )
     op.drop_table("newsletter_subscriptions")
 
     with op.batch_alter_table("comment_attachments") as batch_op:

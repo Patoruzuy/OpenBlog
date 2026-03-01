@@ -28,7 +28,9 @@ def _login(client, user_id: int) -> None:
         sess["user_id"] = user_id
 
 
-def _make_published_post(author, title: str = "Test Article", slug: str | None = None) -> Post:
+def _make_published_post(
+    author, title: str = "Test Article", slug: str | None = None
+) -> Post:
     post = Post(
         title=title,
         slug=slug or title.lower().replace(" ", "-"),
@@ -44,6 +46,7 @@ def _make_published_post(author, title: str = "Test Article", slug: str | None =
 
 def _get_read_record(user_id: int, post_id: int) -> UserPostRead | None:
     from sqlalchemy import select
+
     return db.session.scalar(
         select(UserPostRead).where(
             UserPostRead.user_id == user_id,
@@ -53,6 +56,7 @@ def _get_read_record(user_id: int, post_id: int) -> UserPostRead | None:
 
 
 # ── Fixtures ───────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture()
 def alice(make_user_token, db_session):  # noqa: ARG001
@@ -67,6 +71,7 @@ def bob(make_user_token, db_session):  # noqa: ARG001
 
 
 # ── Record creation ───────────────────────────────────────────────────────────
+
 
 class TestReadRecordCreation:
     def test_visit_creates_read_record(self, auth_client, alice):
@@ -101,7 +106,9 @@ class TestReadRecordCreation:
         assert resp.status_code == 200
         with app.app_context():
             from sqlalchemy import select
+
             from backend.models.user_post_read import UserPostRead as UPR
+
             count = db.session.scalar(
                 select(db.func.count(UPR.id)).where(UPR.post_id == post.id)
             )
@@ -114,7 +121,9 @@ class TestReadRecordCreation:
         auth_client.get(f"/posts/{post.slug}")
         with app.app_context():
             from sqlalchemy import select
+
             from backend.models.user_post_read import UserPostRead as UPR
+
             count = db.session.scalar(
                 select(db.func.count(UPR.id)).where(
                     UPR.user_id == alice.id,
@@ -138,6 +147,7 @@ class TestReadRecordCreation:
 
 # ── "Updated since last read" banner ─────────────────────────────────────────
 
+
 class TestUpdatedBanner:
     def test_no_banner_on_first_visit(self, auth_client, alice):
         post = _make_published_post(alice, title="First Banner", slug="first-banner")
@@ -159,7 +169,9 @@ class TestUpdatedBanner:
         assert b"Updated since you last read" in resp.data
 
     def test_banner_shows_old_and_new_version(self, auth_client, alice):
-        post = _make_published_post(alice, title="Version Numbers", slug="version-numbers")
+        post = _make_published_post(
+            alice, title="Version Numbers", slug="version-numbers"
+        )
         _login(auth_client, alice.id)
         auth_client.get(f"/posts/{post.slug}")
         post.version = 4
@@ -172,31 +184,38 @@ class TestUpdatedBanner:
     def test_banner_disappears_after_re_read(self, auth_client, alice):
         post = _make_published_post(alice, title="Banner Gone", slug="banner-gone")
         _login(auth_client, alice.id)
-        auth_client.get(f"/posts/{post.slug}")   # visit 1 → record at v1
+        auth_client.get(f"/posts/{post.slug}")  # visit 1 → record at v1
         post.version = 2
         db.session.commit()
-        auth_client.get(f"/posts/{post.slug}")   # visit 2 → banner shown, record updated to v2
+        auth_client.get(
+            f"/posts/{post.slug}"
+        )  # visit 2 → banner shown, record updated to v2
         resp = auth_client.get(f"/posts/{post.slug}")  # visit 3 → no banner
         assert b"Updated since you last read" not in resp.data
 
     def test_banner_record_updated_to_current_version(self, auth_client, alice):
-        post = _make_published_post(alice, title="Record Updated", slug="record-updated")
+        post = _make_published_post(
+            alice, title="Record Updated", slug="record-updated"
+        )
         _login(auth_client, alice.id)
-        auth_client.get(f"/posts/{post.slug}")   # v1 stored
+        auth_client.get(f"/posts/{post.slug}")  # v1 stored
         post.version = 3
         db.session.commit()
-        auth_client.get(f"/posts/{post.slug}")   # banner shown, record updated → v3
+        auth_client.get(f"/posts/{post.slug}")  # banner shown, record updated → v3
         record = _get_read_record(alice.id, post.id)
         assert record.last_read_version == 3
 
     def test_no_banner_for_anonymous_user(self, auth_client, alice):
-        post = _make_published_post(alice, title="Anon No Banner", slug="anon-no-banner")
+        post = _make_published_post(
+            alice, title="Anon No Banner", slug="anon-no-banner"
+        )
         # Anonymous: no session
         resp = auth_client.get(f"/posts/{post.slug}")
         assert b"Updated since you last read" not in resp.data
 
 
 # ── ReadHistoryService unit tests ─────────────────────────────────────────────
+
 
 class TestReadHistoryService:
     def test_get_read_returns_none_before_first_visit(self, alice, db_session):  # noqa: ARG001
@@ -205,14 +224,18 @@ class TestReadHistoryService:
         assert result is None
 
     def test_record_read_creates_row(self, alice, db_session):  # noqa: ARG001
-        post = _make_published_post(alice, title="Service Create", slug="service-create")
+        post = _make_published_post(
+            alice, title="Service Create", slug="service-create"
+        )
         record = ReadHistoryService.record_read(alice.id, post)
         assert record.user_id == alice.id
         assert record.post_id == post.id
         assert record.last_read_version == post.version
 
     def test_record_read_updates_existing_row(self, alice, db_session):  # noqa: ARG001
-        post = _make_published_post(alice, title="Service Update", slug="service-update")
+        post = _make_published_post(
+            alice, title="Service Update", slug="service-update"
+        )
         ReadHistoryService.record_read(alice.id, post)
         post.version = 5
         db.session.commit()
@@ -220,7 +243,9 @@ class TestReadHistoryService:
         assert updated.last_read_version == 5
 
     def test_get_updated_post_ids_empty_when_no_reads(self, alice, db_session):  # noqa: ARG001
-        post = _make_published_post(alice, title="No Reads Updated", slug="no-reads-updated")
+        post = _make_published_post(
+            alice, title="No Reads Updated", slug="no-reads-updated"
+        )
         result = ReadHistoryService.get_updated_post_ids(alice.id, [post])
         assert result == set()
 
@@ -230,8 +255,12 @@ class TestReadHistoryService:
         result = ReadHistoryService.get_updated_post_ids(alice.id, [post])
         assert result == set()
 
-    def test_get_updated_post_ids_returns_id_when_version_bumped(self, alice, db_session):  # noqa: ARG001
-        post = _make_published_post(alice, title="Bumped Version", slug="bumped-version")
+    def test_get_updated_post_ids_returns_id_when_version_bumped(
+        self, alice, db_session
+    ):  # noqa: ARG001
+        post = _make_published_post(
+            alice, title="Bumped Version", slug="bumped-version"
+        )
         ReadHistoryService.record_read(alice.id, post)
         post.version = 2
         db.session.commit()
@@ -259,11 +288,12 @@ class TestReadHistoryService:
 
         result = ReadHistoryService.get_updated_post_ids(alice.id, [p1, p2, p3])
         assert p2.id in result
-        assert p1.id not in result   # read at same version
-        assert p3.id not in result   # never read (no record)
+        assert p1.id not in result  # read at same version
+        assert p3.id not in result  # never read (no record)
 
 
 # ── "Updated" badge on post list ─────────────────────────────────────────────
+
 
 class TestUpdatedBadgeOnList:
     def test_updated_badge_shown_for_stale_read(self, auth_client, alice):
@@ -285,13 +315,15 @@ class TestUpdatedBadgeOnList:
         _login(auth_client, alice.id)
         resp = auth_client.get("/posts/")
         # The badge text "Updated" should not appear as an explicit element
-        assert b'badge--updated' not in resp.data
+        assert b"badge--updated" not in resp.data
 
     def test_no_badge_for_anonymous_on_list(self, auth_client, alice):
-        post = _make_published_post(alice, title="Anon List Badge", slug="anon-list-badge")
+        post = _make_published_post(
+            alice, title="Anon List Badge", slug="anon-list-badge"
+        )
         ReadHistoryService.record_read(alice.id, post)
         post.version = 2
         db.session.commit()
         # Anonymous request — no session
         resp = auth_client.get("/posts/")
-        assert b'badge--updated' not in resp.data
+        assert b"badge--updated" not in resp.data

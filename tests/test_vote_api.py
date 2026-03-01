@@ -60,9 +60,7 @@ def _h(token: str) -> dict:
 class TestVotePost:
     def test_upvote_returns_200(self, auth_client, alice, bob, pub_post, db_session):
         _, bob_tok = bob
-        resp = auth_client.post(
-            f"/api/posts/{pub_post.slug}/vote", headers=_h(bob_tok)
-        )
+        resp = auth_client.post(f"/api/posts/{pub_post.slug}/vote", headers=_h(bob_tok))
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["voted"] is True
@@ -78,9 +76,7 @@ class TestVotePost:
     def test_duplicate_returns_409(self, auth_client, bob, pub_post, db_session):
         _, bob_tok = bob
         auth_client.post(f"/api/posts/{pub_post.slug}/vote", headers=_h(bob_tok))
-        resp = auth_client.post(
-            f"/api/posts/{pub_post.slug}/vote", headers=_h(bob_tok)
-        )
+        resp = auth_client.post(f"/api/posts/{pub_post.slug}/vote", headers=_h(bob_tok))
         assert resp.status_code == 409
 
     def test_requires_auth(self, auth_client, pub_post, db_session):
@@ -200,16 +196,12 @@ class TestPostDictVoteFields:
         self, auth_client, bob, pub_post, db_session
     ):
         _, tok = bob
-        resp = auth_client.get(
-            f"/api/posts/{pub_post.slug}", headers=_h(tok)
-        )
+        resp = auth_client.get(f"/api/posts/{pub_post.slug}", headers=_h(tok))
         data = resp.get_json()
         assert "has_voted" in data
         assert data["has_voted"] is False
 
-    def test_has_voted_true_after_voting(
-        self, auth_client, bob, pub_post, db_session
-    ):
+    def test_has_voted_true_after_voting(self, auth_client, bob, pub_post, db_session):
         bob_user, tok = bob
         from backend.services.vote_service import VoteService
 

@@ -31,6 +31,7 @@ from backend.models.portal import (
     UserSocialLink,
 )
 from backend.models.post import Post
+from backend.models.post_release_note import PostReleaseNote
 from backend.models.post_version import PostVersion
 from backend.models.report import Report
 from backend.models.revision import Revision
@@ -54,6 +55,7 @@ __all__ = [
     "Notification",
     "PinnedPost",
     "Post",
+    "PostReleaseNote",
     "PostTag",
     "PostVersion",
     "ProfileVisibility",

@@ -50,10 +50,16 @@ class BaseConfig:
 
     # ── JWT ────────────────────────────────────────────────────────────────
     # Falls back to SECRET_KEY so a single env var covers both uses.
-    JWT_SECRET_KEY: str | None = os.environ.get("JWT_SECRET_KEY") or os.environ.get("SECRET_KEY")
+    JWT_SECRET_KEY: str | None = os.environ.get("JWT_SECRET_KEY") or os.environ.get(
+        "SECRET_KEY"
+    )
     # Token lifetimes in seconds.
-    ACCESS_TOKEN_EXPIRY: int = int(os.environ.get("ACCESS_TOKEN_EXPIRY", "900"))     # 15 min
-    REFRESH_TOKEN_EXPIRY: int = int(os.environ.get("REFRESH_TOKEN_EXPIRY", "604800"))  # 7 days
+    ACCESS_TOKEN_EXPIRY: int = int(
+        os.environ.get("ACCESS_TOKEN_EXPIRY", "900")
+    )  # 15 min
+    REFRESH_TOKEN_EXPIRY: int = int(
+        os.environ.get("REFRESH_TOKEN_EXPIRY", "604800")
+    )  # 7 days
 
     # ── Rate limiting (Flask-Limiter) ──────────────────────────────────────
     RATELIMIT_ENABLED: bool = True
@@ -70,7 +76,9 @@ class BaseConfig:
     MAIL_USE_SSL: bool = os.environ.get("MAIL_USE_SSL", "false").lower() == "true"
     MAIL_USERNAME: str | None = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD: str | None = os.environ.get("MAIL_PASSWORD")
-    MAIL_DEFAULT_SENDER: str = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@openblog.dev")
+    MAIL_DEFAULT_SENDER: str = os.environ.get(
+        "MAIL_DEFAULT_SENDER", "noreply@openblog.dev"
+    )
     MAIL_SUPPRESS_SEND: bool = False
 
     # ── Media / file storage ─────────────────────────────────────────
@@ -86,6 +94,9 @@ class BaseConfig:
     NEWSLETTER_CONFIRM_TTL: int = 48 * 60 * 60  # 48 h in seconds
     SITE_NAME: str = os.environ.get("SITE_NAME", "OpenBlog")
     SITE_URL: str = os.environ.get("SITE_URL", "https://openblog.dev")
+    # Absolute base URL for generated links (RSS, sitemap, canonical, OG).
+    # Required in production — e.g. https://openblog.dev (no trailing slash).
+    PUBLIC_BASE_URL: str | None = os.environ.get("PUBLIC_BASE_URL")
 
     # ── Thread notifications ────────────────────────────────────────
     # Minimum seconds between two "new comment on thread you follow" emails
@@ -123,7 +134,12 @@ class BaseConfig:
     # "translations" is Flask-Babel's default directory (relative to app.root_path)
 
     # Required config keys validated on startup (skipped for TestingConfig)
-    _REQUIRED: ClassVar[list[str]] = ["SECRET_KEY", "DATABASE_URL", "REDIS_URL"]
+    _REQUIRED: ClassVar[list[str]] = [
+        "SECRET_KEY",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "PUBLIC_BASE_URL",
+    ]
 
     @classmethod
     def validate(cls) -> None:
@@ -188,6 +204,7 @@ class TestingConfig(BaseConfig):
     RATELIMIT_ENABLED: bool = False  # type: ignore[assignment]
     RATELIMIT_STORAGE_URI: str = "memory://"  # type: ignore[assignment]
     MAIL_SUPPRESS_SEND: bool = True  # type: ignore[assignment]
+    PUBLIC_BASE_URL: str = "http://testserver"  # type: ignore[assignment]
 
 
 config_map: dict[str, type[BaseConfig]] = {

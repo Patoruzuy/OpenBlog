@@ -405,3 +405,117 @@ msgstr "Seguridad de tipos, configuración y uso en el mundo real."
 
 msgid "System design, service boundaries, and trade-offs."
 msgstr "Diseño de sistemas, límites de servicios y compensaciones."
+
+msgid "Recently improved"
+msgstr "Recientemente mejorado"
+
+msgid "Posts that got better through accepted community revisions."
+msgstr "Artículos que mejoraron gracias a revisiones comunitarias aceptadas."
+
+msgid "Improved"
+msgstr "Mejorado"
+
+#, python-format
+msgid "Accepted revisions: %(n)s"
+msgstr "Revisiones aceptadas: %(n)s"
+
+msgid "Last improved: "
+msgstr "Última mejora: "
+
+#, python-format
+msgid "by %(name)s"
+msgstr "por %(name)s"
+
+msgid "No recently improved posts yet."
+msgstr "Aún no hay artículos mejorados recientemente."
+
+msgid "All improvements"
+msgstr "Todas las mejoras"
+
+msgid "Improvements"
+msgstr "Mejoras"
+
+msgid "Posts improved through accepted community revisions."
+msgstr "Publicaciones mejoradas a través de revisiones comunitarias aceptadas."
+
+msgid "Time window filter"
+msgstr "Filtro de ventana de tiempo"
+
+msgid "Last 7 days"
+msgstr "Últimos 7 días"
+
+msgid "Last 30 days"
+msgstr "Últimos 30 días"
+
+msgid "Last 90 days"
+msgstr "Últimos 90 días"
+
+msgid "All time"
+msgstr "Todo el tiempo"
+
+msgid "Improvements pagination"
+msgstr "Paginación de mejoras"
+
+msgid "No improvements yet for this window."
+msgstr "No hay mejoras aún para esta ventana."
+
+
+#: backend/templates/posts/detail.html
+msgid "Compare changes"
+msgstr "Ver cambios"
+
+#: backend/templates/posts/compare.html
+msgid "Compare"
+msgstr "Comparar"
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Compare v%(from)s \u2192 v%(to)s"
+msgstr "Comparar v%(from)s \u2192 v%(to)s"
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Compare v%(from)s \u2192 v%(to)s for %(title)s"
+msgstr "Comparar v%(from)s \u2192 v%(to)s de %(title)s"
+
+#: backend/templates/posts/compare.html
+msgid "Context lines"
+msgstr "L\u00edneas de contexto"
+
+#: backend/templates/posts/compare.html
+msgid "Version snapshot not available for:"
+msgstr "Instant\u00e1nea de versi\u00f3n no disponible para:"
+
+#: backend/templates/posts/compare.html
+msgid "Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot."
+msgstr "Las instant\u00e1neas se crean cuando se acepta una revisi\u00f3n. Es posible que la versi\u00f3n inicial (v1) no tenga instant\u00e1nea."
+
+#: backend/templates/posts/compare.html
+msgid "View revision history"
+msgstr "Ver historial de revisiones"
+
+#: backend/templates/posts/compare.html
+msgid "Copy link"
+msgstr "Copiar enlace"
+
+#: backend/templates/posts/compare.html
+msgid "Copied!"
+msgstr "\u00a1Copiado!"
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Showing v%(from)s \u2192 v%(to)s (inputs were swapped)"
+msgstr "Mostrando v%(from)s \u2192 v%(to)s (los valores fueron intercambiados)"
+
+#: backend/templates/posts/compare.html
+msgid "Copy link"
+msgstr "Copiar enlace"
+
+#: backend/templates/posts/compare.html
+msgid "Copied!"
+msgstr "Copiado!"
+
+#, python-format
+#: backend/templates/posts/compare.html
+msgid "Showing v%(from)s -> v%(to)s (inputs were swapped)"
+msgstr "Mostrando v%(from)s -> v%(to)s (los valores fueron intercambiados)"

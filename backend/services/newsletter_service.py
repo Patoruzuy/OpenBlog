@@ -78,7 +78,6 @@ class NewsletterService:
         The caller is responsible for triggering the confirm email task.
         Raises ``NewsletterError`` only for genuine data problems.
         """
-        from flask import current_app  # noqa: PLC0415
 
         email = email.strip().lower()
         if not email or "@" not in email or len(email) > 254:
@@ -89,8 +88,6 @@ class NewsletterService:
         confirm_hash = NewsletterService._hash_token(confirm_token)
         unsub_hash = NewsletterService._hash_token(unsub_token)
         now = datetime.now(UTC)
-
-        ttl_seconds = current_app.config.get("NEWSLETTER_CONFIRM_TTL", 48 * 3600)
 
         sub = db.session.scalar(
             select(NewsletterSubscription).where(NewsletterSubscription.email == email)
@@ -153,7 +150,9 @@ class NewsletterService:
             return sub  # idempotent
 
         if sub.status == "unsubscribed":
-            raise NewsletterError("This address has been unsubscribed. Subscribe again to re-join.", 400)
+            raise NewsletterError(
+                "This address has been unsubscribed. Subscribe again to re-join.", 400
+            )
 
         # Enforce TTL on confirm links.
         ttl = current_app.config.get("NEWSLETTER_CONFIRM_TTL", 48 * 3600)
@@ -162,7 +161,9 @@ class NewsletterService:
             if issued.tzinfo is None:
                 issued = issued.replace(tzinfo=UTC)
             if datetime.now(UTC) > issued + timedelta(seconds=ttl):
-                raise NewsletterError("Confirmation link has expired. Please subscribe again.", 400)
+                raise NewsletterError(
+                    "Confirmation link has expired. Please subscribe again.", 400
+                )
 
         sub.status = "active"
         sub.confirmed_at = datetime.now(UTC)

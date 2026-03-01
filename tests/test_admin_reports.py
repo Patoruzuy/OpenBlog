@@ -11,7 +11,6 @@ Coverage:
 
 from __future__ import annotations
 
-import pytest
 from sqlalchemy import select
 
 from backend.extensions import db as _db
@@ -20,7 +19,6 @@ from backend.models.post import Post, PostStatus
 from backend.models.report import Report
 from backend.models.user import User, UserRole
 from backend.services.report_service import ReportService
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -96,7 +94,9 @@ class TestListReports:
         _make_report(_db, reporter, post, status="resolved")
 
         # Second report can't be open (unique open constraint) — use a fresh reporter
-        reporter2 = User(email="r2@x.com", username="r2", password_hash="x", role=UserRole.reader)
+        reporter2 = User(
+            email="r2@x.com", username="r2", password_hash="x", role=UserRole.reader
+        )
         _db.session.add(reporter2)
         _db.session.commit()
         _make_report(_db, reporter2, post, status="resolved")
@@ -131,7 +131,9 @@ class TestListReports:
         post = _make_post(_db, author)
         _make_report(_db, reporter, post, status="open")
 
-        reporter2 = User(email="r3@x.com", username="r3", password_hash="x", role=UserRole.reader)
+        reporter2 = User(
+            email="r3@x.com", username="r3", password_hash="x", role=UserRole.reader
+        )
         _db.session.add(reporter2)
         _db.session.commit()
         _make_report(_db, reporter2, post, status="dismissed")
@@ -144,7 +146,12 @@ class TestListReports:
         post = _make_post(_db, author)
         reporters = []
         for i in range(5):
-            u = User(email=f"pg{i}@x.com", username=f"pgr{i}", password_hash="x", role=UserRole.reader)
+            u = User(
+                email=f"pg{i}@x.com",
+                username=f"pgr{i}",
+                password_hash="x",
+                role=UserRole.reader,
+            )
             _db.session.add(u)
             _db.session.commit()
             reporters.append(u)
@@ -168,7 +175,9 @@ class TestOpenCount:
         author = _make_user(_db, role="contributor")
         post = _make_post(_db, author)
         _make_report(_db, reporter, post, status="open")
-        reporter2 = User(email="oc2@x.com", username="oc2", password_hash="x", role=UserRole.reader)
+        reporter2 = User(
+            email="oc2@x.com", username="oc2", password_hash="x", role=UserRole.reader
+        )
         _db.session.add(reporter2)
         _db.session.commit()
         _make_report(_db, reporter2, post, status="resolved")

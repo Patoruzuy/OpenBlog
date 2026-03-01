@@ -51,7 +51,9 @@ class Post(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # ── Content ────────────────────────────────────────────────────────────
-    slug: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    slug: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True, index=True
+    )
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     markdown_body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # rendered_html is NOT persisted; it is cached in Redis and re-derived on update.
@@ -64,16 +66,22 @@ class Post(db.Model):
         server_default=PostStatus.draft.value,
     )
     version: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1,
-        comment="Monotonically increasing; bumped on every accepted revision."
+        Integer,
+        nullable=False,
+        default=1,
+        comment="Monotonically increasing; bumped on every accepted revision.",
     )
     is_featured: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # ── Scheduling ─────────────────────────────────────────────────────────
-    publish_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    publish_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # ── Metrics ────────────────────────────────────────────────────────────
-    reading_time_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    reading_time_minutes: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1
+    )
     view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     # ── SEO ────────────────────────────────────────────────────────────────
@@ -89,12 +97,17 @@ class Post(db.Model):
 
     # ── Autosave ───────────────────────────────────────────────────────────
     last_autosaved_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, default=None,
-        comment="Set by the autosave endpoint; NULL until first autosave."
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        comment="Set by the autosave endpoint; NULL until first autosave.",
     )
     autosave_revision: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0, server_default="0",
-        comment="Optimistic concurrency token; incremented on each autosave write."
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+        comment="Optimistic concurrency token; incremented on each autosave write.",
     )
 
     # ── Timestamps ─────────────────────────────────────────────────────────
@@ -107,7 +120,9 @@ class Post(db.Model):
         default=lambda: datetime.now(UTC),
         onupdate=lambda: datetime.now(UTC),
     )
-    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # ── Relationships ──────────────────────────────────────────────────────
     author: Mapped[User] = relationship(  # type: ignore[name-defined]  # noqa: F821
@@ -124,6 +139,12 @@ class Post(db.Model):
     )
     revisions: Mapped[list[Revision]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Revision", back_populates="post", lazy="select"
+    )
+    release_notes: Mapped[list[PostReleaseNote]] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "PostReleaseNote",
+        back_populates="post",
+        lazy="select",
+        order_by="PostReleaseNote.version_number.desc()",
     )
     comments: Mapped[list[Comment]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Comment",

@@ -75,8 +75,12 @@ class TestGetContributions:
         _add_post(db, alice.id, "pub-post-1", days_ago=5)
         _add_post(db, alice.id, "pub-post-2", days_ago=6)
 
-        public = ContributionGraphService.get_contributions(alice.id, viewer_is_self=False)
-        self_view = ContributionGraphService.get_contributions(alice.id, viewer_is_self=True)
+        public = ContributionGraphService.get_contributions(
+            alice.id, viewer_is_self=False
+        )
+        self_view = ContributionGraphService.get_contributions(
+            alice.id, viewer_is_self=True
+        )
 
         assert public["total"] == self_view["total"] == 2
 
@@ -86,7 +90,9 @@ class TestGetContributions:
         _add_post(db, alice.id, "self-post-1", days_ago=3)
         _add_post(db, alice.id, "self-post-2", days_ago=7)
 
-        result = ContributionGraphService.get_contributions(alice.id, viewer_is_self=True)
+        result = ContributionGraphService.get_contributions(
+            alice.id, viewer_is_self=True
+        )
         assert result["total"] == 2
 
     def test_cell_level_increases_with_count(self, alice, db_session):
@@ -96,9 +102,7 @@ class TestGetContributions:
         for i in range(5):
             _add_post(db, alice.id, f"busy-day-{i}", days_ago=2)
         result = ContributionGraphService.get_contributions(alice.id)
-        max_level = max(
-            cell["level"] for week in result["weeks"] for cell in week
-        )
+        max_level = max(cell["level"] for week in result["weeks"] for cell in week)
         assert max_level > 0
 
     def test_cell_dates_are_strings(self, alice, db_session):

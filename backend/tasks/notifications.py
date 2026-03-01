@@ -5,7 +5,12 @@ from __future__ import annotations
 from celery import shared_task
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60, name="tasks.notify_thread_comment_created")
+@shared_task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+    name="tasks.notify_thread_comment_created",
+)
 def notify_thread_comment_created(  # type: ignore[override]
     self,
     payload: dict,

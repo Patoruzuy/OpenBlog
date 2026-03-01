@@ -20,7 +20,6 @@ from backend.services.contribution_identity_service import ContributionIdentityS
 from backend.services.privacy_service import PrivacyService
 from backend.services.profile_service import ProfileService, ProfileServiceError
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Per-test user fixtures
 # ─────────────────────────────────────────────────────────────────────────────
@@ -95,9 +94,9 @@ class TestGetPublicView:
         s.profile_visibility = ProfileVisibility.private.value
         db.session.commit()
         view_anon = PrivacyService.get_public_view(alice, viewer=None)
-        view_bob  = PrivacyService.get_public_view(alice, viewer=bob)
+        view_bob = PrivacyService.get_public_view(alice, viewer=bob)
         assert view_anon["visible"] is False
-        assert view_bob["visible"]  is False
+        assert view_bob["visible"] is False
 
     def test_private_profile_visible_to_owner(self, db_session, alice):
         s = PrivacyService.get_or_create_privacy(alice)
@@ -112,18 +111,18 @@ class TestGetPublicView:
         s.show_location = False
         db.session.commit()
         view = PrivacyService.get_public_view(alice, viewer=bob)
-        assert view["visible"]       is True
-        assert view["show_bio"]      is False
+        assert view["visible"] is True
+        assert view["show_bio"] is False
         assert view["show_location"] is False
-        assert view["show_avatar"]   is True  # unchanged
+        assert view["show_avatar"] is True  # unchanged
 
     def test_owner_always_gets_full_view(self, db_session, alice):
         s = PrivacyService.get_or_create_privacy(alice)
-        s.show_bio    = False
+        s.show_bio = False
         s.show_avatar = False
         db.session.commit()
         view = PrivacyService.get_public_view(alice, viewer=alice)
-        assert view["show_bio"]    is True
+        assert view["show_bio"] is True
         assert view["show_avatar"] is True
 
 
@@ -158,7 +157,7 @@ class TestUpdateProfile:
         db.session.commit()
         ProfileService.update_profile(alice, bio="new bio")
         db.session.refresh(alice)
-        assert alice.bio      == "new bio"
+        assert alice.bio == "new bio"
         assert alice.location == "Berlin"
 
 
@@ -187,7 +186,7 @@ class TestUpdatePrivacy:
             pseudonymous_alias="shadow_coder",
         )
         assert s.default_identity_mode == "pseudonymous"
-        assert s.pseudonymous_alias    == "shadow_coder"
+        assert s.pseudonymous_alias == "shadow_coder"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -198,42 +197,42 @@ class TestUpdatePrivacy:
 class TestSnapshotFor:
     def test_public_mode_captures_display_name_and_avatar(self, db_session, alice):
         alice.display_name = "Alice Smith"
-        alice.avatar_url   = "https://example.com/a.jpg"
+        alice.avatar_url = "https://example.com/a.jpg"
         db.session.commit()
         PrivacyService.get_or_create_privacy(alice)  # default public
         snap = ContributionIdentityService.snapshot_for(alice)
-        assert snap["public_identity_mode"]         == "public"
+        assert snap["public_identity_mode"] == "public"
         assert snap["public_display_name_snapshot"] == "Alice Smith"
-        assert snap["public_avatar_snapshot"]       == "https://example.com/a.jpg"
+        assert snap["public_avatar_snapshot"] == "https://example.com/a.jpg"
 
     def test_anonymous_mode_returns_no_name_no_avatar(self, db_session, alice):
         alice.display_name = "Alice Smith"
-        alice.avatar_url   = "https://example.com/a.jpg"
+        alice.avatar_url = "https://example.com/a.jpg"
         db.session.commit()
         s = PrivacyService.get_or_create_privacy(alice)
         s.default_identity_mode = IdentityMode.anonymous.value
         db.session.commit()
         snap = ContributionIdentityService.snapshot_for(alice)
-        assert snap["public_identity_mode"]         == "anonymous"
+        assert snap["public_identity_mode"] == "anonymous"
         assert snap["public_display_name_snapshot"] is None
-        assert snap["public_avatar_snapshot"]       is None
+        assert snap["public_avatar_snapshot"] is None
 
     def test_pseudonymous_mode_uses_alias(self, db_session, alice):
         alice.display_name = "Alice Smith"
         db.session.commit()
         s = PrivacyService.get_or_create_privacy(alice)
         s.default_identity_mode = IdentityMode.pseudonymous.value
-        s.pseudonymous_alias    = "shadow_coder"
+        s.pseudonymous_alias = "shadow_coder"
         db.session.commit()
         snap = ContributionIdentityService.snapshot_for(alice)
-        assert snap["public_identity_mode"]         == "pseudonymous"
+        assert snap["public_identity_mode"] == "pseudonymous"
         assert snap["public_display_name_snapshot"] == "shadow_coder"
 
     def test_no_privacy_row_defaults_to_public(self, db_session, alice):
         alice.display_name = "Alice Smith"
         db.session.commit()
         snap = ContributionIdentityService.snapshot_for(alice)
-        assert snap["public_identity_mode"]         == "public"
+        assert snap["public_identity_mode"] == "public"
         assert snap["public_display_name_snapshot"] == "Alice Smith"
 
 
@@ -249,9 +248,9 @@ class TestRenderPublic:
             public_display_name_snapshot="Alice Smith",
             public_avatar_snapshot="https://example.com/a.jpg",
         )
-        assert result["display_name"]    == "Alice Smith"
-        assert result["avatar_url"]      == "https://example.com/a.jpg"
-        assert result["is_anonymous"]    is False
+        assert result["display_name"] == "Alice Smith"
+        assert result["avatar_url"] == "https://example.com/a.jpg"
+        assert result["is_anonymous"] is False
         assert result["is_pseudonymous"] is False
 
     def test_anonymous_mode_returns_anonymous_label(self, db_session):
@@ -261,7 +260,7 @@ class TestRenderPublic:
             public_avatar_snapshot=None,
         )
         assert result["display_name"] == "Anonymous"
-        assert result["avatar_url"]   is None
+        assert result["avatar_url"] is None
         assert result["is_anonymous"] is True
 
     def test_pseudonymous_mode_shows_alias(self, db_session):
@@ -270,9 +269,9 @@ class TestRenderPublic:
             public_display_name_snapshot="shadow_coder",
             public_avatar_snapshot=None,
         )
-        assert result["display_name"]    == "shadow_coder"
+        assert result["display_name"] == "shadow_coder"
         assert result["is_pseudonymous"] is True
-        assert result["is_anonymous"]    is False
+        assert result["is_anonymous"] is False
 
     def test_no_snapshot_falls_back_to_author(self, db_session, alice):
         alice.display_name = "Fallback User"

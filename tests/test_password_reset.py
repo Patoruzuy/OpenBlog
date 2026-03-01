@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from backend.services.auth_service import AuthService
 
 _DEFAULT_PW = "StrongPass123!!"
@@ -12,7 +10,9 @@ _DEFAULT_PW = "StrongPass123!!"
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-def _make_user(username="pwresetuser", email="pwreset@example.com", password=_DEFAULT_PW):
+def _make_user(
+    username="pwresetuser", email="pwreset@example.com", password=_DEFAULT_PW
+):
     """Register a user via AuthService and return the User object."""
     return AuthService.register(email, username, password)
 

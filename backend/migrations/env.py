@@ -49,6 +49,7 @@ target_metadata = db.metadata
 
 # ── Database URL ───────────────────────────────────────────────────────────────
 
+
 def get_url() -> str:
     """Return DATABASE_URL from the environment.
 
@@ -65,6 +66,7 @@ def get_url() -> str:
 
 # ── Offline mode ──────────────────────────────────────────────────────────────
 
+
 def run_migrations_offline() -> None:
     """Emit migration SQL to stdout without connecting to the database."""
     url = get_url()
@@ -80,6 +82,7 @@ def run_migrations_offline() -> None:
 
 
 # ── Online mode ───────────────────────────────────────────────────────────────
+
 
 def run_migrations_online() -> None:
     """Apply migrations directly to the database via a live connection."""

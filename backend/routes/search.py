@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import json
 
-from flask import Blueprint, current_app, jsonify, redirect, render_template, request, url_for
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    render_template,
+    request,
+)
 
 from backend.services.search_service import SearchResults, SearchService
 from backend.utils.auth import get_current_user
@@ -26,8 +32,8 @@ def _push_recent_search(user_id: int, query: str) -> None:
         return
     key = f"search:recent:{user_id}"
     try:
-        redis.lrem(key, 0, query)       # remove existing duplicate position
-        redis.lpush(key, query)         # push to front
+        redis.lrem(key, 0, query)  # remove existing duplicate position
+        redis.lpush(key, query)  # push to front
         redis.ltrim(key, 0, _RECENT_LIMIT - 1)
         redis.expire(key, _RECENT_TTL)
     except Exception:
@@ -75,17 +81,29 @@ def search_results():
 
     results: SearchResults
     if q:
-        results = SearchService.search(q, page, per_page, user_id=viewer.id if viewer else None)
+        results = SearchService.search(
+            q, page, per_page, user_id=viewer.id if viewer else None
+        )
     else:
         results = SearchResults(
-            posts=[], tags=[], users=[],
-            post_total=0, tag_total=0, user_total=0,
+            posts=[],
+            tags=[],
+            users=[],
+            post_total=0,
+            tag_total=0,
+            user_total=0,
         )
 
     # Per-tab page counts
-    post_pages = (results.post_total + per_page - 1) // per_page if results.post_total else 0
-    tag_pages = (results.tag_total + per_page - 1) // per_page if results.tag_total else 0
-    people_pages = (results.user_total + per_page - 1) // per_page if results.user_total else 0
+    post_pages = (
+        (results.post_total + per_page - 1) // per_page if results.post_total else 0
+    )
+    tag_pages = (
+        (results.tag_total + per_page - 1) // per_page if results.tag_total else 0
+    )
+    people_pages = (
+        (results.user_total + per_page - 1) // per_page if results.user_total else 0
+    )
 
     # Batch-fetch published post counts for visible users (avoids N+1)
     user_post_counts: dict[int, int] = {}

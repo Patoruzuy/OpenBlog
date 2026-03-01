@@ -57,7 +57,9 @@ class ProfileService:
         if display_name is not None:
             v = display_name.strip()
             if len(v) > 128:
-                raise ProfileServiceError("Display name must be 128 characters or fewer.")
+                raise ProfileServiceError(
+                    "Display name must be 128 characters or fewer."
+                )
             user.display_name = v or None
         if headline is not None:
             v = headline.strip()
@@ -166,14 +168,18 @@ class ProfileService:
 
         if profile_visibility is not None:
             try:
-                settings.profile_visibility = ProfileVisibility(profile_visibility).value
+                settings.profile_visibility = ProfileVisibility(
+                    profile_visibility
+                ).value
             except ValueError:
                 raise ProfileServiceError(
                     f"Invalid profile visibility: {profile_visibility!r}", 400
                 )
         if default_identity_mode is not None:
             try:
-                settings.default_identity_mode = IdentityMode(default_identity_mode).value
+                settings.default_identity_mode = IdentityMode(
+                    default_identity_mode
+                ).value
             except ValueError:
                 raise ProfileServiceError(
                     f"Invalid identity mode: {default_identity_mode!r}", 400
@@ -181,7 +187,9 @@ class ProfileService:
         if pseudonymous_alias is not None:
             v = pseudonymous_alias.strip()
             if len(v) > 80:
-                raise ProfileServiceError("Pseudonymous alias must be 80 characters or fewer.")
+                raise ProfileServiceError(
+                    "Pseudonymous alias must be 80 characters or fewer."
+                )
             settings.pseudonymous_alias = v or None
         if show_avatar is not None:
             settings.show_avatar = show_avatar

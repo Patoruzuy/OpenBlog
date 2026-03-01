@@ -23,7 +23,7 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 
-from flask import g, redirect, request, url_for
+from flask import redirect, request, url_for
 
 from backend.models.user import User, UserRole
 from backend.utils.auth import get_current_user
@@ -31,12 +31,12 @@ from backend.utils.auth import get_current_user
 # ── Capability table ──────────────────────────────────────────────────────────
 
 _CAPABILITIES: dict[str, frozenset[str]] = {
-    "manage_content":  frozenset({"admin", "editor"}),
-    "manage_users":    frozenset({"admin"}),
-    "moderate":        frozenset({"admin", "editor"}),
-    "view_analytics":  frozenset({"admin", "editor"}),
+    "manage_content": frozenset({"admin", "editor"}),
+    "manage_users": frozenset({"admin"}),
+    "moderate": frozenset({"admin", "editor"}),
+    "view_analytics": frozenset({"admin", "editor"}),
     "manage_settings": frozenset({"admin"}),
-    "view_audit":      frozenset({"admin"}),
+    "view_audit": frozenset({"admin"}),
 }
 
 #: Roles that may enter the admin area at all.
@@ -76,6 +76,7 @@ def require_admin(fn: Callable) -> Callable:
             return redirect(url_for("auth.login", next=request.path))
         if user.role != UserRole.admin:
             from flask import render_template  # noqa: PLC0415
+
             return render_template("admin/403.html"), 403
         return fn(*args, **kwargs)
 
@@ -100,6 +101,7 @@ def require_capability(capability: str) -> Callable:
                 return redirect(url_for("auth.login", next=request.path))
             if user.role.value not in allowed:
                 from flask import render_template  # noqa: PLC0415
+
                 return render_template("admin/403.html"), 403
             return fn(*args, **kwargs)
 

@@ -200,8 +200,10 @@ class NotificationDeliveryService:
                 reply_recipient_id = parent.author_id
 
         # ── Thread-subscriber notifications ───────────────────────────────────
-        subscriber_ids: set[int] = set(ThreadSubscriptionService.get_subscribers(post_id))
-        subscriber_ids.discard(author_id)          # no self-notifications
+        subscriber_ids: set[int] = set(
+            ThreadSubscriptionService.get_subscribers(post_id)
+        )
+        subscriber_ids.discard(author_id)  # no self-notifications
         if reply_recipient_id is not None:
             subscriber_ids.discard(reply_recipient_id)  # gets reply email instead
 
@@ -242,7 +244,9 @@ class NotificationDeliveryService:
                 else f"New comment on \u201c{post.title}\u201d"
             )
             unsub_token = cls.make_unsubscribe_token(uid, post_id)
-            unsub_url = f"{site_url}/threads/{post.slug}/unsubscribe?token={unsub_token}"
+            unsub_url = (
+                f"{site_url}/threads/{post.slug}/unsubscribe?token={unsub_token}"
+            )
 
             EmailService.queue(
                 to_email=recipient.email,
@@ -290,10 +294,10 @@ class NotificationDeliveryService:
                         if locale == "es"
                         else f"{commenter_name} replied to your comment"
                     )
-                    unsub_token = cls.make_unsubscribe_token(reply_recipient_id, post_id)
-                    unsub_url = (
-                        f"{site_url}/threads/{post.slug}/unsubscribe?token={unsub_token}"
+                    unsub_token = cls.make_unsubscribe_token(
+                        reply_recipient_id, post_id
                     )
+                    unsub_url = f"{site_url}/threads/{post.slug}/unsubscribe?token={unsub_token}"
                     EmailService.queue(
                         to_email=recipient.email,
                         subject=subject,

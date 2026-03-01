@@ -212,7 +212,9 @@ class UserService:
             .where(Follow.followed_id == user_id)
             .order_by(Follow.created_at.desc())
         )
-        total = db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         users = list(
             db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
         )
@@ -229,7 +231,9 @@ class UserService:
             .where(Follow.follower_id == user_id)
             .order_by(Follow.created_at.desc())
         )
-        total = db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         users = list(
             db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
         )

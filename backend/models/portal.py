@@ -28,22 +28,21 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.extensions import db
 
-
 # ── Enumerations ──────────────────────────────────────────────────────────────
 
 
 class IdentityMode(str, enum.Enum):
     """How a user's contributions appear publicly."""
 
-    public = "public"            # real display name + avatar
+    public = "public"  # real display name + avatar
     pseudonymous = "pseudonymous"  # custom alias + optional avatar
-    anonymous = "anonymous"       # "Anonymous" + no avatar
+    anonymous = "anonymous"  # "Anonymous" + no avatar
 
 
 class ProfileVisibility(str, enum.Enum):
     """Who can view a user's public profile page."""
 
-    public = "public"    # anyone
+    public = "public"  # anyone
     members = "members"  # logged-in users only
     private = "private"  # nobody (profile hidden from /users/<username>)
 
@@ -82,16 +81,28 @@ class UserPrivacySettings(db.Model):
     show_avatar: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     show_bio: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     show_location: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    show_social_links: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    show_repositories: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    show_contributions: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    searchable_profile: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    show_social_links: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    show_repositories: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    show_contributions: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
+    searchable_profile: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
 
     # ── Notification preferences ───────────────────────────────────────────
     # Email me when someone new comments on a post I follow
-    notify_thread_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    notify_thread_emails: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
     # Email me when someone replies directly to my comment
-    notify_reply_emails: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="1")
+    notify_reply_emails: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="1"
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
@@ -186,15 +197,17 @@ class UserConnectedAccount(db.Model):
     )
 
     def __repr__(self) -> str:
-        return f"<UserConnectedAccount user_id={self.user_id} provider={self.provider!r}>"
+        return (
+            f"<UserConnectedAccount user_id={self.user_id} provider={self.provider!r}>"
+        )
 
 
 class RepositorySource(str, enum.Enum):
     """Where a repository record originated."""
 
-    manual = "manual"     # user typed it in
-    github = "github"     # synced via GitHub API
-    gitlab = "gitlab"     # future
+    manual = "manual"  # user typed it in
+    github = "github"  # synced via GitHub API
+    gitlab = "gitlab"  # future
     other = "other"
 
 

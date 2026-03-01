@@ -36,27 +36,27 @@ from typing import Any
 
 WEIGHTS: dict[str, float] = {
     # Post title-match signals (waterfall — only the best tier fires)
-    "title_exact":       1.00,  # normalised query == normalised title
-    "title_phrase":      0.80,  # full query is a substring of title
-    "title_token":       0.60,  # ALL query tokens appear in title tokens
-    "title_partial":     0.25,  # ≥ half of query tokens appear in title tokens
+    "title_exact": 1.00,  # normalised query == normalised title
+    "title_phrase": 0.80,  # full query is a substring of title
+    "title_token": 0.60,  # ALL query tokens appear in title tokens
+    "title_partial": 0.25,  # ≥ half of query tokens appear in title tokens
     # Post content signals
-    "tag_match":         0.40,  # ≥ 1 query token matches a tag slug
+    "tag_match": 0.40,  # ≥ 1 query token matches a tag slug
     # Post quality / freshness signals
-    "freshness":         0.30,  # exponential decay (half-life = 60 d)
-    "quality":           0.20,  # log-normalised view count
-    "revision_boost":    0.20,  # post has ≥ 1 accepted community revision
+    "freshness": 0.30,  # exponential decay (half-life = 60 d)
+    "quality": 0.20,  # log-normalised view count
+    "revision_boost": 0.20,  # post has ≥ 1 accepted community revision
     # Personalisation signals (applied only for authenticated users)
-    "unread_boost":      0.10,  # user has never read this post
-    "stale_read_boost":  0.15,  # user's last-read version < post.version
+    "unread_boost": 0.10,  # user has never read this post
+    "stale_read_boost": 0.15,  # user's last-read version < post.version
     # Tag scoring
-    "tag_name_exact":    1.00,  # query (normalised) == tag name
-    "tag_name_token":    0.70,  # all tokens match tag name tokens
-    "tag_slug_match":    0.60,  # slug-normalised query matches tag slug
+    "tag_name_exact": 1.00,  # query (normalised) == tag name
+    "tag_name_token": 0.70,  # all tokens match tag name tokens
+    "tag_slug_match": 0.60,  # slug-normalised query matches tag slug
     # Person scoring
-    "person_username":   1.00,  # query matches username
-    "person_display":    0.80,  # query matches display_name
-    "person_headline":   0.40,  # query appears in headline
+    "person_username": 1.00,  # query matches username
+    "person_display": 0.80,  # query matches display_name
+    "person_headline": 0.40,  # query appears in headline
 }
 
 # Freshness half-life: content this many days old scores ~0.5 on freshness.
@@ -68,6 +68,7 @@ _ANON: object = object()
 
 
 # ── Tokenisation ──────────────────────────────────────────────────────────────
+
 
 def _tokenize(text: str) -> list[str]:
     """Return lower-case alphanumeric tokens."""
@@ -83,6 +84,7 @@ def _slug_norm(text: str) -> str:
 
 
 # ── Normalisation helpers ──────────────────────────────────────────────────────
+
 
 def _clamp(value: float) -> float:
     return max(0.0, min(1.0, float(value)))
@@ -105,6 +107,7 @@ def _quality(view_count: int, ceiling: int = 10_000) -> float:
 
 
 # ── Title-match scoring ────────────────────────────────────────────────────────
+
 
 def _title_match_score(query: str, title: str) -> float:
     """Return the best matching title-signal weight (waterfall)."""
@@ -133,6 +136,7 @@ def _title_match_score(query: str, title: str) -> float:
 
 
 # ── Public scoring functions ───────────────────────────────────────────────────
+
 
 def title_score(query: str, title: str) -> float:
     """Public wrapper: title-relevance score in [0, 1].

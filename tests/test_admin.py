@@ -34,7 +34,6 @@ from backend.services.admin_user_service import AdminUserError, AdminUserService
 from backend.services.audit_log_service import AuditLogService
 from backend.services.moderation_service import ModerationError, ModerationService
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
@@ -62,7 +61,9 @@ def _make_reader(make_user_token) -> tuple[User, str]:
     return make_user_token(role="reader")
 
 
-def _create_post(author: User, *, title: str = "Test Post", status: PostStatus = PostStatus.published) -> Post:
+def _create_post(
+    author: User, *, title: str = "Test Post", status: PostStatus = PostStatus.published
+) -> Post:
     post = Post(
         title=title,
         slug=title.lower().replace(" ", "-"),
@@ -75,7 +76,9 @@ def _create_post(author: User, *, title: str = "Test Post", status: PostStatus =
     return post
 
 
-def _create_revision(post: Post, author: User, *, status: RevisionStatus = RevisionStatus.pending) -> Revision:
+def _create_revision(
+    post: Post, author: User, *, status: RevisionStatus = RevisionStatus.pending
+) -> Revision:
     rev = Revision(
         post_id=post.id,
         author_id=author.id,
@@ -171,7 +174,9 @@ class TestAccessControl:
         editor, _ = _make_editor(make_user_token)
         target, _ = _make_reader(make_user_token)
         _login(auth_client, editor)
-        resp = auth_client.post(f"/admin/users/{target.id}/role", data={"role": "editor"})
+        resp = auth_client.post(
+            f"/admin/users/{target.id}/role", data={"role": "editor"}
+        )
         assert resp.status_code == 403
 
     def test_index_redirects_to_dashboard(self, auth_client, make_user_token):
@@ -197,7 +202,9 @@ class TestAdminDashboard:
 
     def test_dashboard_shows_post_counts(self, auth_client, make_user_token):
         admin, _ = _make_admin(make_user_token)
-        _create_post(admin, title="Dashboard Published Post", status=PostStatus.published)
+        _create_post(
+            admin, title="Dashboard Published Post", status=PostStatus.published
+        )
         _create_post(admin, title="Dashboard Draft Post", status=PostStatus.draft)
         _login(auth_client, admin)
         resp = auth_client.get("/admin/dashboard")
@@ -219,7 +226,7 @@ class TestAdminPosts:
 
     def test_posts_list_shows_post(self, auth_client, make_user_token):
         admin, _ = _make_admin(make_user_token)
-        post = _create_post(admin, title="Unique Title XYZ")
+        _create_post(admin, title="Unique Title XYZ")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/posts")
         assert b"Unique Title XYZ" in resp.data
@@ -263,7 +270,9 @@ class TestAdminPosts:
         admin, _ = _make_admin(make_user_token)
         post = _create_post(admin)
         _login(auth_client, admin)
-        resp = auth_client.post(f"/admin/posts/{post.id}/status", data={"status": "nonsense"})
+        resp = auth_client.post(
+            f"/admin/posts/{post.id}/status", data={"status": "nonsense"}
+        )
         assert resp.status_code in (301, 302)
         # Original status unchanged
         _db.session.refresh(post)
@@ -352,7 +361,9 @@ class TestAdminRevisions:
         post = _create_post(admin)
         rev = _create_revision(post, contrib)
         _login(auth_client, admin)
-        resp = auth_client.post(f"/admin/revisions/{rev.id}/reject", data={"note": "Not relevant"})
+        resp = auth_client.post(
+            f"/admin/revisions/{rev.id}/reject", data={"note": "Not relevant"}
+        )
         assert resp.status_code in (301, 302)
         _db.session.refresh(rev)
         assert rev.status == RevisionStatus.rejected
@@ -425,7 +436,9 @@ class TestAdminTopics:
         assert tag is not None
         assert tag.name == "NewTopic"
 
-    def test_topic_create_duplicate_slug_flashes_error(self, auth_client, make_user_token):
+    def test_topic_create_duplicate_slug_flashes_error(
+        self, auth_client, make_user_token
+    ):
         admin, _ = _make_admin(make_user_token)
         tag = Tag(name="Existing", slug="existing")
         _db.session.add(tag)
@@ -434,7 +447,9 @@ class TestAdminTopics:
         resp = auth_client.post("/admin/topics/create", data={"name": "Existing"})
         assert resp.status_code in (301, 302)
         # Should only be one tag with this slug
-        count = _db.session.scalar(select(_db.func.count(Tag.id)).where(Tag.slug == "existing"))
+        count = _db.session.scalar(
+            select(_db.func.count(Tag.id)).where(Tag.slug == "existing")
+        )
         assert count == 1
 
     def test_topic_edit(self, auth_client, make_user_token):
@@ -443,7 +458,10 @@ class TestAdminTopics:
         _db.session.add(tag)
         _db.session.commit()
         _login(auth_client, admin)
-        resp = auth_client.post("/admin/topics/oldname/edit", data={"name": "NewName", "description": "", "color": ""})
+        resp = auth_client.post(
+            "/admin/topics/oldname/edit",
+            data={"name": "NewName", "description": "", "color": ""},
+        )
         assert resp.status_code in (301, 302)
         _db.session.refresh(tag)
         assert tag.name == "NewName"
@@ -531,7 +549,9 @@ class TestAdminUsers:
         admin, _ = _make_admin(make_user_token)
         target, _ = _make_reader(make_user_token)
         _login(auth_client, admin)
-        resp = auth_client.post(f"/admin/users/{target.id}/role", data={"role": "contributor"})
+        resp = auth_client.post(
+            f"/admin/users/{target.id}/role", data={"role": "contributor"}
+        )
         assert resp.status_code in (301, 302)
         _db.session.refresh(target)
         assert target.role == UserRole.contributor
@@ -540,7 +560,9 @@ class TestAdminUsers:
         admin, _ = _make_admin(make_user_token)
         target, _ = _make_reader(make_user_token)
         _login(auth_client, admin)
-        resp = auth_client.post(f"/admin/users/{target.id}/role", data={"role": "supervillain"})
+        resp = auth_client.post(
+            f"/admin/users/{target.id}/role", data={"role": "supervillain"}
+        )
         assert resp.status_code in (301, 302)
         _db.session.refresh(target)
         assert target.role == UserRole.reader  # unchanged
@@ -677,7 +699,9 @@ class TestAuditLogService:
             note="Test note",
         )
         db_session.commit()
-        entry = db_session.scalar(select(AuditLog).where(AuditLog.action == "post.published"))
+        entry = db_session.scalar(
+            select(AuditLog).where(AuditLog.action == "post.published")
+        )
         assert entry is not None
         assert entry.actor_id == actor.id
         assert entry.target_id == 42
@@ -686,7 +710,9 @@ class TestAuditLogService:
     def test_log_works_without_actor(self, db_session, make_user_token):
         AuditLogService.log(actor=None, action="system.startup")
         db_session.commit()
-        entry = db_session.scalar(select(AuditLog).where(AuditLog.action == "system.startup"))
+        entry = db_session.scalar(
+            select(AuditLog).where(AuditLog.action == "system.startup")
+        )
         assert entry is not None
         assert entry.actor_id is None
 
@@ -796,7 +822,9 @@ class TestAdminTagService:
     def test_update_tag(self, db_session, make_user_token):
         tag = AdminTagService.create(name="Go")
         db_session.commit()
-        AdminTagService.update(tag, name="GoLang", description="Go programming language")
+        AdminTagService.update(
+            tag, name="GoLang", description="Go programming language"
+        )
         db_session.commit()
         assert tag.name == "GoLang"
         assert tag.description == "Go programming language"

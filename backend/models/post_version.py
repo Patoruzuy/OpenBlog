@@ -28,14 +28,16 @@ class PostVersion(db.Model):
         Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True
     )
     version_number: Mapped[int] = mapped_column(
-        Integer, nullable=False,
-        comment="Matches Post.version at the time this snapshot was taken."
+        Integer,
+        nullable=False,
+        comment="Matches Post.version at the time this snapshot was taken.",
     )
 
     # ── Content snapshot ───────────────────────────────────────────────────
     markdown_body: Mapped[str] = mapped_column(
-        Text, nullable=False,
-        comment="Full markdown body as of this version. Immutable after creation."
+        Text,
+        nullable=False,
+        comment="Full markdown body as of this version. Immutable after creation.",
     )
 
     # ── Attribution ────────────────────────────────────────────────────────
@@ -63,7 +65,9 @@ class PostVersion(db.Model):
     )
 
     __table_args__ = (
-        UniqueConstraint("post_id", "version_number", name="uq_post_versions_post_version"),
+        UniqueConstraint(
+            "post_id", "version_number", name="uq_post_versions_post_version"
+        ),
     )
 
     def __repr__(self) -> str:

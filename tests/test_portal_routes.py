@@ -18,8 +18,10 @@ import pytest
 from backend.extensions import db
 from backend.services.auth_service import AuthError, AuthService
 from backend.services.privacy_service import PrivacyService
-from backend.services.repository_service import RepositoryService, RepositoryServiceError
-
+from backend.services.repository_service import (
+    RepositoryService,
+    RepositoryServiceError,
+)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Per-test user fixtures
@@ -94,45 +96,75 @@ class TestRepositoryService:
             is_public=True,
         )
         assert repo.id is not None
-        assert repo.user_id  == alice.id
+        assert repo.user_id == alice.id
         assert repo.repo_name == "My Project"
 
     def test_add_duplicate_url_raises(self, db_session, alice):
-        RepositoryService.add(alice, repo_name="Dup Repo", repo_url="https://github.com/me/dup")
+        RepositoryService.add(
+            alice, repo_name="Dup Repo", repo_url="https://github.com/me/dup"
+        )
         with pytest.raises(RepositoryServiceError, match="already added"):
-            RepositoryService.add(alice, repo_name="Dup Repo", repo_url="https://github.com/me/dup")
+            RepositoryService.add(
+                alice, repo_name="Dup Repo", repo_url="https://github.com/me/dup"
+            )
 
     def test_get_for_user_returns_all_items(self, db_session, alice):
-        RepositoryService.add(alice, repo_name="Repo A", repo_url="https://github.com/me/a")
-        RepositoryService.add(alice, repo_name="Repo B", repo_url="https://github.com/me/b")
+        RepositoryService.add(
+            alice, repo_name="Repo A", repo_url="https://github.com/me/a"
+        )
+        RepositoryService.add(
+            alice, repo_name="Repo B", repo_url="https://github.com/me/b"
+        )
         assert len(RepositoryService.get_for_user(alice.id)) == 2
 
     def test_get_for_user_public_only_filters(self, db_session, alice):
-        RepositoryService.add(alice, repo_name="Pub Repo", repo_url="https://github.com/me/pub", is_public=True)
-        RepositoryService.add(alice, repo_name="Priv Repo", repo_url="https://github.com/me/priv", is_public=False)
+        RepositoryService.add(
+            alice,
+            repo_name="Pub Repo",
+            repo_url="https://github.com/me/pub",
+            is_public=True,
+        )
+        RepositoryService.add(
+            alice,
+            repo_name="Priv Repo",
+            repo_url="https://github.com/me/priv",
+            is_public=False,
+        )
         repos = RepositoryService.get_for_user(alice.id, public_only=True)
         assert len(repos) == 1
         assert repos[0].is_public is True
 
     def test_update_repository(self, db_session, alice):
-        repo = RepositoryService.add(alice, repo_name="Upd Repo", repo_url="https://github.com/me/upd")
+        repo = RepositoryService.add(
+            alice, repo_name="Upd Repo", repo_url="https://github.com/me/upd"
+        )
         updated = RepositoryService.update(repo.id, alice.id, description="updated")
         assert updated.description == "updated"
 
     def test_delete_repository(self, db_session, alice):
-        repo = RepositoryService.add(alice, repo_name="Del Repo", repo_url="https://github.com/me/del")
+        repo = RepositoryService.add(
+            alice, repo_name="Del Repo", repo_url="https://github.com/me/del"
+        )
         RepositoryService.delete(repo.id, alice.id)
         assert RepositoryService.get_for_user(alice.id) == []
 
     def test_get_by_id_wrong_user_raises(self, db_session, alice, bob):
-        repo = RepositoryService.add(alice, repo_name="Alice Repo", repo_url="https://github.com/alice/x")
+        repo = RepositoryService.add(
+            alice, repo_name="Alice Repo", repo_url="https://github.com/alice/x"
+        )
         with pytest.raises(RepositoryServiceError, match="[Nn]ot found"):
             RepositoryService.get_by_id(repo.id, bob.id)
 
     def test_reorder_repositories(self, db_session, alice):
-        r1 = RepositoryService.add(alice, repo_name="Repo 1", repo_url="https://github.com/me/r1")
-        r2 = RepositoryService.add(alice, repo_name="Repo 2", repo_url="https://github.com/me/r2")
-        r3 = RepositoryService.add(alice, repo_name="Repo 3", repo_url="https://github.com/me/r3")
+        r1 = RepositoryService.add(
+            alice, repo_name="Repo 1", repo_url="https://github.com/me/r1"
+        )
+        r2 = RepositoryService.add(
+            alice, repo_name="Repo 2", repo_url="https://github.com/me/r2"
+        )
+        r3 = RepositoryService.add(
+            alice, repo_name="Repo 3", repo_url="https://github.com/me/r3"
+        )
         RepositoryService.reorder(alice.id, [r3.id, r1.id, r2.id])
         repos = RepositoryService.get_for_user(alice.id)
         assert [r.id for r in repos] == [r3.id, r1.id, r2.id]
@@ -144,15 +176,20 @@ class TestRepositoryService:
 
 
 class TestSettingsRequiresAuth:
-    @pytest.mark.parametrize("path", [
-        "/settings/profile",
-        "/settings/privacy",
-        "/settings/security",
-        "/settings/accounts",
-        "/settings/repositories",
-        "/settings/contributions",
-    ])
-    def test_redirects_to_login_when_unauthenticated(self, auth_client, db_session, path):
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/settings/profile",
+            "/settings/privacy",
+            "/settings/security",
+            "/settings/accounts",
+            "/settings/repositories",
+            "/settings/contributions",
+        ],
+    )
+    def test_redirects_to_login_when_unauthenticated(
+        self, auth_client, db_session, path
+    ):
         resp = auth_client.get(path, follow_redirects=False)
         assert resp.status_code in (301, 302)
         assert "/auth/login" in resp.headers["Location"]
@@ -219,7 +256,7 @@ class TestSettingsPrivacy:
             "/settings/privacy",
             data={
                 "default_identity_mode": "pseudonymous",
-                "pseudonymous_alias":    "dark_coder",
+                "pseudonymous_alias": "dark_coder",
             },
             follow_redirects=True,
         )
@@ -245,7 +282,7 @@ class TestSettingsSecurity:
             "/settings/security/password",
             data={
                 "current_password": "StrongPass123!!",
-                "new_password":     "NewStrongPass456!!",
+                "new_password": "NewStrongPass456!!",
                 "confirm_password": "NewStrongPass456!!",
             },
             follow_redirects=True,
@@ -260,7 +297,7 @@ class TestSettingsSecurity:
             "/settings/security/password",
             data={
                 "current_password": "WrongPassword123!!",
-                "new_password":     "NewStrongPass456!!",
+                "new_password": "NewStrongPass456!!",
                 "confirm_password": "NewStrongPass456!!",
             },
             follow_redirects=True,
@@ -275,7 +312,7 @@ class TestSettingsSecurity:
             "/settings/security/password",
             data={
                 "current_password": "StrongPass123!!",
-                "new_password":     "NewStrongPass456!!",
+                "new_password": "NewStrongPass456!!",
                 "confirm_password": "DifferentPass789!!",
             },
             follow_redirects=True,
@@ -302,8 +339,8 @@ class TestSettingsRepositories:
             "/settings/repositories/add",
             data={
                 "repo_name": "Awesome Project",
-                "repo_url":  "https://github.com/me/awesome",
-                "language":  "Python",
+                "repo_url": "https://github.com/me/awesome",
+                "language": "Python",
                 "is_public": "on",
             },
             follow_redirects=True,
@@ -315,8 +352,12 @@ class TestSettingsRepositories:
 
     def test_reorder_endpoint(self, auth_client, alice):
         _login(auth_client, alice.id)
-        r1 = RepositoryService.add(alice, repo_name="Ro 1", repo_url="https://github.com/me/ro1")
-        r2 = RepositoryService.add(alice, repo_name="Ro 2", repo_url="https://github.com/me/ro2")
+        r1 = RepositoryService.add(
+            alice, repo_name="Ro 1", repo_url="https://github.com/me/ro1"
+        )
+        r2 = RepositoryService.add(
+            alice, repo_name="Ro 2", repo_url="https://github.com/me/ro2"
+        )
         resp = auth_client.post(
             "/settings/repositories/reorder",
             data=json.dumps({"order": [r2.id, r1.id]}),
@@ -327,7 +368,9 @@ class TestSettingsRepositories:
 
     def test_delete_repository(self, auth_client, alice):
         _login(auth_client, alice.id)
-        repo = RepositoryService.add(alice, repo_name="To Drop", repo_url="https://github.com/me/todrop")
+        repo = RepositoryService.add(
+            alice, repo_name="To Drop", repo_url="https://github.com/me/todrop"
+        )
         resp = auth_client.post(
             f"/settings/repositories/{repo.id}/delete",
             follow_redirects=True,

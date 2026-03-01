@@ -43,7 +43,9 @@ def subscribe():
     prevent enumeration.
     """
     email = (request.form.get("email") or "").strip().lower()
-    locale = request.form.get("locale") or current_app.config.get("BABEL_DEFAULT_LOCALE", "en")
+    locale = request.form.get("locale") or current_app.config.get(
+        "BABEL_DEFAULT_LOCALE", "en"
+    )
     source = request.form.get("source") or "footer_form"
 
     # Determine user_id if the submitter is logged in.
@@ -60,10 +62,15 @@ def subscribe():
             # Fire confirm email only for pending subscriptions.
             if sub.status == "pending":
                 try:
-                    from backend.tasks.email import send_newsletter_confirm_email  # noqa: PLC0415
+                    from backend.tasks.email import (
+                        send_newsletter_confirm_email,  # noqa: PLC0415
+                    )
+
                     send_newsletter_confirm_email.delay(email, confirm_token, locale)
                 except Exception as exc:
-                    current_app.logger.warning("Failed to queue newsletter confirm email: %s", exc)
+                    current_app.logger.warning(
+                        "Failed to queue newsletter confirm email: %s", exc
+                    )
         except NewsletterError as exc:
             current_app.logger.warning("Newsletter subscribe error: %s", exc)
         except Exception as exc:

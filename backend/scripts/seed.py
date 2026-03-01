@@ -140,6 +140,7 @@ and increase your visibility on the leaderboard.
 
 # ── Seed helpers ───────────────────────────────────────────────────────────────
 
+
 def _get_or_create_user(data: dict) -> tuple[User, bool]:
     """Return (user, created).  Does not flush/commit."""
     existing = db.session.query(User).filter_by(email=data["email"]).first()
@@ -205,6 +206,7 @@ def _get_or_create_post(data: dict, author: User, tags: list[Tag]) -> tuple[Post
 
 # ── Main entrypoint ────────────────────────────────────────────────────────────
 
+
 def run_seed() -> None:
     """Seed the database.  Prints a summary of created records."""
     try:
@@ -222,7 +224,9 @@ def run_seed() -> None:
 
         # Posts
         for post_data in POSTS:
-            post_tags = [tag_objects[s] for s in post_data["tag_slugs"] if s in tag_objects]
+            post_tags = [
+                tag_objects[s] for s in post_data["tag_slugs"] if s in tag_objects
+            ]
             post, created = _get_or_create_post(post_data, admin, post_tags)
             db.session.flush()
             print(f"  {'[created]' if created else '[exists] '} Post: {post.slug!r}")

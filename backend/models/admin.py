@@ -100,9 +100,7 @@ class SiteSetting(db.Model):
     # JSON-encoded value; use SiteSettingsService.get/set for type-safe access.
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    group: Mapped[str] = mapped_column(
-        String(64), nullable=False, default="general"
-    )
+    group: Mapped[str] = mapped_column(String(64), nullable=False, default="general")
     description: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     updated_by_id: Mapped[int | None] = mapped_column(

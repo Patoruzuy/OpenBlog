@@ -15,7 +15,6 @@ from backend.extensions import db
 from backend.models.post import Post, PostStatus
 from backend.models.revision import Revision, RevisionStatus
 from backend.models.tag import PostTag, Tag
-from backend.models.user import User
 
 _POSTS_PER_PAGE = 20
 _TAGS_LIMIT = 60
@@ -41,7 +40,11 @@ class ExploreService:
         )
         total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         offset = (page - 1) * _POSTS_PER_PAGE
-        posts = list(db.session.execute(q.offset(offset).limit(_POSTS_PER_PAGE)).unique().scalars())
+        posts = list(
+            db.session.execute(q.offset(offset).limit(_POSTS_PER_PAGE))
+            .unique()
+            .scalars()
+        )
         return posts, total
 
     # ── Topics tab ────────────────────────────────────────────────────────────
@@ -55,8 +58,7 @@ class ExploreService:
             .outerjoin(PostTag, PostTag.c.tag_id == Tag.id)
             .outerjoin(
                 Post,
-                (Post.id == PostTag.c.post_id)
-                & (Post.status == PostStatus.published),
+                (Post.id == PostTag.c.post_id) & (Post.status == PostStatus.published),
             )
             .group_by(Tag.id)
             .order_by(post_count_col.desc(), Tag.name)
@@ -83,7 +85,9 @@ class ExploreService:
         total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         offset = (page - 1) * _REVISIONS_PER_SECTION
         revisions = list(
-            db.session.execute(q.offset(offset).limit(_REVISIONS_PER_SECTION)).unique().scalars()
+            db.session.execute(q.offset(offset).limit(_REVISIONS_PER_SECTION))
+            .unique()
+            .scalars()
         )
         return revisions, total
 
@@ -104,6 +108,8 @@ class ExploreService:
         total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         offset = (page - 1) * _REVISIONS_PER_SECTION
         revisions = list(
-            db.session.execute(q.offset(offset).limit(_REVISIONS_PER_SECTION)).unique().scalars()
+            db.session.execute(q.offset(offset).limit(_REVISIONS_PER_SECTION))
+            .unique()
+            .scalars()
         )
         return revisions, total

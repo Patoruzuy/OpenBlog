@@ -12,7 +12,9 @@ def _auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def _make_published_post(client, token: str, title: str, body: str = "Body text") -> dict:
+def _make_published_post(
+    client, token: str, title: str, body: str = "Body text"
+) -> dict:
     """Create and publish a post, return the post dict."""
     post = client.post(
         "/api/posts/",
@@ -71,7 +73,10 @@ class TestSearchApi:
     def test_response_includes_excerpt(self, auth_client, make_user_token):
         _, token = make_user_token(role="editor")
         _make_published_post(
-            auth_client, token, "Excerpt Test", body="This post talks about Redis caching"
+            auth_client,
+            token,
+            "Excerpt Test",
+            body="This post talks about Redis caching",
         )
         resp = auth_client.get("/api/search/?q=Redis")
         data = resp.get_json()

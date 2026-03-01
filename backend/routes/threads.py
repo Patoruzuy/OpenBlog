@@ -50,7 +50,9 @@ def unsubscribe(slug: str):  # type: ignore[return]
     try:
         ThreadSubscriptionService.unsubscribe(user_id=user_id, post_id=_post_id)
     except Exception:
-        log.exception("Error unsubscribing user_id=%s from post_id=%s", user_id, _post_id)
+        log.exception(
+            "Error unsubscribing user_id=%s from post_id=%s", user_id, _post_id
+        )
         return render_template("threads/error.html", slug=slug), 500
 
     return render_template("threads/unsubscribed.html", slug=slug)

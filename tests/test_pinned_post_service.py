@@ -69,7 +69,9 @@ class TestPin:
         from backend.models.pinned_post import _MAX_PINNED
 
         # Fill up to the limit
-        posts = [_make_post(db, alice.id, f"limit-post-{i}") for i in range(_MAX_PINNED)]
+        posts = [
+            _make_post(db, alice.id, f"limit-post-{i}") for i in range(_MAX_PINNED)
+        ]
         for post in posts:
             PinnedPostService.pin(alice.id, post.id)
 

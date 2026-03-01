@@ -17,7 +17,6 @@ from __future__ import annotations
 import pytest
 from prometheus_client import REGISTRY
 
-
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
@@ -33,6 +32,8 @@ class TestMetricDefinitions:
     """All expected metric objects are importable and have the correct type."""
 
     def test_all_counters_importable(self):
+        from prometheus_client import Counter
+
         from backend.utils.metrics import (
             bookmarks_created,
             celery_tasks_total,
@@ -46,7 +47,6 @@ class TestMetricDefinitions:
             user_logins,
             user_registrations,
         )
-        from prometheus_client import Counter
 
         for counter in (
             posts_created,
@@ -65,18 +65,20 @@ class TestMetricDefinitions:
         assert isinstance(user_logins, Counter)
 
     def test_histograms_importable(self):
+        from prometheus_client import Histogram
+
         from backend.utils.metrics import (
             celery_task_duration_seconds,
             db_query_duration_seconds,
         )
-        from prometheus_client import Histogram
 
         assert isinstance(db_query_duration_seconds, Histogram)
         assert isinstance(celery_task_duration_seconds, Histogram)
 
     def test_build_info_importable(self):
-        from backend.utils.metrics import build_info
         from prometheus_client import Info
+
+        from backend.utils.metrics import build_info
 
         assert isinstance(build_info, Info)
 
@@ -95,7 +97,7 @@ class TestMetricDefinitions:
             "openblog_posts_created",
             "openblog_posts_published",
             "openblog_user_registrations",
-            "openblog_user_logins",       # labelled counter – no samples until inc'd
+            "openblog_user_logins",  # labelled counter – no samples until inc'd
             "openblog_revisions_submitted",
             "openblog_revisions_accepted",
             "openblog_revisions_rejected",
@@ -124,7 +126,9 @@ class TestAuthMetrics:
         before = _val("openblog_user_registrations_total")
         from backend.services.auth_service import AuthService
 
-        AuthService.register("reg_metrics@example.com", "reg_metrics_user", "StrongPass123!!")
+        AuthService.register(
+            "reg_metrics@example.com", "reg_metrics_user", "StrongPass123!!"
+        )
         assert _val("openblog_user_registrations_total") == before + 1
 
     def test_successful_login_increments_success_counter(self, db_session):
@@ -138,7 +142,9 @@ class TestAuthMetrics:
     def test_wrong_password_increments_failure_counter(self, db_session):
         from backend.services.auth_service import AuthError, AuthService
 
-        AuthService.register("login_fail@example.com", "login_fail_user", "StrongPass123!!")
+        AuthService.register(
+            "login_fail@example.com", "login_fail_user", "StrongPass123!!"
+        )
         before = _val("openblog_user_logins_total", {"outcome": "failure"})
         with pytest.raises(AuthError):
             AuthService.login("login_fail@example.com", "wrongpassword")

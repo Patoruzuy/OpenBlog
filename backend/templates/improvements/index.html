@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Improvements') }}{% endblock %}
+
+{% block content %}
+<div class="container posts-list">
+
+  {# ── Page header ──────────────────────────────────────────────────────── #}
+  <div class="posts-header">
+    <h1 class="posts-title">{{ _('Improvements') }}</h1>
+    <p class="posts-meta">{{ _('Posts improved through accepted community revisions.') }}</p>
+  </div>
+
+  {# ── Time-window filter pills ─────────────────────────────────────────── #}
+  <nav class="filter-pills" aria-label="{{ _('Time window filter') }}">
+    {% set filters = [
+        ('7',   _('Last 7 days')),
+        ('30',  _('Last 30 days')),
+        ('90',  _('Last 90 days')),
+        ('all', _('All time')),
+    ] %}
+    {% for value, label in filters %}
+      <a
+        class="filter-pill{% if days_str == value %} filter-pill--active{% endif %}"
+        href="{{ url_for('improvements.improvements_index', days=value, page=1) }}"
+        {% if days_str == value %}aria-current="page"{% endif %}
+      >{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  {# ── List ─────────────────────────────────────────────────────────────── #}
+  {% if entries %}
+    <div class="post-rows">
+      {% for entry in entries %}
+        <a class="post-row" href="{{ url_for('posts.post_detail', slug=entry.post.slug) }}">
+          <div class="post-row-content">
+            <div class="post-row-title">
+              {{ entry.post.title }}
+              <span class="badge badge--improved">{{ _('Improved') }}</span>
+              {% if entry.post.version > 1 %}
+                <span class="version-badge">v{{ entry.post.version }}</span>
+              {% endif %}
+            </div>
+            <div class="post-row-meta">
+              <span>{{ entry.post.author.display_name or entry.post.author.username }}</span>
+              <span>&middot;</span>
+              <span>
+                {{ _('Last improved: ') }}<time datetime="{{ entry.last_accepted_at.isoformat() }}">{{ entry.last_accepted_at.strftime('%b %d, %Y') }}</time>
+              </span>
+              <span>&middot;</span>
+              <span>{{ _('Accepted revisions: %(n)s', n=entry.accepted_count_in_window) }}</span>
+              {% if entry.last_accepted_by_display %}
+                <span>&middot;</span>
+                <span>{{ _('by %(name)s', name=entry.last_accepted_by_display) }}</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if entry.post.tags %}
+            <div class="post-row-tags">
+              {% for tag in entry.post.tags[:3] %}
+                <span class="tag-badge">#{{ tag.slug }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+
+    {# ── Pagination ────────────────────────────────────────────────────── #}
+    {% if pages > 1 %}
+      <nav class="pagination" aria-label="{{ _('Improvements pagination') }}">
+        {% if page > 1 %}
+          <a class="page-link" href="{{ url_for('improvements.improvements_index', days=days_str, page=page-1) }}">&larr; {{ _('Prev') }}</a>
+        {% endif %}
+        <span class="page-info">{{ (page-1)*per_page + 1 }}–{{ [page*per_page, total]|min }} {{ _('of') }} {{ total }}</span>
+        {% if page < pages %}
+          <a class="page-link" href="{{ url_for('improvements.improvements_index', days=days_str, page=page+1) }}">{{ _('Next') }} &rarr;</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    {# ── Empty state ───────────────────────────────────────────────────── #}
+    <div class="empty-state">
+      <span class="empty-state-icon">&empty;</span>
+      <p>{{ _('No improvements yet for this window.') }}</p>
+      <a href="{{ url_for('posts.list_posts') }}" class="btn btn-ghost">{{ _('Browse posts') }} &rarr;</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

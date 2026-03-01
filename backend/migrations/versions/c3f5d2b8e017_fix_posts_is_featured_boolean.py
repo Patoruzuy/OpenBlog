@@ -37,10 +37,7 @@ def upgrade() -> None:
             "ALTER COLUMN is_featured TYPE BOOLEAN "
             "USING is_featured::boolean"
         )
-        op.execute(
-            "ALTER TABLE posts "
-            "ALTER COLUMN is_featured SET DEFAULT FALSE"
-        )
+        op.execute("ALTER TABLE posts ALTER COLUMN is_featured SET DEFAULT FALSE")
     else:
         # SQLite: recreate table via batch — column stays as INTEGER
         # but SQLAlchemy's Boolean type maps to 0/1 transparently.
@@ -61,10 +58,7 @@ def downgrade() -> None:
             "ALTER COLUMN is_featured TYPE INTEGER "
             "USING is_featured::integer"
         )
-        op.execute(
-            "ALTER TABLE posts "
-            "ALTER COLUMN is_featured SET DEFAULT 0"
-        )
+        op.execute("ALTER TABLE posts ALTER COLUMN is_featured SET DEFAULT 0")
     else:
         with op.batch_alter_table("posts") as batch_op:
             batch_op.alter_column(

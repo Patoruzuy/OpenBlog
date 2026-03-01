@@ -43,8 +43,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-import pytest
-
 from backend.extensions import db as _db
 from backend.models.analytics import AnalyticsEvent
 from backend.models.post import Post, PostStatus
@@ -53,10 +51,10 @@ from backend.models.user import User, UserRole
 from backend.services.admin_analytics_service import AdminAnalyticsService
 from backend.services.admin_dashboard_service import AdminDashboardService
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _login(client, user: User) -> None:
     with client.session_transaction() as sess:
@@ -146,6 +144,7 @@ def _make_analytics_event(post: Post, *, days_ago: int = 1) -> AnalyticsEvent:
 # Unit — AdminDashboardService
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestAdminDashboardServiceUnit:
     def test_post_counts_by_status(self, db_session):
         author = _make_user("dash_author@example.com", "dash_author", "editor")
@@ -173,7 +172,9 @@ class TestAdminDashboardServiceUnit:
 
     def test_user_counts(self, db_session):
         _make_user("usr_verified@example.com", "usr_verified", "reader")
-        unverified = _make_user("usr_unverified@example.com", "usr_unverified2", "reader")
+        unverified = _make_user(
+            "usr_unverified@example.com", "usr_unverified2", "reader"
+        )
         unverified.is_email_verified = False
         _db.session.commit()
 
@@ -236,26 +237,38 @@ class TestAdminDashboardServiceUnit:
 # Unit — AdminAnalyticsService
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestAdminAnalyticsServiceUnit:
     def test_all_keys_present_on_empty_db(self, db_session):
         data = AdminAnalyticsService.overview(days=30)
         required = {
-            "total_views", "top_posts", "pv_by_day", "rev_funnel",
-            "rev_submitted_period", "rev_accepted_period", "rev_rejected_period",
-            "avg_review_days", "acceptance_rate",
-            "active_contributors", "accepted_contribs",
-            "first_time_contributors", "top_contributors",
-            "signups_by_day", "top_tags",
-            "stale_posts", "low_traffic_posts",
-            "comments_by_day", "days",
+            "total_views",
+            "top_posts",
+            "pv_by_day",
+            "rev_funnel",
+            "rev_submitted_period",
+            "rev_accepted_period",
+            "rev_rejected_period",
+            "avg_review_days",
+            "acceptance_rate",
+            "active_contributors",
+            "accepted_contribs",
+            "first_time_contributors",
+            "top_contributors",
+            "signups_by_day",
+            "top_tags",
+            "stale_posts",
+            "low_traffic_posts",
+            "comments_by_day",
+            "days",
         }
         assert required.issubset(data.keys())
 
     def test_total_views_counts_events_in_period(self, db_session):
         author = _make_user("views_author@example.com", "views_author", "editor")
         post = _make_post(author, title="Views Post")
-        _make_analytics_event(post, days_ago=5)   # in 30d window
-        _make_analytics_event(post, days_ago=5)   # in 30d window
+        _make_analytics_event(post, days_ago=5)  # in 30d window
+        _make_analytics_event(post, days_ago=5)  # in 30d window
         _make_analytics_event(post, days_ago=40)  # outside 30d window
 
         data = AdminAnalyticsService.overview(days=30)
@@ -270,7 +283,7 @@ class TestAdminAnalyticsServiceUnit:
         author = _make_user("rev_sub_author@example.com", "rev_sub_author", "editor")
         post = _make_post(author, title="Rev Sub Post")
         c = _make_user("rev_sub_c@example.com", "rev_sub_c", "contributor")
-        _make_revision(post, c, days_ago=5)   # in 30d window
+        _make_revision(post, c, days_ago=5)  # in 30d window
         _make_revision(post, c, days_ago=40)  # outside 30d window
 
         data = AdminAnalyticsService.overview(days=30)
@@ -282,13 +295,15 @@ class TestAdminAnalyticsServiceUnit:
         post = _make_post(author, title="Acc Post")
         c = _make_user("rv_acc_c@example.com", "rv_acc_c", "contributor")
         _make_revision(
-            post, c,
+            post,
+            c,
             status=RevisionStatus.accepted,
             days_ago=20,
             review_days_after=2,  # reviewed 18 days ago — within 30d
         )
         _make_revision(
-            post, c,
+            post,
+            c,
             status=RevisionStatus.accepted,
             days_ago=60,
             review_days_after=2,  # reviewed 58 days ago — outside 30d
@@ -308,14 +323,16 @@ class TestAdminAnalyticsServiceUnit:
         c = _make_user("avg_rev_c@example.com", "avg_rev_c", "contributor")
         # Revision reviewed 2 days after creation, reviewed within 30d
         _make_revision(
-            post, c,
+            post,
+            c,
             status=RevisionStatus.accepted,
             days_ago=10,
             review_days_after=2,
         )
         # Revision reviewed 4 days after creation, reviewed within 30d
         _make_revision(
-            post, c,
+            post,
+            c,
             status=RevisionStatus.rejected,
             days_ago=8,
             review_days_after=4,
@@ -336,11 +353,13 @@ class TestAdminAnalyticsServiceUnit:
         c = _make_user("acc_rate_c@example.com", "acc_rate_c", "contributor")
         # 2 accepted, 2 rejected → 50% acceptance rate
         for _ in range(2):
-            _make_revision(post, c, status=RevisionStatus.accepted,
-                           days_ago=5, review_days_after=1)
+            _make_revision(
+                post, c, status=RevisionStatus.accepted, days_ago=5, review_days_after=1
+            )
         for _ in range(2):
-            _make_revision(post, c, status=RevisionStatus.rejected,
-                           days_ago=5, review_days_after=1)
+            _make_revision(
+                post, c, status=RevisionStatus.rejected, days_ago=5, review_days_after=1
+            )
 
         data = AdminAnalyticsService.overview(days=30)
 
@@ -364,8 +383,9 @@ class TestAdminAnalyticsServiceUnit:
         author = _make_user("tc_author@example.com", "tc_author", "editor")
         post = _make_post(author, title="TC Post")
         c = _make_user("tc_c@example.com", "tc_contributor", "contributor")
-        _make_revision(post, c, status=RevisionStatus.accepted,
-                       days_ago=5, review_days_after=1)
+        _make_revision(
+            post, c, status=RevisionStatus.accepted, days_ago=5, review_days_after=1
+        )
 
         data = AdminAnalyticsService.overview(days=30)
 
@@ -379,9 +399,19 @@ class TestAdminAnalyticsServiceUnit:
     def test_stale_posts_older_than_90_days(self, db_session):
         author = _make_user("stale_author@example.com", "stale_author", "editor")
         # Updated 100 days ago → stale
-        _make_post(author, title="Stale Post", status=PostStatus.published, days_since_update=100)
+        _make_post(
+            author,
+            title="Stale Post",
+            status=PostStatus.published,
+            days_since_update=100,
+        )
         # Updated 10 days ago → not stale
-        _make_post(author, title="Fresh Post", status=PostStatus.published, days_since_update=10)
+        _make_post(
+            author,
+            title="Fresh Post",
+            status=PostStatus.published,
+            days_since_update=10,
+        )
 
         data = AdminAnalyticsService.overview(days=30)
 
@@ -392,7 +422,9 @@ class TestAdminAnalyticsServiceUnit:
     def test_stale_posts_drafts_excluded(self, db_session):
         author = _make_user("stale_d_author@example.com", "stale_d_author", "editor")
         # Draft post updated long ago — should not appear in stale list
-        _make_post(author, title="Old Draft", status=PostStatus.draft, days_since_update=200)
+        _make_post(
+            author, title="Old Draft", status=PostStatus.draft, days_since_update=200
+        )
 
         data = AdminAnalyticsService.overview(days=30)
 
@@ -401,8 +433,12 @@ class TestAdminAnalyticsServiceUnit:
 
     def test_low_traffic_posts_under_10_views(self, db_session):
         author = _make_user("lt_author@example.com", "lt_author", "editor")
-        _make_post(author, title="Zero Views Post", status=PostStatus.published, view_count=0)
-        _make_post(author, title="High Views Post", status=PostStatus.published, view_count=500)
+        _make_post(
+            author, title="Zero Views Post", status=PostStatus.published, view_count=0
+        )
+        _make_post(
+            author, title="High Views Post", status=PostStatus.published, view_count=500
+        )
 
         data = AdminAnalyticsService.overview(days=30)
 
@@ -413,7 +449,7 @@ class TestAdminAnalyticsServiceUnit:
     def test_days_param_applied_to_views(self, db_session):
         author = _make_user("dp_author@example.com", "dp_author", "editor")
         post = _make_post(author, title="Days Param Post")
-        _make_analytics_event(post, days_ago=5)   # within 7d
+        _make_analytics_event(post, days_ago=5)  # within 7d
         _make_analytics_event(post, days_ago=20)  # outside 7d but within 30d
 
         data_7 = AdminAnalyticsService.overview(days=7)
@@ -434,6 +470,7 @@ class TestAdminAnalyticsServiceUnit:
 # ─────────────────────────────────────────────────────────────────────────────
 # Integration — /admin/dashboard access
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestDashboardAccess:
     def test_anon_redirected_to_login(self, auth_client):
@@ -470,6 +507,7 @@ class TestDashboardAccess:
 # Integration — /admin/analytics access
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestAnalyticsAccess:
     def test_anon_redirected_to_login(self, auth_client):
         resp = auth_client.get("/admin/analytics")
@@ -505,6 +543,7 @@ class TestAnalyticsAccess:
 # Integration — /admin/dashboard rendering
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestDashboardRendering:
     def test_renders_post_section(self, auth_client, make_user_token, db_session):
         admin, _ = make_user_token(role="admin")
@@ -515,7 +554,9 @@ class TestDashboardRendering:
         assert b"Published" in resp.data
         assert b"Drafts" in resp.data
 
-    def test_shows_published_count_in_stat_card(self, auth_client, make_user_token, db_session):
+    def test_shows_published_count_in_stat_card(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _make_post(admin, title="DB Published A", status=PostStatus.published)
         _make_post(admin, title="DB Published B", status=PostStatus.published)
@@ -525,13 +566,17 @@ class TestDashboardRendering:
         # Page contains at least "2" somewhere in stat grid context
         assert b"2" in resp.data
 
-    def test_shows_unverified_users_card(self, auth_client, make_user_token, db_session):
+    def test_shows_unverified_users_card(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/dashboard")
         assert b"Unverified Email" in resp.data
 
-    def test_shows_active_contributors_card(self, auth_client, make_user_token, db_session):
+    def test_shows_active_contributors_card(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/dashboard")
@@ -545,13 +590,17 @@ class TestDashboardRendering:
         assert b"Database" in resp.data
         assert b"Redis" in resp.data
 
-    def test_shows_page_view_section_or_empty_state(self, auth_client, make_user_token, db_session):
+    def test_shows_page_view_section_or_empty_state(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/dashboard")
         assert b"Page Views" in resp.data
 
-    def test_shows_recent_activity_section(self, auth_client, make_user_token, db_session):
+    def test_shows_recent_activity_section(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/dashboard")
@@ -563,7 +612,9 @@ class TestDashboardRendering:
         resp = auth_client.get("/admin/dashboard")
         assert b"Top Posts" in resp.data
 
-    def test_empty_top_posts_shows_empty_state(self, auth_client, make_user_token, db_session):
+    def test_empty_top_posts_shows_empty_state(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/dashboard")
@@ -575,6 +626,7 @@ class TestDashboardRendering:
 # ─────────────────────────────────────────────────────────────────────────────
 # Integration — /admin/analytics rendering and filters
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestAnalyticsRendering:
     def test_renders_correctly(self, auth_client, make_user_token, db_session):
@@ -590,7 +642,9 @@ class TestAnalyticsRendering:
         assert resp.status_code == 200
         assert b"30d" in resp.data
 
-    def test_days_param_7_shows_7d_label(self, auth_client, make_user_token, db_session):
+    def test_days_param_7_shows_7d_label(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/analytics?days=7")
@@ -603,7 +657,9 @@ class TestAnalyticsRendering:
         resp = auth_client.get("/admin/analytics?days=9999")
         assert resp.status_code == 200
 
-    def test_revision_funnel_section_present(self, auth_client, make_user_token, db_session):
+    def test_revision_funnel_section_present(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/analytics")
@@ -615,13 +671,17 @@ class TestAnalyticsRendering:
         resp = auth_client.get("/admin/analytics")
         assert b"Top Posts" in resp.data
 
-    def test_stale_content_section_present(self, auth_client, make_user_token, db_session):
+    def test_stale_content_section_present(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/analytics")
         assert b"Stale Content" in resp.data
 
-    def test_low_traffic_section_present(self, auth_client, make_user_token, db_session):
+    def test_low_traffic_section_present(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         resp = auth_client.get("/admin/analytics")
@@ -633,14 +693,21 @@ class TestAnalyticsRendering:
         resp = auth_client.get("/admin/analytics")
         assert b"Views" in resp.data
 
-    def test_top_contributors_does_not_expose_email(self, auth_client, make_user_token, db_session):
+    def test_top_contributors_does_not_expose_email(
+        self, auth_client, make_user_token, db_session
+    ):
         """Contributor email addresses must never appear in the analytics page."""
         admin, _ = make_user_token(role="admin")
         # Create a contributor whose email would be visible if leaked
-        contrib = _make_user("hidden_email_contrib@private.io", "safe_username_contrib", "contributor")
-        post = _make_post(admin, title="Contrib Privacy Post", status=PostStatus.published)
+        contrib = _make_user(
+            "hidden_email_contrib@private.io", "safe_username_contrib", "contributor"
+        )
+        post = _make_post(
+            admin, title="Contrib Privacy Post", status=PostStatus.published
+        )
         _make_revision(
-            post, contrib,
+            post,
+            contrib,
             status=RevisionStatus.accepted,
             days_ago=5,
             review_days_after=1,
@@ -653,7 +720,9 @@ class TestAnalyticsRendering:
         # Username is OK to appear (internal admin view)
         assert b"safe_username_contrib" in resp.data
 
-    def test_empty_db_renders_without_error(self, auth_client, make_user_token, db_session):
+    def test_empty_db_renders_without_error(
+        self, auth_client, make_user_token, db_session
+    ):
         """Analytics page must display graceful empty states when no data exists."""
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
@@ -662,21 +731,34 @@ class TestAnalyticsRendering:
         # All 4 empty-state messages should be present (or sections render a table)
         assert b"analytics" in resp.data.lower() or b"Analytics" in resp.data
 
-    def test_stale_post_appears_in_content_table(self, auth_client, make_user_token, db_session):
+    def test_stale_post_appears_in_content_table(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
-        _make_post(admin, title="Extra Stale Article", status=PostStatus.published, days_since_update=120)
+        _make_post(
+            admin,
+            title="Extra Stale Article",
+            status=PostStatus.published,
+            days_since_update=120,
+        )
         _login(auth_client, admin)
         resp = auth_client.get("/admin/analytics")
         assert b"Extra Stale Article" in resp.data
 
-    def test_low_traffic_post_appears_in_table(self, auth_client, make_user_token, db_session):
+    def test_low_traffic_post_appears_in_table(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
-        _make_post(admin, title="No Views Article", status=PostStatus.published, view_count=0)
+        _make_post(
+            admin, title="No Views Article", status=PostStatus.published, view_count=0
+        )
         _login(auth_client, admin)
         resp = auth_client.get("/admin/analytics")
         assert b"No Views Article" in resp.data
 
-    def test_different_day_windows_return_200(self, auth_client, make_user_token, db_session):
+    def test_different_day_windows_return_200(
+        self, auth_client, make_user_token, db_session
+    ):
         admin, _ = make_user_token(role="admin")
         _login(auth_client, admin)
         for d in [7, 14, 30, 90]:

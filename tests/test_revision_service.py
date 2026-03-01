@@ -234,7 +234,9 @@ class TestAccept:
         RevisionService.accept(pending_revision.id, reviewer_id=editor.id)
         db.session.expire(pub_post)
         snapshot = db.session.scalar(
-            __import__("sqlalchemy", fromlist=["select"]).select(PostVersion).where(
+            __import__("sqlalchemy", fromlist=["select"])
+            .select(PostVersion)
+            .where(
                 PostVersion.post_id == pub_post.id,
                 PostVersion.version_number == pub_post.version,
             )
@@ -247,7 +249,9 @@ class TestAccept:
         before = contributor.reputation_score or 0
         RevisionService.accept(pending_revision.id, reviewer_id=editor.id)
         db.session.expire(contributor)
-        assert contributor.reputation_score == before + RevisionService.ACCEPT_REPUTATION
+        assert (
+            contributor.reputation_score == before + RevisionService.ACCEPT_REPUTATION
+        )
 
     def test_notification_sent_to_contributor(
         self, pending_revision, contributor, editor

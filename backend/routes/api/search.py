@@ -37,7 +37,9 @@ def search():
     per_page = min(100, max(1, request.args.get("per_page", 20, type=int)))
 
     viewer = get_current_user()
-    results = SearchService.search(q, page, per_page, user_id=viewer.id if viewer else None)
+    results = SearchService.search(
+        q, page, per_page, user_id=viewer.id if viewer else None
+    )
     posts, total = results.posts, results.post_total
 
     return jsonify(

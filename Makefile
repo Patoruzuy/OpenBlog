@@ -47,7 +47,9 @@ migrate:
 
 # ─── i18n ─────────────────────────────────────────────────────────────────────
 
-PYBABEL := pybabel
+# Use `python -m babel.messages.frontend` so the command works even when
+# the pybabel script is not on PATH (e.g. bare venv on Windows, CI image).
+PYBABEL := python -m babel.messages.frontend
 
 ## Extract translatable strings → messages.pot
 i18n-extract:

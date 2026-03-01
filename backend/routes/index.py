@@ -9,9 +9,9 @@ from backend.extensions import db
 from backend.models.post import Post, PostStatus
 from backend.models.revision import Revision, RevisionStatus
 from backend.models.tag import PostTag, Tag
-from backend.models.user import User
 from backend.routes.tags import _TAG_DESCRIPTIONS
 from backend.services.post_service import PostService
+from backend.services.recently_improved_service import RecentlyImprovedService
 from backend.services.revision_service import RevisionService
 
 index_bp = Blueprint("index", __name__)
@@ -30,7 +30,9 @@ def index():
     updated_posts = PostService.list_recently_updated(limit=4)
 
     # Open revision queue (limit to 5 for homepage widget)
-    open_revisions, open_revision_count = RevisionService.list_pending(page=1, per_page=5)
+    open_revisions, open_revision_count = RevisionService.list_pending(
+        page=1, per_page=5
+    )
 
     # Top tags by published post count (limit 10)
     post_count_col = func.count(Post.id).label("post_count")
@@ -45,8 +47,7 @@ def index():
             .outerjoin(PostTag, PostTag.c.tag_id == Tag.id)
             .outerjoin(
                 Post,
-                (Post.id == PostTag.c.post_id)
-                & (Post.status == PostStatus.published),
+                (Post.id == PostTag.c.post_id) & (Post.status == PostStatus.published),
             )
             .group_by(Tag.id)
             .order_by(post_count_col.desc(), Tag.name)
@@ -55,19 +56,32 @@ def index():
     ]
 
     # Platform stats for hero (zero-safe)
-    total_posts: int = db.session.scalar(
-        select(func.count(Post.id)).where(Post.status == PostStatus.published)
-    ) or 0
-    accepted_revisions: int = db.session.scalar(
-        select(func.count(Revision.id)).where(
-            Revision.status == RevisionStatus.accepted
+    total_posts: int = (
+        db.session.scalar(
+            select(func.count(Post.id)).where(Post.status == PostStatus.published)
         )
-    ) or 0
-    contributor_count: int = db.session.scalar(
-        select(func.count(func.distinct(Revision.author_id))).where(
-            Revision.status == RevisionStatus.accepted
+        or 0
+    )
+    accepted_revisions: int = (
+        db.session.scalar(
+            select(func.count(Revision.id)).where(
+                Revision.status == RevisionStatus.accepted
+            )
         )
-    ) or 0
+        or 0
+    )
+    contributor_count: int = (
+        db.session.scalar(
+            select(func.count(func.distinct(Revision.author_id))).where(
+                Revision.status == RevisionStatus.accepted
+            )
+        )
+        or 0
+    )
+
+    recently_improved = RecentlyImprovedService.get_recently_improved_posts(
+        days=30, limit=6
+    )
 
     return render_template(
         "index.html",
@@ -77,6 +91,7 @@ def index():
         updated_posts=updated_posts,
         open_revisions=open_revisions,
         open_revision_count=open_revision_count,
+        recently_improved=recently_improved,
         top_tags=top_tags,
         stats={
             "posts": total_posts,

@@ -74,9 +74,7 @@ class TestGetProfile:
         resp = auth_client.get("/api/users/nobody_here")
         assert resp.status_code == 404
 
-    def test_self_profile_has_no_is_following(
-        self, auth_client, alice, db_session
-    ):
+    def test_self_profile_has_no_is_following(self, auth_client, alice, db_session):
         alice_user, alice_tok = alice
         resp = auth_client.get(
             f"/api/users/{alice_user.username}", headers=_headers(alice_tok)

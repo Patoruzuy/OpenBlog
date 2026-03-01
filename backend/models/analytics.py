@@ -42,8 +42,9 @@ class AnalyticsEvent(db.Model):
     session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     referrer: Mapped[str | None] = mapped_column(String(512), nullable=True)
     user_agent_hash: Mapped[str | None] = mapped_column(
-        String(64), nullable=True,
-        comment="SHA-256 prefix of User-Agent string (first 16 chars). No raw UA stored."
+        String(64),
+        nullable=True,
+        comment="SHA-256 prefix of User-Agent string (first 16 chars). No raw UA stored.",
     )
     country_code: Mapped[str | None] = mapped_column(String(2), nullable=True)
 

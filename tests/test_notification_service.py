@@ -22,7 +22,9 @@ def bob(make_user_token, db_session):
     return user
 
 
-def _make_notif(user_id: int, *, is_read: bool = False, title: str = "Test") -> Notification:
+def _make_notif(
+    user_id: int, *, is_read: bool = False, title: str = "Test"
+) -> Notification:
     from backend.extensions import db
 
     n = Notification(

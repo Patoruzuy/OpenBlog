@@ -5,8 +5,8 @@ Revises: f3a7d9e2b451
 Create Date: 2025-01-01 12:00:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision = "a9c2e7f4b831"
 down_revision = "f3a7d9e2b451"
@@ -59,10 +59,16 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["post_id"], ["posts.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("user_id", "post_id", name="uq_thread_subscriptions_user_post"),
+        sa.UniqueConstraint(
+            "user_id", "post_id", name="uq_thread_subscriptions_user_post"
+        ),
     )
-    op.create_index("ix_thread_subscriptions_user_id", "thread_subscriptions", ["user_id"])
-    op.create_index("ix_thread_subscriptions_post_id", "thread_subscriptions", ["post_id"])
+    op.create_index(
+        "ix_thread_subscriptions_user_id", "thread_subscriptions", ["user_id"]
+    )
+    op.create_index(
+        "ix_thread_subscriptions_post_id", "thread_subscriptions", ["post_id"]
+    )
 
     # ── pinned_posts ──────────────────────────────────────────────────────────
     op.create_table(
@@ -105,9 +111,7 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.text("(CURRENT_TIMESTAMP)"),
         ),
-        sa.ForeignKeyConstraint(
-            ["comment_id"], ["comments.id"], ondelete="SET NULL"
-        ),
+        sa.ForeignKeyConstraint(["comment_id"], ["comments.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["uploader_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )

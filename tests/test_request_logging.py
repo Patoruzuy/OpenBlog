@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import re
 
-import pytest
-
 # Pattern for a 32-char hex string (UUID4 without dashes) or up to 36-char UUID4.
 _HEX_RE = re.compile(r"^[0-9a-fA-F\-]{1,36}$")
 

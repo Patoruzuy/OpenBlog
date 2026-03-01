@@ -17,7 +17,12 @@ Example::
 """
 
 from backend.schemas._base import BaseSchema, load_json
-from backend.schemas.auth import LoginSchema, LogoutSchema, RefreshSchema, RegisterSchema
+from backend.schemas.auth import (
+    LoginSchema,
+    LogoutSchema,
+    RefreshSchema,
+    RegisterSchema,
+)
 from backend.schemas.comment import CreateCommentSchema, UpdateCommentSchema
 from backend.schemas.post import CreatePostSchema, PublishPostSchema, UpdatePostSchema
 from backend.schemas.revision import RejectRevisionSchema, SubmitRevisionSchema

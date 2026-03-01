@@ -15,14 +15,13 @@ Scenarios covered
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from backend.extensions import db as _db
 from backend.models.email_delivery_log import EmailDeliveryLog
 from backend.services.email_service import EmailService
-
 
 # ── EmailService unit tests ───────────────────────────────────────────────────
 
@@ -69,6 +68,7 @@ class TestEmailServiceQueue:
 
         log = _db.session.get(EmailDeliveryLog, log_id)
         import json
+
         assert log.metadata_json is not None
         parsed = json.loads(log.metadata_json)
         assert parsed["source"] == "test"
@@ -152,8 +152,12 @@ class TestEmailServiceMarkFailed:
 class TestEmailServiceRecentFailures:
     def test_recent_failures_returns_failed_only(self, db_session):  # noqa: ARG002
         logs = [
-            EmailDeliveryLog(to_email=f"u{i}@e.com", template_key="verify_email",
-                             subject=f"S{i}", status=s)
+            EmailDeliveryLog(
+                to_email=f"u{i}@e.com",
+                template_key="verify_email",
+                subject=f"S{i}",
+                status=s,
+            )
             for i, s in enumerate(["failed", "sent", "failed", "queued"])
         ]
         for log in logs:
@@ -167,8 +171,12 @@ class TestEmailServiceRecentFailures:
 
     def test_recent_failures_respects_limit(self, db_session):  # noqa: ARG002
         for i in range(10):
-            log = EmailDeliveryLog(to_email=f"f{i}@e.com", template_key="verify_email",
-                                   subject=f"S{i}", status="failed")
+            log = EmailDeliveryLog(
+                to_email=f"f{i}@e.com",
+                template_key="verify_email",
+                subject=f"S{i}",
+                status="failed",
+            )
             _db.session.add(log)
         _db.session.commit()
 
@@ -188,8 +196,10 @@ class TestEmailTemplateRendering:
 
     _CONTEXTS = {
         "password_reset": {"reset_url": "https://example.com/reset/TOKEN"},
-        "verify_email": {"verification_url": "https://example.com/verify/TOKEN",
-                         "username": "testuser"},
+        "verify_email": {
+            "verification_url": "https://example.com/verify/TOKEN",
+            "username": "testuser",
+        },
         "newsletter_confirm": {
             "confirm_url": "https://example.com/newsletter/confirm?token=TOKEN",
             "unsubscribe_url": "https://example.com/newsletter/unsubscribe?token=TOKEN",
@@ -201,48 +211,54 @@ class TestEmailTemplateRendering:
         with app.test_request_context():
             from flask import render_template
 
-            html = render_template("email/password_reset.html",
-                                   **self._CONTEXTS["password_reset"])
+            html = render_template(
+                "email/password_reset.html", **self._CONTEXTS["password_reset"]
+            )
         assert "reset" in html.lower() or "password" in html.lower()
 
     def test_password_reset_txt(self, app):
         with app.test_request_context():
             from flask import render_template
 
-            txt = render_template("email/password_reset.txt",
-                                  **self._CONTEXTS["password_reset"])
+            txt = render_template(
+                "email/password_reset.txt", **self._CONTEXTS["password_reset"]
+            )
         assert "reset" in txt.lower() or "password" in txt.lower()
 
     def test_verify_email_html(self, app):
         with app.test_request_context():
             from flask import render_template
 
-            html = render_template("email/verify_email.html",
-                                   **self._CONTEXTS["verify_email"])
+            html = render_template(
+                "email/verify_email.html", **self._CONTEXTS["verify_email"]
+            )
         assert "verif" in html.lower() or "confirm" in html.lower()
 
     def test_verify_email_txt(self, app):
         with app.test_request_context():
             from flask import render_template
 
-            txt = render_template("email/verify_email.txt",
-                                  **self._CONTEXTS["verify_email"])
+            txt = render_template(
+                "email/verify_email.txt", **self._CONTEXTS["verify_email"]
+            )
         assert len(txt.strip()) > 0
 
     def test_newsletter_confirm_html(self, app):
         with app.test_request_context():
             from flask import render_template
 
-            html = render_template("email/newsletter_confirm.html",
-                                   **self._CONTEXTS["newsletter_confirm"])
+            html = render_template(
+                "email/newsletter_confirm.html", **self._CONTEXTS["newsletter_confirm"]
+            )
         assert "confirm" in html.lower() or "subscribe" in html.lower()
 
     def test_newsletter_confirm_txt(self, app):
         with app.test_request_context():
             from flask import render_template
 
-            txt = render_template("email/newsletter_confirm.txt",
-                                  **self._CONTEXTS["newsletter_confirm"])
+            txt = render_template(
+                "email/newsletter_confirm.txt", **self._CONTEXTS["newsletter_confirm"]
+            )
         assert len(txt.strip()) > 0
 
 

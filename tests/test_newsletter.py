@@ -22,17 +22,14 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from backend.extensions import db as _db
-from backend.models.newsletter import NewsletterSubscription
 from backend.services.newsletter_service import NewsletterError, NewsletterService
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 
 def _subscribe_post(client, email: str = "reader@example.com", **extra_form):
     data = {"email": email, "next": "/", **extra_form}
-    return client.post("/newsletter/subscribe", data=data,
-                       follow_redirects=False)
+    return client.post("/newsletter/subscribe", data=data, follow_redirects=False)
 
 
 # ── Service unit tests ────────────────────────────────────────────────────────
@@ -226,7 +223,11 @@ class TestNewsletterRoutes:
 
         resp = auth_client.get(f"/newsletter/confirm?token={token}")
         assert resp.status_code == 200
-        assert b"confirm" in resp.data.lower() or b"success" in resp.data.lower() or b"subscribed" in resp.data.lower()
+        assert (
+            b"confirm" in resp.data.lower()
+            or b"success" in resp.data.lower()
+            or b"subscribed" in resp.data.lower()
+        )
 
         sub2 = NewsletterService.get_by_email("confirm_route@example.com")
         assert sub2.status == "active"
@@ -254,10 +255,14 @@ class TestNewsletterRoutes:
         sub2 = NewsletterService.get_by_email("unsub_route@example.com")
         assert sub2.status == "unsubscribed"
 
-    def test_unsubscribe_route_invalid_token_renders_error(self, auth_client, db_session):  # noqa: ARG002
+    def test_unsubscribe_route_invalid_token_renders_error(
+        self, auth_client, db_session
+    ):  # noqa: ARG002
         resp = auth_client.get("/newsletter/unsubscribe?token=bad-token")
         assert resp.status_code == 400
 
-    def test_unsubscribe_route_missing_token_renders_error(self, auth_client, db_session):  # noqa: ARG002
+    def test_unsubscribe_route_missing_token_renders_error(
+        self, auth_client, db_session
+    ):  # noqa: ARG002
         resp = auth_client.get("/newsletter/unsubscribe")
         assert resp.status_code == 400

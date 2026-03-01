@@ -48,18 +48,14 @@ def _h(token: str) -> dict:
 class TestAddBookmark:
     def test_add_returns_200(self, auth_client, bob, pub_post, db_session):
         _, tok = bob
-        resp = auth_client.post(
-            f"/api/posts/{pub_post.slug}/bookmark", headers=_h(tok)
-        )
+        resp = auth_client.post(f"/api/posts/{pub_post.slug}/bookmark", headers=_h(tok))
         assert resp.status_code == 200
         assert resp.get_json()["bookmarked"] is True
 
     def test_duplicate_returns_409(self, auth_client, bob, pub_post, db_session):
         _, tok = bob
         auth_client.post(f"/api/posts/{pub_post.slug}/bookmark", headers=_h(tok))
-        resp = auth_client.post(
-            f"/api/posts/{pub_post.slug}/bookmark", headers=_h(tok)
-        )
+        resp = auth_client.post(f"/api/posts/{pub_post.slug}/bookmark", headers=_h(tok))
         assert resp.status_code == 409
 
     def test_unknown_post_returns_404(self, auth_client, bob, db_session):
@@ -148,9 +144,7 @@ class TestListBookmarks:
             _db.session.flush()
             BookmarkService.add(bob_user.id, p.id)
         _db.session.commit()
-        resp = auth_client.get(
-            "/api/bookmarks/?page=1&per_page=2", headers=_h(bob_tok)
-        )
+        resp = auth_client.get("/api/bookmarks/?page=1&per_page=2", headers=_h(bob_tok))
         data = resp.get_json()
         assert data["total"] == 3
         assert len(data["posts"]) == 2
@@ -182,8 +176,6 @@ class TestPostDictBookmarkField:
         resp = auth_client.get(f"/api/posts/{pub_post.slug}", headers=_h(tok))
         assert resp.get_json()["has_bookmarked"] is True
 
-    def test_no_has_bookmarked_when_anonymous(
-        self, auth_client, pub_post, db_session
-    ):
+    def test_no_has_bookmarked_when_anonymous(self, auth_client, pub_post, db_session):
         resp = auth_client.get(f"/api/posts/{pub_post.slug}")
         assert "has_bookmarked" not in resp.get_json()

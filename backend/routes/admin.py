@@ -42,7 +42,6 @@ from __future__ import annotations
 from flask import (
     Blueprint,
     flash,
-    jsonify,
     redirect,
     render_template,
     request,
@@ -51,10 +50,8 @@ from flask import (
 from sqlalchemy import select
 
 from backend.extensions import db
-from backend.models.admin import AuditLog
 from backend.models.post import Post, PostStatus
 from backend.models.revision import Revision
-from backend.models.tag import Tag
 from backend.models.user import User, UserRole
 from backend.services.admin_analytics_service import AdminAnalyticsService
 from backend.services.admin_dashboard_service import AdminDashboardService
@@ -87,17 +84,28 @@ def _admin_context() -> dict:
     open_reports = 0
     try:
         from sqlalchemy import func  # noqa: PLC0415
+
         from backend.models.revision import RevisionStatus  # noqa: PLC0415
-        pending = db.session.scalar(
-            select(func.count(Revision.id)).where(Revision.status == RevisionStatus.pending)
-        ) or 0
+
+        pending = (
+            db.session.scalar(
+                select(func.count(Revision.id)).where(
+                    Revision.status == RevisionStatus.pending
+                )
+            )
+            or 0
+        )
     except Exception:
         pass
     try:
         open_reports = ReportService.open_count()
     except Exception:
         pass
-    return {"can": can, "admin_pending_revisions": pending, "admin_open_reports": open_reports}
+    return {
+        "can": can,
+        "admin_pending_revisions": pending,
+        "admin_open_reports": open_reports,
+    }
 
 
 # ── Index redirect ────────────────────────────────────────────────────────────
@@ -126,10 +134,10 @@ def dashboard():
 @require_admin_access
 @require_capability("manage_content")
 def posts():
-    status  = request.args.get("status")
-    sort    = request.args.get("sort", "updated_desc")
-    q       = request.args.get("q", "").strip() or None
-    page    = max(1, int(request.args.get("page", 1)))
+    status = request.args.get("status")
+    sort = request.args.get("sort", "updated_desc")
+    q = request.args.get("q", "").strip() or None
+    page = max(1, int(request.args.get("page", 1)))
     featured = None
     if request.args.get("featured") == "1":
         featured = True
@@ -176,9 +184,13 @@ def post_set_status(post_id: int):
     before = {"status": post.status.value}
     AdminPostService.set_status(post, status_val, actor)
     AuditLogService.log(
-        actor=actor, action=f"post.{new_status}",
-        target_type="post", target_id=post.id, target_repr=post.title,
-        before=before, after={"status": new_status},
+        actor=actor,
+        action=f"post.{new_status}",
+        target_type="post",
+        target_id=post.id,
+        target_repr=post.title,
+        before=before,
+        after={"status": new_status},
     )
     db.session.commit()
     flash(f"Post status set to {new_status}.", "success")
@@ -198,7 +210,9 @@ def post_toggle_feature(post_id: int):
     AuditLogService.log(
         actor=actor,
         action="post.feature_toggled",
-        target_type="post", target_id=post.id, target_repr=post.title,
+        target_type="post",
+        target_id=post.id,
+        target_repr=post.title,
         after={"is_featured": post.is_featured},
     )
     db.session.commit()
@@ -216,8 +230,11 @@ def post_delete(post_id: int):
         return redirect(url_for("admin.posts"))
     title = post.title
     AuditLogService.log(
-        actor=actor, action="post.deleted",
-        target_type="post", target_id=post_id, target_repr=title,
+        actor=actor,
+        action="post.deleted",
+        target_type="post",
+        target_id=post_id,
+        target_repr=title,
         before={"status": post.status.value, "title": title},
     )
     AdminPostService.delete_post(post)  # commits internally
@@ -233,10 +250,10 @@ def post_delete(post_id: int):
 @require_admin_access
 @require_capability("moderate")
 def revisions():
-    status    = request.args.get("status", "pending")
-    q         = request.args.get("q", "").strip() or None
-    page      = max(1, int(request.args.get("page", 1)))
-    post_id   = request.args.get("post_id", type=int)
+    status = request.args.get("status", "pending")
+    q = request.args.get("q", "").strip() or None
+    page = max(1, int(request.args.get("page", 1)))
+    post_id = request.args.get("post_id", type=int)
     author_id = request.args.get("author_id", type=int)
 
     items, total = ModerationService.list_revisions(
@@ -244,7 +261,10 @@ def revisions():
     )
     return render_template(
         "admin/revisions/list.html",
-        revisions=items, total=total, page=page, page_size=30,
+        revisions=items,
+        total=total,
+        page=page,
+        page_size=30,
         current_status=status,
     )
 
@@ -269,8 +289,10 @@ def revision_accept(revision_id: int):
     try:
         rev = ModerationService.accept_revision(revision_id, actor, note=note)
         AuditLogService.log(
-            actor=actor, action="revision.accepted",
-            target_type="revision", target_id=revision_id,
+            actor=actor,
+            action="revision.accepted",
+            target_type="revision",
+            target_id=revision_id,
             target_repr=f"Revision #{revision_id} on post {rev.post_id}",
             note=note,
         )
@@ -290,8 +312,10 @@ def revision_reject(revision_id: int):
     try:
         rev = ModerationService.reject_revision(revision_id, actor, note=note)
         AuditLogService.log(
-            actor=actor, action="revision.rejected",
-            target_type="revision", target_id=revision_id,
+            actor=actor,
+            action="revision.rejected",
+            target_type="revision",
+            target_id=revision_id,
             target_repr=f"Revision #{revision_id} on post {rev.post_id}",
             note=note,
         )
@@ -310,7 +334,7 @@ def revision_reject(revision_id: int):
 @require_capability("moderate")
 def comments():
     flagged_only = request.args.get("flagged") == "1"
-    q    = request.args.get("q", "").strip() or None
+    q = request.args.get("q", "").strip() or None
     page = max(1, int(request.args.get("page", 1)))
 
     items, total = ModerationService.list_comments(
@@ -318,7 +342,10 @@ def comments():
     )
     return render_template(
         "admin/comments/list.html",
-        comments=items, total=total, page=page, page_size=30,
+        comments=items,
+        total=total,
+        page=page,
+        page_size=30,
         flagged_only=flagged_only,
     )
 
@@ -331,8 +358,10 @@ def comment_hide(comment_id: int):
     try:
         ModerationService.hide_comment(comment_id)
         AuditLogService.log(
-            actor=actor, action="comment.hidden",
-            target_type="comment", target_id=comment_id,
+            actor=actor,
+            action="comment.hidden",
+            target_type="comment",
+            target_id=comment_id,
         )
         db.session.commit()
         flash("Comment hidden.", "success")
@@ -349,8 +378,10 @@ def comment_unflag(comment_id: int):
     try:
         ModerationService.unflag_comment(comment_id)
         AuditLogService.log(
-            actor=actor, action="comment.unflagged",
-            target_type="comment", target_id=comment_id,
+            actor=actor,
+            action="comment.unflagged",
+            target_type="comment",
+            target_id=comment_id,
         )
         db.session.commit()
         flash("Comment flag cleared.", "success")
@@ -366,12 +397,16 @@ def comment_unflag(comment_id: int):
 @require_admin_access
 @require_capability("manage_content")
 def topics():
-    q    = request.args.get("q", "").strip() or None
+    q = request.args.get("q", "").strip() or None
     page = max(1, int(request.args.get("page", 1)))
     items, total = AdminTagService.list_tags(q=q, page=page)
     return render_template(
         "admin/topics/list.html",
-        topics=items, total=total, page=page, page_size=50, q=q or "",
+        topics=items,
+        total=total,
+        page=page,
+        page_size=50,
+        q=q or "",
     )
 
 
@@ -380,14 +415,17 @@ def topics():
 @require_capability("manage_content")
 def topic_create():
     actor = current_admin_user()
-    name  = request.form.get("name", "").strip()
-    desc  = request.form.get("description", "").strip() or None
+    name = request.form.get("name", "").strip()
+    desc = request.form.get("description", "").strip() or None
     color = request.form.get("color", "").strip() or None
     try:
         tag = AdminTagService.create(name=name, description=desc, color=color)
         AuditLogService.log(
-            actor=actor, action="tag.created",
-            target_type="tag", target_id=tag.id, target_repr=tag.name,
+            actor=actor,
+            action="tag.created",
+            target_type="tag",
+            target_id=tag.id,
+            target_repr=tag.name,
         )
         db.session.commit()
         flash(f"Tag '{tag.name}' created.", "success")
@@ -405,14 +443,17 @@ def topic_edit(slug: str):
     if tag is None:
         flash("Tag not found.", "error")
         return redirect(url_for("admin.topics"))
-    name  = request.form.get("name", "").strip() or None
-    desc  = request.form.get("description", "").strip()
+    name = request.form.get("name", "").strip() or None
+    desc = request.form.get("description", "").strip()
     color = request.form.get("color", "").strip()
     try:
         AdminTagService.update(tag, name=name, description=desc, color=color)
         AuditLogService.log(
-            actor=actor, action="tag.updated",
-            target_type="tag", target_id=tag.id, target_repr=tag.name,
+            actor=actor,
+            action="tag.updated",
+            target_type="tag",
+            target_id=tag.id,
+            target_repr=tag.name,
         )
         db.session.commit()
         flash(f"Tag '{tag.name}' updated.", "success")
@@ -431,8 +472,11 @@ def topic_delete(slug: str):
         return redirect(url_for("admin.topics"))
     name, tag_id = tag.name, tag.id
     AuditLogService.log(
-        actor=actor, action="tag.deleted",
-        target_type="tag", target_id=tag_id, target_repr=name,
+        actor=actor,
+        action="tag.deleted",
+        target_type="tag",
+        target_id=tag_id,
+        target_repr=name,
     )
     AdminTagService.delete(tag)  # commits internally
     db.session.commit()
@@ -447,8 +491,8 @@ def topic_delete(slug: str):
 @require_admin_access
 @require_capability("manage_users")
 def users():
-    q        = request.args.get("q", "").strip() or None
-    role     = request.args.get("role") or None
+    q = request.args.get("q", "").strip() or None
+    role = request.args.get("role") or None
     verified = None
     if request.args.get("verified") == "1":
         verified = True
@@ -467,7 +511,10 @@ def users():
     )
     return render_template(
         "admin/users/list.html",
-        users=items, total=total, page=page, page_size=40,
+        users=items,
+        total=total,
+        page=page,
+        page_size=40,
         roles=[r.value for r in UserRole],
     )
 
@@ -494,8 +541,10 @@ def user_suspend(user_id: int):
     try:
         AdminUserService.set_active(user, False, actor)
         AuditLogService.log(
-            actor=actor, action="user.suspended",
-            target_type="user", target_id=user_id,
+            actor=actor,
+            action="user.suspended",
+            target_type="user",
+            target_id=user_id,
             target_repr=user.username,
         )
         db.session.commit()
@@ -517,8 +566,10 @@ def user_reactivate(user_id: int):
     try:
         AdminUserService.set_active(user, True, actor)
         AuditLogService.log(
-            actor=actor, action="user.reactivated",
-            target_type="user", target_id=user_id,
+            actor=actor,
+            action="user.reactivated",
+            target_type="user",
+            target_id=user_id,
             target_repr=user.username,
         )
         db.session.commit()
@@ -539,8 +590,11 @@ def user_verify_email(user_id: int):
         return redirect(url_for("admin.users"))
     AdminUserService.verify_email(user)
     AuditLogService.log(
-        actor=actor, action="user.email_verified",
-        target_type="user", target_id=user_id, target_repr=user.username,
+        actor=actor,
+        action="user.email_verified",
+        target_type="user",
+        target_id=user_id,
+        target_repr=user.username,
     )
     db.session.commit()
     flash(f"Email verified for '{user.username}'.", "success")
@@ -565,9 +619,13 @@ def user_set_role(user_id: int):
         old_role = user.role.value
         AdminUserService.set_role(user, new_role, actor)
         AuditLogService.log(
-            actor=actor, action="user.role_changed",
-            target_type="user", target_id=user_id, target_repr=user.username,
-            before={"role": old_role}, after={"role": new_role_str},
+            actor=actor,
+            action="user.role_changed",
+            target_type="user",
+            target_id=user_id,
+            target_repr=user.username,
+            before={"role": old_role},
+            after={"role": new_role_str},
         )
         db.session.commit()
         flash(f"Role for '{user.username}' changed to {new_role_str}.", "success")
@@ -589,8 +647,11 @@ def user_shadowban(user_id: int):
         AdminUserService.set_shadow_ban(user, new_state, actor)
         action = "user.shadow_banned" if new_state else "user.shadow_ban_lifted"
         AuditLogService.log(
-            actor=actor, action=action,
-            target_type="user", target_id=user_id, target_repr=user.username,
+            actor=actor,
+            action=action,
+            target_type="user",
+            target_id=user_id,
+            target_repr=user.username,
         )
         db.session.commit()
         label = "shadow-banned" if new_state else "shadow-ban lifted"
@@ -634,7 +695,8 @@ def settings():
                 changed.append(key)
         if changed:
             AuditLogService.log(
-                actor=actor, action="settings.updated",
+                actor=actor,
+                action="settings.updated",
                 note=f"Updated: {', '.join(changed)}",
             )
             db.session.commit()
@@ -648,6 +710,7 @@ def settings():
 
 def _settings_catalogue():
     from backend.services.admin_settings_service import _DEFAULTS  # noqa: PLC0415
+
     return _DEFAULTS
 
 
@@ -683,13 +746,13 @@ def reports():
     comments_by_id: dict[int, object] = {}
     if post_ids:
         posts_by_id = {
-            p.id: p for p in db.session.scalars(
-                select(Post).where(Post.id.in_(post_ids))
-            ).all()
+            p.id: p
+            for p in db.session.scalars(select(Post).where(Post.id.in_(post_ids))).all()
         }
     if comment_ids:
         comments_by_id = {
-            c.id: c for c in db.session.scalars(
+            c.id: c
+            for c in db.session.scalars(
                 select(Comment).where(Comment.id.in_(comment_ids))
             ).all()
         }
@@ -764,9 +827,9 @@ def report_dismiss(report_id: int):
 @require_admin_access
 @require_capability("view_audit")
 def audit():
-    actor_id     = request.args.get("actor_id", type=int)
+    actor_id = request.args.get("actor_id", type=int)
     action_prefix = request.args.get("action", "").strip() or None
-    target_type  = request.args.get("target_type", "").strip() or None
+    target_type = request.args.get("target_type", "").strip() or None
     page = max(1, int(request.args.get("page", 1)))
 
     entries, total = AuditLogService.list_entries(
@@ -777,7 +840,10 @@ def audit():
     )
     return render_template(
         "admin/audit.html",
-        entries=entries, total=total, page=page, page_size=50,
+        entries=entries,
+        total=total,
+        page=page,
+        page_size=50,
     )
 
 

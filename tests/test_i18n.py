@@ -15,7 +15,6 @@ or check session state without DB-backed page renders.
 
 from __future__ import annotations
 
-
 # ── Default English ───────────────────────────────────────────────────────────
 
 
@@ -128,15 +127,17 @@ def test_tags_page_in_spanish(auth_client):
 
 def test_accept_language_es_no_session(auth_client):
     """Accept-Language: es is respected when no session locale is set."""
-    resp = auth_client.get("/", follow_redirects=True,
-                           headers={"Accept-Language": "es,en;q=0.5"})
+    resp = auth_client.get(
+        "/", follow_redirects=True, headers={"Accept-Language": "es,en;q=0.5"}
+    )
     assert resp.status_code == 200
     assert "Cómo funciona" in resp.data.decode()
 
 
 def test_accept_language_unsupported_falls_back_to_en(auth_client):
     """Accept-Language with unsupported locale falls back to English."""
-    resp = auth_client.get("/", follow_redirects=True,
-                           headers={"Accept-Language": "fr,de;q=0.9"})
+    resp = auth_client.get(
+        "/", follow_redirects=True, headers={"Accept-Language": "fr,de;q=0.9"}
+    )
     assert resp.status_code == 200
     assert "How it works" in resp.data.decode()

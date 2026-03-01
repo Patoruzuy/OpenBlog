@@ -100,7 +100,9 @@ class TestPost:
         author = make_user(db_session)
         make_post(db_session, author, slug="same-slug")
         db_session.commit()
-        db_session.add(Post(slug="same-slug", title="B", markdown_body="", author_id=author.id))
+        db_session.add(
+            Post(slug="same-slug", title="B", markdown_body="", author_id=author.id)
+        )
         with pytest.raises(IntegrityError):
             db_session.commit()
 

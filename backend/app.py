@@ -62,11 +62,13 @@ def create_app(config_name: str | None = None) -> Flask:
     # ── Observability ─────────────────────────────────────────────────────────
     # Request-ID middleware + structured access logging (always on).
     from backend.utils.request_id import init_request_logging  # noqa: PLC0415
+
     init_request_logging(app)
 
     # Prometheus /metrics endpoint + DB/Celery hooks (disabled in tests).
     if app.config.get("METRICS_ENABLED", True):
         from backend.utils.metrics import init_metrics  # noqa: PLC0415
+
         init_metrics(app)
 
     # ── Models ────────────────────────────────────────────────────────────────
@@ -115,13 +117,17 @@ def create_app(config_name: str | None = None) -> Flask:
                 if cached is not None:
                     unread = int(cached)
                 else:
-                    from backend.services.notification_service import NotificationService  # noqa: PLC0415
+                    from backend.services.notification_service import (
+                        NotificationService,  # noqa: PLC0415
+                    )
 
                     unread = NotificationService.unread_count(user.id)
                     if redis is not None:
                         redis.set(cache_key, unread, ex=30)
             except Exception as exc:
-                app.logger.warning("Failed to fetch unread count for user %s: %s", user.id, exc)
+                app.logger.warning(
+                    "Failed to fetch unread count for user %s: %s", user.id, exc
+                )
                 unread = 0
         return {
             "current_user": user,
@@ -129,6 +135,10 @@ def create_app(config_name: str | None = None) -> Flask:
             "current_locale": str(get_locale() or "en"),
             "current_year": lambda: datetime.now(UTC).year,
         }
+
+    # ── Jinja2 globals ───────────────────────────────────────────────────────
+    _register_jinja_globals(app)
+
     # ── CLI commands ──────────────────────────────────────────────────────────
     _register_cli(app)
 
@@ -143,6 +153,7 @@ def _register_blueprints(app: Flask) -> None:
     cost and means blueprint-level import errors surface during
     ``create_app()`` rather than at module load time.
     """
+    from backend.routes.admin import admin_bp
     from backend.routes.api.analytics import api_analytics_bp
     from backend.routes.api.auth import api_auth_bp
     from backend.routes.api.badges import api_badges_bp
@@ -150,28 +161,31 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.api.comments import api_comments_bp
     from backend.routes.api.notifications import api_notifications_bp
     from backend.routes.api.posts import api_posts_bp
+    from backend.routes.api.reports import api_reports_bp
     from backend.routes.api.revisions import api_revisions_bp
     from backend.routes.api.search import api_search_bp
-    from backend.routes.api.users import api_users_bp
-    from backend.routes.api.reports import api_reports_bp
     from backend.routes.api.thread_follow import api_thread_follow_bp
+    from backend.routes.api.users import api_users_bp
     from backend.routes.api.votes import api_votes_bp
-    from backend.routes.admin import admin_bp
     from backend.routes.attachments import api_attachments_bp, attachments_bp
     from backend.routes.auth import ssr_auth_bp
     from backend.routes.bookmarks import ssr_bookmarks_bp
+    from backend.routes.drafts import ssr_drafts_bp
     from backend.routes.explore import explore_bp
+    from backend.routes.feed import feed_bp
     from backend.routes.health import health_bp
     from backend.routes.i18n import i18n_bp
+    from backend.routes.improvements import improvements_bp
     from backend.routes.index import index_bp
+    from backend.routes.json_feed import json_feed_bp
     from backend.routes.newsletter import newsletter_bp
     from backend.routes.notifications import ssr_notifications_bp
     from backend.routes.pages import pages_bp
-    from backend.routes.drafts import ssr_drafts_bp
     from backend.routes.posts import ssr_posts_bp
     from backend.routes.revisions import ssr_revisions_bp
     from backend.routes.search import ssr_search_bp
     from backend.routes.settings import settings_bp
+    from backend.routes.sitemap import sitemap_bp
     from backend.routes.tags import ssr_tags_bp
     from backend.routes.threads import threads_bp
     from backend.routes.users import ssr_users_bp
@@ -209,6 +223,39 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(api_attachments_bp)
     app.register_blueprint(newsletter_bp)
     app.register_blueprint(threads_bp)
+    app.register_blueprint(improvements_bp)
+    app.register_blueprint(feed_bp)
+    app.register_blueprint(json_feed_bp)
+    app.register_blueprint(sitemap_bp)
+
+
+def _register_jinja_globals(app: Flask) -> None:
+    """Register utility functions available in every Jinja2 template."""
+    from urllib.parse import urlencode
+
+    from flask import url_for as _url_for
+
+    def url_with_query(endpoint: str, _qs: dict | None = None, **url_kwargs) -> str:  # noqa: ANN001
+        """Return ``url_for(endpoint, **url_kwargs)`` with *_qs* appended as
+        query-string parameters.
+
+        Use *_qs* for keys that are Python/Jinja2 reserved words (e.g. ``from``)::
+
+            {{ url_with_query('posts.compare', slug=post.slug,
+                              _qs={'from': 1, 'to': 3}) }}
+        """
+        url: str = _url_for(endpoint, **url_kwargs)
+        if _qs:
+            sep = "&" if "?" in url else "?"
+            url += sep + urlencode(_qs)
+        return url
+
+    app.jinja_env.globals["url_with_query"] = url_with_query
+
+    from backend.utils.seo import absolute_url, canonical_url
+
+    app.jinja_env.globals["absolute_url"] = absolute_url
+    app.jinja_env.globals["canonical_url"] = canonical_url
 
 
 def _register_cli(app: Flask) -> None:
@@ -223,5 +270,6 @@ def _register_cli(app: Flask) -> None:
         """
         click.echo("Seeding database...")
         from backend.scripts.seed import run_seed
+
         run_seed()
         click.echo("Done.")

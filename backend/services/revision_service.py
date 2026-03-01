@@ -223,9 +223,7 @@ class RevisionService:
         if revision is None:
             raise RevisionError("Revision not found.", 404)
         if revision.status != RevisionStatus.pending:
-            raise RevisionError(
-                f"Revision is already {revision.status.value}.", 400
-            )
+            raise RevisionError(f"Revision is already {revision.status.value}.", 400)
 
         post = db.session.get(Post, revision.post_id)
         if post is None:
@@ -245,6 +243,17 @@ class RevisionService:
         )
         db.session.add(version_snapshot)
         db.session.flush()  # obtain version_snapshot.id before commit
+
+        # Create a changelog entry for this new version.
+        from backend.services.release_notes_service import create_release_note
+
+        create_release_note(
+            post_id=post.id,
+            version_number=post.version,
+            summary=revision.summary,
+            accepted_revision_id=revision.id,
+            auto_generated=False,
+        )
 
         # Mark the revision as accepted.
         revision.status = RevisionStatus.accepted
@@ -266,9 +275,7 @@ class RevisionService:
             pass
 
         # Deliver an in-app notification to the contributor.
-        notif_payload = json.dumps(
-            {"post_slug": post.slug, "revision_id": revision.id}
-        )
+        notif_payload = json.dumps({"post_slug": post.slug, "revision_id": revision.id})
         notification = Notification(
             user_id=revision.author_id,
             notification_type="revision_accepted",
@@ -297,9 +304,7 @@ class RevisionService:
         if revision is None:
             raise RevisionError("Revision not found.", 404)
         if revision.status != RevisionStatus.pending:
-            raise RevisionError(
-                f"Revision is already {revision.status.value}.", 400
-            )
+            raise RevisionError(f"Revision is already {revision.status.value}.", 400)
 
         post = db.session.get(Post, revision.post_id)
         post_title = post.title if post else "the post"
@@ -311,9 +316,7 @@ class RevisionService:
         revision.rejection_note = note.strip() or None
 
         # Notify the contributor.
-        notif_payload = json.dumps(
-            {"post_slug": post_slug, "revision_id": revision.id}
-        )
+        notif_payload = json.dumps({"post_slug": post_slug, "revision_id": revision.id})
         body_text = f'Your proposed changes to "{post_title}" were not accepted.'
         if note.strip():
             body_text += f" Reason: {note.strip()}"

@@ -82,8 +82,12 @@ class SearchService:
         q = query.strip()
         if not q:
             return SearchResults(
-                posts=[], tags=[], users=[],
-                post_total=0, tag_total=0, user_total=0,
+                posts=[],
+                tags=[],
+                users=[],
+                post_total=0,
+                tag_total=0,
+                user_total=0,
             )
 
         metrics.search_queries.inc()
@@ -172,10 +176,15 @@ class SearchService:
 
         # Re-rank each suggest group by title / name relevance.
         from backend.services.search_ranking import (
-            title_score as _ts,
-            score_tag as _score_tag,
             score_person as _score_person,
         )
+        from backend.services.search_ranking import (
+            score_tag as _score_tag,
+        )
+        from backend.services.search_ranking import (
+            title_score as _ts,
+        )
+
         post_rows = sorted(post_rows, key=lambda r: _ts(q, r.title or ""), reverse=True)
         tag_rows = sorted(tag_rows, key=lambda r: _score_tag(q, r), reverse=True)
         user_rows = sorted(user_rows, key=lambda r: _score_person(q, r), reverse=True)
@@ -262,9 +271,9 @@ class SearchService:
             .order_by(Post.published_at.desc())
         )
 
-        total = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         posts = list(
             db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
         )
@@ -273,13 +282,15 @@ class SearchService:
     @staticmethod
     def _search_tags_sqlite(q: str) -> tuple[list[Tag], int]:
         like_pat = f"%{q}%"
-        base = select(Tag).where(
-            or_(Tag.name.like(like_pat), Tag.slug.like(like_pat))
-        ).order_by(Tag.name)
+        base = (
+            select(Tag)
+            .where(or_(Tag.name.like(like_pat), Tag.slug.like(like_pat)))
+            .order_by(Tag.name)
+        )
         tags = list(db.session.scalars(base.limit(20)))
-        total = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         return tags, total
 
     # ── PostgreSQL back-end ───────────────────────────────────────────────────
@@ -316,9 +327,9 @@ class SearchService:
             .order_by(func.ts_rank(tsvec, tsq).desc(), Post.published_at.desc())
         )
 
-        total = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         posts = list(
             db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
         )
@@ -327,13 +338,15 @@ class SearchService:
     @staticmethod
     def _search_tags_postgres(q: str) -> tuple[list[Tag], int]:
         like_pat = f"%{q}%"
-        base = select(Tag).where(
-            or_(Tag.name.ilike(like_pat), Tag.slug.ilike(like_pat))
-        ).order_by(Tag.name)
+        base = (
+            select(Tag)
+            .where(or_(Tag.name.ilike(like_pat), Tag.slug.ilike(like_pat)))
+            .order_by(Tag.name)
+        )
         tags = list(db.session.scalars(base.limit(20)))
-        total = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         return tags, total
 
     # ── User search helpers ───────────────────────────────────────────────────
@@ -352,9 +365,11 @@ class SearchService:
                 or_(
                     UserPrivacySettings.id == None,  # noqa: E711 (IS NULL sentinel)
                     and_(
-                        UserPrivacySettings.profile_visibility == ProfileVisibility.public.value,
+                        UserPrivacySettings.profile_visibility
+                        == ProfileVisibility.public.value,
                         UserPrivacySettings.searchable_profile == True,  # noqa: E712
-                        UserPrivacySettings.default_identity_mode != IdentityMode.anonymous.value,
+                        UserPrivacySettings.default_identity_mode
+                        != IdentityMode.anonymous.value,
                     ),
                 ),
                 # Match username, display_name, or headline
@@ -367,24 +382,28 @@ class SearchService:
         )
 
     @staticmethod
-    def _search_users_sqlite(q: str, page: int, per_page: int) -> tuple[list[User], int]:
+    def _search_users_sqlite(
+        q: str, page: int, per_page: int
+    ) -> tuple[list[User], int]:
         like_pat = f"%{q}%"
         base = SearchService._public_user_base(like_pat).order_by(User.username)
-        total = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         users = list(
             db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
         )
         return users, total
 
     @staticmethod
-    def _search_users_postgres(q: str, page: int, per_page: int) -> tuple[list[User], int]:
+    def _search_users_postgres(
+        q: str, page: int, per_page: int
+    ) -> tuple[list[User], int]:
         like_pat = f"%{q}%"
         base = SearchService._public_user_base(like_pat).order_by(User.username)
-        total = db.session.scalar(
-            select(func.count()).select_from(base.subquery())
-        ) or 0
+        total = (
+            db.session.scalar(select(func.count()).select_from(base.subquery())) or 0
+        )
         users = list(
             db.session.scalars(base.offset((page - 1) * per_page).limit(per_page))
         )
@@ -402,9 +421,11 @@ class SearchService:
                 or_(
                     UserPrivacySettings.id == None,  # noqa: E711
                     and_(
-                        UserPrivacySettings.profile_visibility == ProfileVisibility.public.value,
+                        UserPrivacySettings.profile_visibility
+                        == ProfileVisibility.public.value,
                         UserPrivacySettings.searchable_profile == True,  # noqa: E712
-                        UserPrivacySettings.default_identity_mode != IdentityMode.anonymous.value,
+                        UserPrivacySettings.default_identity_mode
+                        != IdentityMode.anonymous.value,
                     ),
                 ),
                 or_(
@@ -429,9 +450,11 @@ class SearchService:
                 or_(
                     UserPrivacySettings.id == None,  # noqa: E711
                     and_(
-                        UserPrivacySettings.profile_visibility == ProfileVisibility.public.value,
+                        UserPrivacySettings.profile_visibility
+                        == ProfileVisibility.public.value,
                         UserPrivacySettings.searchable_profile == True,  # noqa: E712
-                        UserPrivacySettings.default_identity_mode != IdentityMode.anonymous.value,
+                        UserPrivacySettings.default_identity_mode
+                        != IdentityMode.anonymous.value,
                     ),
                 ),
                 or_(
@@ -517,16 +540,14 @@ class SearchService:
         from backend.services.search_ranking import _ANON, score_post
 
         post_ids = [p.id for p in posts]
-        read_map = (
-            SearchService._bulk_read_map(user_id, post_ids) if user_id else {}
-        )
+        read_map = SearchService._bulk_read_map(user_id, post_ids) if user_id else {}
         rev_counts = SearchService._bulk_revision_counts(post_ids)
         tag_map = SearchService._bulk_tag_slugs(post_ids)
 
         def _sort_key(post: Post):
             # Determine personalisation read_version.
             if user_id is None:
-                rv = _ANON          # anonymous — no boost
+                rv = _ANON  # anonymous — no boost
             else:
                 rv = read_map.get(post.id)  # None → never read
 
@@ -550,6 +571,7 @@ class SearchService:
         if not tags:
             return tags
         from backend.services.search_ranking import score_tag
+
         return sorted(tags, key=lambda t: -score_tag(query, t))
 
     @staticmethod
@@ -558,4 +580,5 @@ class SearchService:
         if not users:
             return users
         from backend.services.search_ranking import score_person
+
         return sorted(users, key=lambda u: -score_person(query, u))

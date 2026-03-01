@@ -69,7 +69,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_constraint("uq_user_post_reads_user_post", "user_post_reads", type_="unique")
+    op.drop_constraint(
+        "uq_user_post_reads_user_post", "user_post_reads", type_="unique"
+    )
     op.drop_index("ix_user_post_reads_post_id", table_name="user_post_reads")
     op.drop_index("ix_user_post_reads_user_id", table_name="user_post_reads")
     op.drop_table("user_post_reads")

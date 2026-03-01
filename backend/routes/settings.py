@@ -45,7 +45,10 @@ from backend.services.auth_service import AuthError, AuthService
 from backend.services.contribution_identity_service import ContributionIdentityService
 from backend.services.privacy_service import PrivacyService
 from backend.services.profile_service import ProfileService, ProfileServiceError
-from backend.services.repository_service import RepositoryService, RepositoryServiceError
+from backend.services.repository_service import (
+    RepositoryService,
+    RepositoryServiceError,
+)
 from backend.utils.auth import get_current_user, require_auth
 from backend.utils.validation import validate_url
 
@@ -54,6 +57,7 @@ settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _current_user_or_abort() -> User:
     """Return the current user; caller has already applied @require_auth."""
@@ -76,6 +80,7 @@ def _avatar_upload_folder() -> str:
 # Index redirect
 # ---------------------------------------------------------------------------
 
+
 @settings_bp.route("/")
 @require_auth
 def index():
@@ -85,6 +90,7 @@ def index():
 # ---------------------------------------------------------------------------
 # Profile
 # ---------------------------------------------------------------------------
+
 
 @settings_bp.route("/profile", methods=["GET", "POST"])
 @require_auth
@@ -130,6 +136,7 @@ def profile():
 # Privacy
 # ---------------------------------------------------------------------------
 
+
 @settings_bp.route("/privacy", methods=["GET", "POST"])
 @require_auth
 def privacy():
@@ -166,6 +173,7 @@ def privacy():
 # ---------------------------------------------------------------------------
 # Security
 # ---------------------------------------------------------------------------
+
 
 @settings_bp.route("/security", methods=["GET"])
 @require_auth
@@ -204,6 +212,7 @@ def change_password():
 # Connected accounts
 # ---------------------------------------------------------------------------
 
+
 @settings_bp.route("/accounts", methods=["GET"])
 @require_auth
 def accounts():
@@ -233,7 +242,9 @@ def connect_account():
         return redirect(url_for("settings.accounts"))
 
     try:
-        profile_url_clean = validate_url(profile_url, field="profile_url") if profile_url else None
+        profile_url_clean = (
+            validate_url(profile_url, field="profile_url") if profile_url else None
+        )
     except ValueError:
         flash("Invalid profile URL.", "error")
         return redirect(url_for("settings.accounts"))
@@ -283,6 +294,7 @@ def disconnect_account():
 # ---------------------------------------------------------------------------
 # Repositories
 # ---------------------------------------------------------------------------
+
 
 @settings_bp.route("/repositories", methods=["GET"])
 @require_auth
@@ -372,6 +384,7 @@ def reorder_repositories():
 # Contributions
 # ---------------------------------------------------------------------------
 
+
 @settings_bp.route("/contributions")
 @require_auth
 def contributions():
@@ -404,6 +417,7 @@ def contributions():
 
 
 # ── Newsletter ─────────────────────────────────────────────────────────────────
+
 
 @settings_bp.get("/newsletter")
 @require_auth
@@ -438,8 +452,12 @@ def newsletter_subscribe():
         db.session.commit()
         if sub.status == "pending":
             try:
-                from backend.tasks.email import send_newsletter_confirm_email  # noqa: PLC0415
                 from flask import session as flask_session  # noqa: PLC0415
+
+                from backend.tasks.email import (
+                    send_newsletter_confirm_email,  # noqa: PLC0415
+                )
+
                 locale = flask_session.get("locale") or "en"
                 send_newsletter_confirm_email.delay(user.email, confirm_token, locale)
             except Exception as exc:
@@ -460,12 +478,15 @@ def newsletter_unsubscribe():
     user = _current_user_or_abort()
     from backend.services.newsletter_service import NewsletterService  # noqa: PLC0415
 
-    sub = NewsletterService.get_for_user(user.id) or NewsletterService.get_by_email(user.email)
+    sub = NewsletterService.get_for_user(user.id) or NewsletterService.get_by_email(
+        user.email
+    )
     if sub is None:
         flash("No active subscription found.", "info")
         return redirect(url_for("settings.newsletter"))
 
     from datetime import UTC, datetime  # noqa: PLC0415
+
     sub.status = "unsubscribed"
     sub.unsubscribed_at = datetime.now(UTC)
     db.session.commit()

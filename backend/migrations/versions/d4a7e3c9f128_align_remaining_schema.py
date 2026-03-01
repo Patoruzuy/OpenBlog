@@ -34,6 +34,7 @@ depends_on = None
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _is_pg() -> bool:
     return op.get_context().dialect.name == "postgresql"
 
@@ -41,6 +42,7 @@ def _is_pg() -> bool:
 # ──────────────────────────────────────────────────────────────────────────────
 # upgrade
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def upgrade() -> None:
     # ── 1. follows ────────────────────────────────────────────────────────────
@@ -55,7 +57,9 @@ def upgrade() -> None:
             "  END IF; "
             "END $$"
         )
-        op.create_unique_constraint("uq_follows_pair", "follows", ["follower_id", "followed_id"])
+        op.create_unique_constraint(
+            "uq_follows_pair", "follows", ["follower_id", "followed_id"]
+        )
     else:
         with op.batch_alter_table("follows", schema=None) as batch:
             batch.alter_column("following_id", new_column_name="followed_id")
@@ -63,9 +67,7 @@ def upgrade() -> None:
     # ── 2. notifications ──────────────────────────────────────────────────────
     if _is_pg():
         # Drop index on the column we're about to rename (if it exists)
-        op.execute(
-            "DROP INDEX IF EXISTS ix_notifications_user_read"
-        )
+        op.execute("DROP INDEX IF EXISTS ix_notifications_user_read")
         op.execute("ALTER TABLE notifications RENAME COLUMN type TO notification_type")
         # Drop extra columns that the ORM no longer maps
         for col in ("url", "actor_id", "post_id", "revision_id"):
@@ -130,7 +132,9 @@ def upgrade() -> None:
     # ── 4. revisions ──────────────────────────────────────────────────────────
     if _is_pg():
         op.execute("ALTER TABLE revisions RENAME COLUMN diff TO diff_cache")
-        op.execute("ALTER TABLE revisions RENAME COLUMN reviewer_note TO rejection_note")
+        op.execute(
+            "ALTER TABLE revisions RENAME COLUMN reviewer_note TO rejection_note"
+        )
         op.add_column(
             "revisions",
             sa.Column("base_version_number", sa.Integer(), nullable=True),
@@ -143,7 +147,9 @@ def upgrade() -> None:
         with op.batch_alter_table("revisions", schema=None) as batch:
             batch.alter_column("diff", new_column_name="diff_cache")
             batch.alter_column("reviewer_note", new_column_name="rejection_note")
-            batch.add_column(sa.Column("base_version_number", sa.Integer(), nullable=True))
+            batch.add_column(
+                sa.Column("base_version_number", sa.Integer(), nullable=True)
+            )
             batch.add_column(
                 sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True)
             )
@@ -177,6 +183,7 @@ def upgrade() -> None:
 # downgrade  (best-effort — restores columns but cannot recover dropped data)
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def downgrade() -> None:
     # 6. user_badges
     with op.batch_alter_table("user_badges", schema=None) as batch:
@@ -186,7 +193,9 @@ def downgrade() -> None:
 
     # 5. badges
     with op.batch_alter_table("badges", schema=None) as batch:
-        batch.add_column(sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
+        batch.add_column(
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=True)
+        )
         batch.add_column(sa.Column("points_value", sa.Integer(), nullable=True))
 
     # 4. revisions

@@ -19,16 +19,13 @@ Security scenarios covered
 from __future__ import annotations
 
 import io
-import os
 from pathlib import Path
 
+import flask
 import pytest
 
 from backend.extensions import db as _db
-from backend.models.comment import Comment
 from backend.models.comment_attachment import CommentAttachment
-from backend.models.post import PostStatus
-from backend.services.auth_service import AuthService
 
 # ── PNG magic bytes (minimal 1×1 transparent PNG) ─────────────────────────────
 _PNG_1X1 = (
@@ -65,8 +62,15 @@ def _make_comment(client, token: str, slug: str, body: str = "Nice post!") -> di
     return resp.get_json()
 
 
-def _upload(client, token: str, comment_id: int, *, filename: str, data: bytes,
-            content_type: str = "image/png") -> "flask.testing.FlaskClient":
+def _upload(
+    client,
+    token: str,
+    comment_id: int,
+    *,
+    filename: str,
+    data: bytes,
+    content_type: str = "image/png",
+) -> flask.testing.FlaskClient:
     return client.post(
         f"/api/comments/{comment_id}/attachments",
         data={"file": (io.BytesIO(data), filename, content_type)},
@@ -91,13 +95,20 @@ def media_dir(app, tmp_path):
 
 
 class TestUploadValidation:
-    def test_rejects_disallowed_extension(self, auth_client, make_user_token, media_dir):
+    def test_rejects_disallowed_extension(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="malware.exe", data=b"MZ\x00\x00")
+        resp = _upload(
+            auth_client,
+            token,
+            comment["id"],
+            filename="malware.exe",
+            data=b"MZ\x00\x00",
+        )
         assert resp.status_code == 415
 
     def test_rejects_svg_extension(self, auth_client, make_user_token, media_dir):
@@ -106,8 +117,14 @@ class TestUploadValidation:
         comment = _make_comment(auth_client, token, post["slug"])
 
         svg = b"<svg xmlns='http://www.w3.org/2000/svg'><script>alert(1)</script></svg>"
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="xss.svg", data=svg, content_type="image/svg+xml")
+        resp = _upload(
+            auth_client,
+            token,
+            comment["id"],
+            filename="xss.svg",
+            data=svg,
+            content_type="image/svg+xml",
+        )
         assert resp.status_code == 415
 
     def test_rejects_empty_file(self, auth_client, make_user_token, media_dir):
@@ -115,11 +132,14 @@ class TestUploadValidation:
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="empty.png", data=b"")
+        resp = _upload(
+            auth_client, token, comment["id"], filename="empty.png", data=b""
+        )
         assert resp.status_code == 400
 
-    def test_rejects_oversize_via_content_length(self, auth_client, make_user_token, media_dir, app):
+    def test_rejects_oversize_via_content_length(
+        self, auth_client, make_user_token, media_dir, app
+    ):
         _, token = make_user_token(role="editor")
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
@@ -151,14 +171,21 @@ class TestUploadValidation:
         )
         assert resp.status_code == 401
 
-    def test_stranger_cannot_upload_to_others_comment(self, auth_client, make_user_token, media_dir):
+    def test_stranger_cannot_upload_to_others_comment(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, owner_token = make_user_token(role="editor")
         _, stranger_token = make_user_token()
         post = _make_published_post(auth_client, owner_token)
         comment = _make_comment(auth_client, owner_token, post["slug"])
 
-        resp = _upload(auth_client, stranger_token, comment["id"],
-                       filename="file.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client,
+            stranger_token,
+            comment["id"],
+            filename="file.png",
+            data=_PNG_1X1,
+        )
         assert resp.status_code == 403
 
 
@@ -171,12 +198,12 @@ class TestUploadStorage:
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="photo.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client, token, comment["id"], filename="photo.png", data=_PNG_1X1
+        )
         assert resp.status_code == 201
 
         data = resp.get_json()
-        stored_path: str = data.get("download_url", "")
         # stored_path is a URL like /attachments/comments/1
         # The actual file must not be under backend/static
         attachment_id = data["id"]
@@ -184,13 +211,16 @@ class TestUploadStorage:
         assert attachment is not None
         assert "static" not in (attachment.stored_path or "").replace("\\", "/")
 
-    def test_filename_is_server_generated_uuid(self, auth_client, make_user_token, media_dir):
+    def test_filename_is_server_generated_uuid(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="my-photo.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client, token, comment["id"], filename="my-photo.png", data=_PNG_1X1
+        )
         assert resp.status_code == 201
 
         attachment_id = resp.get_json()["id"]
@@ -202,14 +232,21 @@ class TestUploadStorage:
         assert stored_name.endswith(".png")
         assert len(stored_name) > 10  # uuid4 hex is 32 chars + ext
 
-    def test_path_traversal_filename_is_sanitised(self, auth_client, make_user_token, media_dir):
+    def test_path_traversal_filename_is_sanitised(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
         # Attempt a path-traversal filename
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="../../etc/passwd.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client,
+            token,
+            comment["id"],
+            filename="../../etc/passwd.png",
+            data=_PNG_1X1,
+        )
         assert resp.status_code == 201
 
         attachment_id = resp.get_json()["id"]
@@ -226,8 +263,9 @@ class TestUploadStorage:
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="a.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client, token, comment["id"], filename="a.png", data=_PNG_1X1
+        )
         assert resp.status_code == 201
 
         attachment_id = resp.get_json()["id"]
@@ -235,13 +273,16 @@ class TestUploadStorage:
         expected = hashlib.sha256(_PNG_1X1).hexdigest()
         assert attachment.sha256 == expected
 
-    def test_upload_returns_download_and_preview_urls(self, auth_client, make_user_token, media_dir):
+    def test_upload_returns_download_and_preview_urls(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="photo.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client, token, comment["id"], filename="photo.png", data=_PNG_1X1
+        )
         assert resp.status_code == 201
 
         data = resp.get_json()
@@ -270,7 +311,9 @@ class TestDownloadHeaders:
         assert resp.status_code == 200
         assert resp.headers.get("X-Content-Type-Options") == "nosniff"
 
-    def test_attachment_disposition_on_download(self, auth_client, make_user_token, media_dir):
+    def test_attachment_disposition_on_download(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         uploaded = self._upload_png(auth_client, token, media_dir)
 
@@ -278,7 +321,9 @@ class TestDownloadHeaders:
         assert resp.status_code == 200
         assert "attachment" in resp.headers.get("Content-Disposition", "").lower()
 
-    def test_inline_disposition_on_preview(self, auth_client, make_user_token, media_dir):
+    def test_inline_disposition_on_preview(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         uploaded = self._upload_png(auth_client, token, media_dir)
 
@@ -294,21 +339,30 @@ class TestDownloadHeaders:
         assert resp.status_code == 200
         assert resp.headers.get("X-Content-Type-Options") == "nosniff"
 
-    def test_non_image_preview_redirects_to_download(self, auth_client, make_user_token, media_dir):
+    def test_non_image_preview_redirects_to_download(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
 
         # Upload a PDF
         pdf_data = b"%PDF-1.4 minimal"
-        resp = _upload(auth_client, token, comment["id"],
-                       filename="doc.pdf", data=pdf_data, content_type="application/pdf")
+        resp = _upload(
+            auth_client,
+            token,
+            comment["id"],
+            filename="doc.pdf",
+            data=pdf_data,
+            content_type="application/pdf",
+        )
         assert resp.status_code == 201, resp.get_json()
         attach_id = resp.get_json()["id"]
 
         # Preview of non-image should redirect
-        resp2 = auth_client.get(f"/attachments/comments/{attach_id}/preview",
-                                follow_redirects=False)
+        resp2 = auth_client.get(
+            f"/attachments/comments/{attach_id}/preview", follow_redirects=False
+        )
         assert resp2.status_code == 302
         assert f"/attachments/comments/{attach_id}" in resp2.headers.get("Location", "")
 
@@ -330,41 +384,48 @@ class TestAttachmentAccessControl:
         slug = draft_data["slug"]
 
         # We need to add a comment via the service layer since the API rejects comments on drafts
-        from backend.models.post import Post
-        from backend.services.comment_service import CommentService
-        from backend.services.auth_service import AuthService
-
         # Get the post id from slug
         from sqlalchemy import select
+
+        from backend.models.post import Post
+        from backend.services.comment_service import CommentService
+
         post = _db.session.scalar(select(Post).where(Post.slug == slug))
         _, author_token = make_user_token(role="editor")
-        from backend.models.user import User
         # Get the user for the author token
         author_id = post.author_id
 
         comment = CommentService.create(post.id, author_id, "Draft comment")
         _db.session.commit()
 
-        resp = _upload(auth_client, token, comment.id,
-                       filename="img.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client, token, comment.id, filename="img.png", data=_PNG_1X1
+        )
         return resp.get_json()["id"], token
 
-    def test_draft_attachment_hidden_from_anon(self, auth_client, make_user_token, media_dir):
+    def test_draft_attachment_hidden_from_anon(
+        self, auth_client, make_user_token, media_dir
+    ):
         attach_id, _ = self._upload_to_draft(auth_client, make_user_token, media_dir)
 
         resp = auth_client.get(f"/attachments/comments/{attach_id}")
         # Anonymous visitors must not see draft attachments
         assert resp.status_code == 404
 
-    def test_draft_attachment_hidden_from_stranger(self, auth_client, make_user_token, media_dir):
+    def test_draft_attachment_hidden_from_stranger(
+        self, auth_client, make_user_token, media_dir
+    ):
         attach_id, _ = self._upload_to_draft(auth_client, make_user_token, media_dir)
         _, stranger_token = make_user_token()
 
-        resp = auth_client.get(f"/attachments/comments/{attach_id}",
-                               headers=_auth(stranger_token))
+        resp = auth_client.get(
+            f"/attachments/comments/{attach_id}", headers=_auth(stranger_token)
+        )
         assert resp.status_code == 404
 
-    def test_unknown_attachment_returns_404(self, auth_client, make_user_token, media_dir):
+    def test_unknown_attachment_returns_404(
+        self, auth_client, make_user_token, media_dir
+    ):
         resp = auth_client.get("/attachments/comments/999999")
         assert resp.status_code == 404
 
@@ -376,7 +437,9 @@ class TestAttachmentDelete:
     def _upload_png(self, auth_client, token):
         post = _make_published_post(auth_client, token)
         comment = _make_comment(auth_client, token, post["slug"])
-        resp = _upload(auth_client, token, comment["id"], filename="del.png", data=_PNG_1X1)
+        resp = _upload(
+            auth_client, token, comment["id"], filename="del.png", data=_PNG_1X1
+        )
         assert resp.status_code == 201
         return resp.get_json()["id"]
 
@@ -387,7 +450,9 @@ class TestAttachmentDelete:
         resp = auth_client.delete(f"/api/attachments/{attach_id}", headers=_auth(token))
         assert resp.status_code == 204
 
-    def test_deleted_attachment_returns_404(self, auth_client, make_user_token, media_dir):
+    def test_deleted_attachment_returns_404(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, token = make_user_token(role="editor")
         attach_id = self._upload_png(auth_client, token)
 
@@ -401,15 +466,19 @@ class TestAttachmentDelete:
         _, stranger_token = make_user_token()
         attach_id = self._upload_png(auth_client, owner_token)
 
-        resp = auth_client.delete(f"/api/attachments/{attach_id}",
-                                  headers=_auth(stranger_token))
+        resp = auth_client.delete(
+            f"/api/attachments/{attach_id}", headers=_auth(stranger_token)
+        )
         assert resp.status_code == 403
 
-    def test_editor_can_delete_others_attachment(self, auth_client, make_user_token, media_dir):
+    def test_editor_can_delete_others_attachment(
+        self, auth_client, make_user_token, media_dir
+    ):
         _, owner_token = make_user_token(role="editor")
         _, editor_token = make_user_token(role="editor")
         attach_id = self._upload_png(auth_client, owner_token)
 
-        resp = auth_client.delete(f"/api/attachments/{attach_id}",
-                                  headers=_auth(editor_token))
+        resp = auth_client.delete(
+            f"/api/attachments/{attach_id}", headers=_auth(editor_token)
+        )
         assert resp.status_code == 204

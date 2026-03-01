@@ -34,7 +34,5 @@ def validate_url(url: str | None, *, field: str = "URL") -> str | None:
         return None
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https"):
-        raise ValueError(
-            f"{field} must use http or https (got {parsed.scheme!r})."
-        )
+        raise ValueError(f"{field} must use http or https (got {parsed.scheme!r}).")
     return url

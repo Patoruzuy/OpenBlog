@@ -7,8 +7,7 @@ so the entire action history is available for review.
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
-from typing import Any
+from datetime import datetime
 
 from flask import request
 from sqlalchemy import desc, func, select
@@ -85,7 +84,9 @@ class AuditLogService:
 
         total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         offset = (page - 1) * _PAGE_SIZE
-        items = list(db.session.scalars(q.offset(offset).limit(_PAGE_SIZE)).unique().all())
+        items = list(
+            db.session.scalars(q.offset(offset).limit(_PAGE_SIZE)).unique().all()
+        )
         return items, total
 
 

@@ -64,9 +64,7 @@ class TestListNotifications:
         user, tok = alice
         _notif(user.id, title="Unread")
         _notif(user.id, title="Read", is_read=True)
-        resp = auth_client.get(
-            "/api/notifications/?unread_only=true", headers=_h(tok)
-        )
+        resp = auth_client.get("/api/notifications/?unread_only=true", headers=_h(tok))
         data = resp.get_json()
         assert data["total"] == 1
         assert data["notifications"][0]["title"] == "Unread"
@@ -75,9 +73,7 @@ class TestListNotifications:
         user, tok = alice
         for i in range(5):
             _notif(user.id, title=f"N{i}")
-        resp = auth_client.get(
-            "/api/notifications/?page=1&per_page=3", headers=_h(tok)
-        )
+        resp = auth_client.get("/api/notifications/?page=1&per_page=3", headers=_h(tok))
         data = resp.get_json()
         assert data["total"] == 5
         assert len(data["notifications"]) == 3
@@ -127,9 +123,7 @@ class TestMarkRead:
     def test_marks_as_read(self, auth_client, alice, db_session):
         user, tok = alice
         n = _notif(user.id)
-        resp = auth_client.post(
-            f"/api/notifications/{n.id}/read", headers=_h(tok)
-        )
+        resp = auth_client.post(f"/api/notifications/{n.id}/read", headers=_h(tok))
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["is_read"] is True
@@ -180,9 +174,7 @@ class TestMarkAllRead:
         resp = auth_client.post("/api/notifications/read-all")
         assert resp.status_code == 401
 
-    def test_does_not_affect_other_users(
-        self, auth_client, alice, bob, db_session
-    ):
+    def test_does_not_affect_other_users(self, auth_client, alice, bob, db_session):
         alice_user, _ = alice
         _, bob_tok = bob
         _notif(alice_user.id)

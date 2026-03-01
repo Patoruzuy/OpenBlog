@@ -28,8 +28,6 @@ Create Date: 2026-02-28 00:00:00.000000
 
 from __future__ import annotations
 
-from alembic import op
-
 revision = "d3e6f0b2c5a8"
 down_revision = ("a9c2e7f4b831", "b1d4f6c8e295")
 branch_labels = None

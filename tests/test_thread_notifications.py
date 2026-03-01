@@ -23,7 +23,7 @@ Covers
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import fakeredis
 import pytest
@@ -34,7 +34,6 @@ from backend.models.portal import IdentityMode, UserPrivacySettings
 from backend.models.post import Post, PostStatus
 from backend.services.notification_delivery_service import NotificationDeliveryService
 from backend.services.thread_subscription_service import ThreadSubscriptionService
-
 
 # ── Shared fixtures ───────────────────────────────────────────────────────────
 
@@ -121,7 +120,10 @@ class TestUnsubscribeToken:
 
     def test_garbage_token_returns_none(self, app):
         with app.app_context():
-            assert NotificationDeliveryService.verify_unsubscribe_token("notavalidtoken") is None
+            assert (
+                NotificationDeliveryService.verify_unsubscribe_token("notavalidtoken")
+                is None
+            )
 
 
 # ── TestCommenterName ─────────────────────────────────────────────────────────
@@ -190,7 +192,9 @@ class TestCommenterName:
 
 class TestStripMarkdown:
     def test_strips_asterisks(self):
-        assert NotificationDeliveryService._strip_markdown("**bold** text") == "bold text"
+        assert (
+            NotificationDeliveryService._strip_markdown("**bold** text") == "bold text"
+        )
 
     def test_strips_underscores(self):
         result = NotificationDeliveryService._strip_markdown("_italic_")
@@ -217,7 +221,9 @@ class TestStripMarkdown:
 class TestCooldown:
     def test_not_on_cooldown_initially(self, app, fake_redis):
         with app.app_context():
-            assert NotificationDeliveryService._is_on_cooldown(fake_redis, 1, 1) is False
+            assert (
+                NotificationDeliveryService._is_on_cooldown(fake_redis, 1, 1) is False
+            )
 
     def test_on_cooldown_after_set(self, app, fake_redis):
         with app.app_context():
@@ -229,14 +235,19 @@ class TestCooldown:
             app.config["THREAD_NOTIF_COOLDOWN_SECONDS"] = 0
             try:
                 NotificationDeliveryService._set_cooldown(fake_redis, 1, 1)
-                assert NotificationDeliveryService._is_on_cooldown(fake_redis, 1, 1) is False
+                assert (
+                    NotificationDeliveryService._is_on_cooldown(fake_redis, 1, 1)
+                    is False
+                )
             finally:
                 app.config["THREAD_NOTIF_COOLDOWN_SECONDS"] = 900
 
     def test_different_users_independent(self, app, fake_redis):
         with app.app_context():
             NotificationDeliveryService._set_cooldown(fake_redis, 1, 1)
-            assert NotificationDeliveryService._is_on_cooldown(fake_redis, 2, 1) is False
+            assert (
+                NotificationDeliveryService._is_on_cooldown(fake_redis, 2, 1) is False
+            )
 
 
 # ── TestProcessCommentCreated ─────────────────────────────────────────────────
@@ -329,23 +340,29 @@ class TestProcessCommentCreated:
             with patch("backend.tasks.email.deliver_email.delay") as mock_delay:
                 # First comment establishes cooldown
                 NotificationDeliveryService.process_comment_created(
-                    post_id=pub_post.id, comment_id=1, author_id=alice.id,
-                    parent_id=None, body="First comment",
+                    post_id=pub_post.id,
+                    comment_id=1,
+                    author_id=alice.id,
+                    parent_id=None,
+                    body="First comment",
                 )
                 first_calls = mock_delay.call_count
 
                 # Second comment within cooldown window
                 NotificationDeliveryService.process_comment_created(
-                    post_id=pub_post.id, comment_id=2, author_id=alice.id,
-                    parent_id=None, body="Second comment",
+                    post_id=pub_post.id,
+                    comment_id=2,
+                    author_id=alice.id,
+                    parent_id=None,
+                    body="Second comment",
                 )
                 second_calls = mock_delay.call_count
         finally:
             if original_redis is not None:
                 app.extensions["redis"] = original_redis
 
-        assert first_calls == 1    # first email was sent
-        assert second_calls == 1   # second email was NOT sent (cooldown)
+        assert first_calls == 1  # first email was sent
+        assert second_calls == 1  # second email was NOT sent (cooldown)
 
     # ── notify_thread_emails=False ────────────────────────────────────────
 
@@ -362,15 +379,23 @@ class TestProcessCommentCreated:
 
         with patch("backend.tasks.email.deliver_email.delay") as mock_delay:
             NotificationDeliveryService.process_comment_created(
-                post_id=pub_post.id, comment_id=1, author_id=alice.id,
-                parent_id=None, body="Hello!",
+                post_id=pub_post.id,
+                comment_id=1,
+                author_id=alice.id,
+                parent_id=None,
+                body="Hello!",
             )
         mock_delay.assert_not_called()
 
     # ── reply-to-you ──────────────────────────────────────────────────────
 
     def test_reply_recipient_gets_thread_reply_notification(
-        self, db_session, alice, bob, carol, pub_post  # noqa: ARG002
+        self,
+        db_session,
+        alice,
+        bob,
+        carol,
+        pub_post,  # noqa: ARG002
     ):
         from backend.models.comment import Comment  # noqa: PLC0415
 
@@ -387,7 +412,12 @@ class TestProcessCommentCreated:
         assert "thread_reply" in types
 
     def test_reply_recipient_excluded_from_thread_subscriber_list(
-        self, db_session, alice, bob, carol, pub_post  # noqa: ARG002
+        self,
+        db_session,
+        alice,
+        bob,
+        carol,
+        pub_post,  # noqa: ARG002
     ):
         """Bob subscribed to thread AND alice replies to Bob → Bob gets only the
         reply email, not a duplicate thread-subscriber email."""
@@ -419,7 +449,12 @@ class TestProcessCommentCreated:
         assert call_args[3] == "thread_reply_to_you"
 
     def test_no_reply_email_when_pref_disabled(
-        self, db_session, alice, bob, carol, pub_post  # noqa: ARG002
+        self,
+        db_session,
+        alice,
+        bob,
+        carol,
+        pub_post,  # noqa: ARG002
     ):
         from backend.models.comment import Comment  # noqa: PLC0415
 
@@ -450,7 +485,9 @@ class TestProcessCommentCreated:
         """Author replying to their own comment does not generate a notification."""
         from backend.models.comment import Comment  # noqa: PLC0415
 
-        parent = Comment(post_id=pub_post.id, author_id=alice.id, body="Alice top-level")
+        parent = Comment(
+            post_id=pub_post.id, author_id=alice.id, body="Alice top-level"
+        )
         _db.session.add(parent)
         _db.session.commit()
 
@@ -464,7 +501,12 @@ class TestProcessCommentCreated:
     # ── multiple subscribers ──────────────────────────────────────────────
 
     def test_multiple_subscribers_all_notified(
-        self, db_session, alice, bob, carol, pub_post  # noqa: ARG002
+        self,
+        db_session,
+        alice,
+        bob,
+        carol,
+        pub_post,  # noqa: ARG002
     ):
         ThreadSubscriptionService.subscribe(bob.id, pub_post.id)
         ThreadSubscriptionService.subscribe(carol.id, pub_post.id)
@@ -529,19 +571,25 @@ class TestUnsubscribeRoute:
         assert resp.status_code == 400
 
     def test_bad_token_returns_400(self, auth_client, db_session, alice, pub_post):  # noqa: ARG002
-        resp = auth_client.get(
-            f"/threads/{pub_post.slug}/unsubscribe?token=tampered"
-        )
+        resp = auth_client.get(f"/threads/{pub_post.slug}/unsubscribe?token=tampered")
         assert resp.status_code == 400
 
     def test_valid_token_unsubscribes_and_returns_200(
-        self, app, auth_client, db_session, alice, bob, pub_post  # noqa: ARG002
+        self,
+        app,
+        auth_client,
+        db_session,
+        alice,
+        bob,
+        pub_post,  # noqa: ARG002
     ):
         ThreadSubscriptionService.subscribe(bob.id, pub_post.id)
         assert ThreadSubscriptionService.is_subscribed(bob.id, pub_post.id) is True
 
         with app.app_context():
-            token = NotificationDeliveryService.make_unsubscribe_token(bob.id, pub_post.id)
+            token = NotificationDeliveryService.make_unsubscribe_token(
+                bob.id, pub_post.id
+            )
 
         resp = auth_client.get(
             f"/threads/{pub_post.slug}/unsubscribe?token={token}",
@@ -551,11 +599,19 @@ class TestUnsubscribeRoute:
         assert not ThreadSubscriptionService.is_subscribed(bob.id, pub_post.id)
 
     def test_unsubscribe_idempotent(
-        self, app, auth_client, db_session, alice, bob, pub_post  # noqa: ARG002
+        self,
+        app,
+        auth_client,
+        db_session,
+        alice,
+        bob,
+        pub_post,  # noqa: ARG002
     ):
         """Calling unsubscribe when not subscribed still returns 200."""
         with app.app_context():
-            token = NotificationDeliveryService.make_unsubscribe_token(bob.id, pub_post.id)
+            token = NotificationDeliveryService.make_unsubscribe_token(
+                bob.id, pub_post.id
+            )
 
         resp = auth_client.get(
             f"/threads/{pub_post.slug}/unsubscribe?token={token}",

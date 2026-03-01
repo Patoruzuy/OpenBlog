@@ -77,9 +77,7 @@ class TestListComments:
         _, user_token = make_user_token()
         slug = _make_published_post(auth_client, ed_token)
         c = _create_comment(auth_client, user_token, slug, body="Spam")
-        auth_client.post(
-            f"/api/comments/{c['id']}/flag", headers=_auth(user_token)
-        )
+        auth_client.post(f"/api/comments/{c['id']}/flag", headers=_auth(user_token))
         # Anonymous sees 0 (flagged hidden)
         anon = auth_client.get(f"/api/posts/{slug}/comments").get_json()
         assert anon["total"] == 0
@@ -220,9 +218,7 @@ class TestDeleteComment:
         _, user_token = make_user_token()
         slug = _make_published_post(auth_client, ed_token)
         c = _create_comment(auth_client, user_token, slug, body="Hello")
-        resp = auth_client.delete(
-            f"/api/comments/{c['id']}", headers=_auth(user_token)
-        )
+        resp = auth_client.delete(f"/api/comments/{c['id']}", headers=_auth(user_token))
         assert resp.status_code == 200
         assert resp.get_json()["deleted"] is True
 
@@ -231,9 +227,7 @@ class TestDeleteComment:
         _, user_token = make_user_token()
         slug = _make_published_post(auth_client, ed_token)
         c = _create_comment(auth_client, user_token, slug, body="Hello")
-        resp = auth_client.delete(
-            f"/api/comments/{c['id']}", headers=_auth(ed_token)
-        )
+        resp = auth_client.delete(f"/api/comments/{c['id']}", headers=_auth(ed_token))
         assert resp.status_code == 200
 
     def test_non_author_reader_returns_403(self, auth_client, make_user_token):

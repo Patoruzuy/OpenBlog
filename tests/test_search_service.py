@@ -26,12 +26,16 @@ def make_author():
     return AuthService.register("author@search.com", "srchauthor", "StrongPass123!!")
 
 
-def make_post(author_id: int, title: str, body: str = "", tags: list[str] | None = None):
+def make_post(
+    author_id: int, title: str, body: str = "", tags: list[str] | None = None
+):
     post = PostService.create(author_id, title, body, tags=tags or [])
     return PostService.publish(post)
 
 
-def make_public_user(username: str, display_name: str | None = None, headline: str | None = None):
+def make_public_user(
+    username: str, display_name: str | None = None, headline: str | None = None
+):
     """Create a user with no privacy settings row (defaults to public/searchable)."""
     u = AuthService.register(f"{username}@test.com", username, "StrongPass123!!")
     if display_name:
@@ -42,7 +46,9 @@ def make_public_user(username: str, display_name: str | None = None, headline: s
     return u
 
 
-def add_privacy(user, visibility: str = "public", searchable: bool = True, mode: str = "public"):
+def add_privacy(
+    user, visibility: str = "public", searchable: bool = True, mode: str = "public"
+):
     """Attach a UserPrivacySettings row to *user* and commit."""
     priv = UserPrivacySettings(
         user_id=user.id,
@@ -60,11 +66,13 @@ def add_privacy(user, visibility: str = "public", searchable: bool = True, mode:
 
 class TestSearchEmpty:
     def test_empty_string_returns_nothing(self, db_session):  # noqa: ARG002
-        _r = SearchService.search(""); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("")
+        posts, total = _r.posts, _r.post_total
         assert posts == [] and total == 0
 
     def test_whitespace_only_returns_nothing(self, db_session):  # noqa: ARG002
-        _r = SearchService.search("   "); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("   ")
+        posts, total = _r.posts, _r.post_total
         assert posts == [] and total == 0
 
 
@@ -75,26 +83,30 @@ class TestSearchTitle:
     def test_exact_title_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Flask Tutorial", "Learn Flask today.")
-        _r = SearchService.search("Flask Tutorial"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("Flask Tutorial")
+        posts, total = _r.posts, _r.post_total
         assert total == 1
         assert posts[0].title == "Flask Tutorial"
 
     def test_partial_title_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Advanced Python Tips")
-        _r = SearchService.search("Python"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("Python")
+        total = _r.post_total
         assert total == 1
 
     def test_case_insensitive_title(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Docker Compose Guide")
-        _r = SearchService.search("docker"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("docker")
+        total = _r.post_total
         assert total == 1
 
     def test_no_match_returns_empty(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Unrelated Post")
-        _r = SearchService.search("kubernetes"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("kubernetes")
+        posts, total = _r.posts, _r.post_total
         assert total == 0 and posts == []
 
 
@@ -105,13 +117,15 @@ class TestSearchBody:
     def test_body_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "My Post", "This covers async/await in depth.")
-        _r = SearchService.search("async"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("async")
+        total = _r.post_total
         assert total == 1
 
     def test_body_no_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "My Post", "Completely unrelated content.")
-        _r = SearchService.search("microservices"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("microservices")
+        total = _r.post_total
         assert total == 0
 
 
@@ -122,13 +136,15 @@ class TestSearchTags:
     def test_tag_name_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "A Post About Stuff", tags=["python", "flask"])
-        _r = SearchService.search("flask"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("flask")
+        total = _r.post_total
         assert total == 1
 
     def test_tag_slug_match(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Another Post", tags=["machine-learning"])
-        _r = SearchService.search("machine"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("machine")
+        total = _r.post_total
         assert total == 1
 
 
@@ -140,13 +156,15 @@ class TestSearchDraftExclusion:
         author = make_author()
         # Create but do NOT publish
         PostService.create(author.id, "Secret Draft Post", "Draft content here")
-        _r = SearchService.search("Secret Draft"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("Secret Draft")
+        posts, total = _r.posts, _r.post_total
         assert total == 0 and posts == []
 
     def test_published_returned(self, db_session):  # noqa: ARG002
         author = make_author()
         make_post(author.id, "Public Article", "Visible content")
-        _r = SearchService.search("Public Article"); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("Public Article")
+        total = _r.post_total
         assert total == 1
 
 
@@ -158,7 +176,8 @@ class TestSearchPagination:
         author = make_author()
         for i in range(5):
             make_post(author.id, f"Python Post {i}", "Python content here")
-        _r = SearchService.search("Python", page=1, per_page=3); posts, total = _r.posts, _r.post_total
+        _r = SearchService.search("Python", page=1, per_page=3)
+        posts, total = _r.posts, _r.post_total
         assert total == 5
         assert len(posts) == 3
 
@@ -365,4 +384,3 @@ class TestSuggestUsers:
         make_public_user("shortq")
         result = SearchService.suggest("s")
         assert result["users"] == []
-

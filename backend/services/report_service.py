@@ -17,9 +17,9 @@ class ReportError(Exception):
 
 
 _VALID_TYPES = frozenset({"post", "comment"})
-_VALID_REASONS = frozenset({
-    "spam", "harassment", "misinformation", "off_topic", "other"
-})
+_VALID_REASONS = frozenset(
+    {"spam", "harassment", "misinformation", "off_topic", "other"}
+)
 
 
 class ReportService:
@@ -53,9 +53,7 @@ class ReportService:
             )
         )
         if existing is not None:
-            raise ReportError(
-                "You already have an open report for this item.", 409
-            )
+            raise ReportError("You already have an open report for this item.", 409)
 
         report = Report(
             reporter_id=reporter_id,
@@ -111,9 +109,7 @@ class ReportService:
         if target_type:
             q = q.where(Report.target_type == target_type)
 
-        total = db.session.scalar(
-            select(func.count()).select_from(q.subquery())
-        ) or 0
+        total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         offset = (page - 1) * per_page
         reports = list(
             db.session.execute(q.offset(offset).limit(per_page)).unique().scalars()
@@ -123,6 +119,9 @@ class ReportService:
     @staticmethod
     def open_count() -> int:
         """Return the number of currently open reports (for the sidebar badge)."""
-        return db.session.scalar(
-            select(func.count(Report.id)).where(Report.status == "open")
-        ) or 0
+        return (
+            db.session.scalar(
+                select(func.count(Report.id)).where(Report.status == "open")
+            )
+            or 0
+        )

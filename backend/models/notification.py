@@ -39,16 +39,16 @@ class Notification(db.Model):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
-    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # ── Relationships ──────────────────────────────────────────────────────
     user: Mapped[User] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "User", back_populates="notifications"
     )
 
-    __table_args__ = (
-        Index("ix_notifications_user_read", "user_id", "is_read"),
-    )
+    __table_args__ = (Index("ix_notifications_user_read", "user_id", "is_read"),)
 
     def __repr__(self) -> str:
         return (

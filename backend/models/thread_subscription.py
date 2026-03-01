@@ -33,5 +33,7 @@ class ThreadSubscription(db.Model):
     post: Mapped[Post] = relationship("Post")  # type: ignore[name-defined]  # noqa: F821
 
     __table_args__ = (
-        UniqueConstraint("user_id", "post_id", name="uq_thread_subscriptions_user_post"),
+        UniqueConstraint(
+            "user_id", "post_id", name="uq_thread_subscriptions_user_post"
+        ),
     )

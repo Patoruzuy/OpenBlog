@@ -13,8 +13,12 @@ class CreatePostSchema(BaseSchema):
     title = fields.Str(required=True, validate=validate.Length(min=1, max=500))
     markdown_body = fields.Str(load_default="")
     tags = fields.List(fields.Str(), load_default=None, allow_none=True)
-    seo_title = fields.Str(load_default=None, allow_none=True, validate=validate.Length(max=200))
-    seo_description = fields.Str(load_default=None, allow_none=True, validate=validate.Length(max=500))
+    seo_title = fields.Str(
+        load_default=None, allow_none=True, validate=validate.Length(max=200)
+    )
+    seo_description = fields.Str(
+        load_default=None, allow_none=True, validate=validate.Length(max=500)
+    )
     # og_image_url: URL format is enforced by the service; schema just coerces to Str
     og_image_url = fields.Str(load_default=None, allow_none=True)
 
@@ -22,11 +26,17 @@ class CreatePostSchema(BaseSchema):
 class UpdatePostSchema(BaseSchema):
     """PUT /api/posts/<slug> — partial post update (all fields optional)."""
 
-    title = fields.Str(load_default=None, allow_none=True, validate=validate.Length(min=1, max=500))
+    title = fields.Str(
+        load_default=None, allow_none=True, validate=validate.Length(min=1, max=500)
+    )
     markdown_body = fields.Str(load_default=None, allow_none=True)
     tags = fields.List(fields.Str(), load_default=None, allow_none=True)
-    seo_title = fields.Str(load_default=None, allow_none=True, validate=validate.Length(max=200))
-    seo_description = fields.Str(load_default=None, allow_none=True, validate=validate.Length(max=500))
+    seo_title = fields.Str(
+        load_default=None, allow_none=True, validate=validate.Length(max=200)
+    )
+    seo_description = fields.Str(
+        load_default=None, allow_none=True, validate=validate.Length(max=500)
+    )
     og_image_url = fields.Str(load_default=None, allow_none=True)
 
 

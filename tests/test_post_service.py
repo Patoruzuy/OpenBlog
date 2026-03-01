@@ -204,6 +204,7 @@ class TestPostServiceUpdate:
         # Prime the cache.
         with app.app_context():
             from backend.utils.markdown import get_rendered_html
+
             get_rendered_html(post.id, post.markdown_body)
             redis = app.extensions["redis"]
             assert redis.get(f"post:{post.id}:html") is not None
@@ -228,6 +229,7 @@ class TestPostServicePublish:
 
     def test_schedule_future(self, db_session):  # noqa: ARG002
         from datetime import UTC, datetime, timedelta
+
         post = self._draft(db_session)
         future = datetime.now(UTC) + timedelta(days=1)
         PostService.publish(post, at=future)
@@ -237,6 +239,7 @@ class TestPostServicePublish:
 
     def test_schedule_past_raises(self, db_session):
         from datetime import UTC, datetime, timedelta
+
         post = self._draft(db_session)
         past = datetime.now(UTC) - timedelta(hours=1)
         with pytest.raises(PostError) as exc_info:

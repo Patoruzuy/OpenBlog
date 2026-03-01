@@ -16,7 +16,6 @@ class ThreadSubscriptionError(Exception):
 
 
 class ThreadSubscriptionService:
-
     @staticmethod
     def subscribe(user_id: int, post_id: int) -> ThreadSubscription:
         """Subscribe *user_id* to the comment thread for *post_id*.

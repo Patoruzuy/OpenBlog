@@ -47,9 +47,7 @@ class NotificationService:
             q = q.where(Notification.is_read.is_(False))
         q = q.order_by(Notification.created_at.desc())
 
-        total = (
-            db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
-        )
+        total = db.session.scalar(select(func.count()).select_from(q.subquery())) or 0
         notifications = list(
             db.session.scalars(q.offset((page - 1) * per_page).limit(per_page))
         )
