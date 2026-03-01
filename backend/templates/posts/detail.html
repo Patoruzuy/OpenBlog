@@ -278,6 +278,16 @@
                  letter-spacing:var(--tracking-label)">
         {{ _('Leave a comment') }}
       </h3>
+
+      {%- if not current_user.is_email_verified %}
+        <div style="padding:var(--space-md) var(--space-lg);border:1px dashed var(--border);
+                    border-radius:var(--radius-lg);text-align:center">
+          <p style="color:var(--text-muted);margin:0">
+            {{ _('Please verify your email address to post comments.') }}
+            <a href="{{ url_for('auth.resend_verification') }}">{{ _('Resend verification email') }}</a>
+          </p>
+        </div>
+      {%- else %}
       <form method="post" id="comment-form"
             action="{{ url_for('api_comments.create_comment', slug=post.slug) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
@@ -325,6 +335,7 @@
           </button>
         </div>
       </form>
+      {%- endif %}{# /is_email_verified #}
     </div>
   {% else %}
     <div style="margin-top:var(--space-xl);padding:var(--space-lg);

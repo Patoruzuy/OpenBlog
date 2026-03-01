@@ -1854,14 +1854,21 @@ a:hover {
 .tab-link {
   padding: 0.6rem var(--space-md);
   color: var(--text-muted);
+  border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
+  background: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
   transition: color var(--transition), border-color var(--transition);
   text-decoration: none;
+  line-height: 1;
 }
 
-.tab-link:hover      { color: var(--text); text-decoration: none; }
-.tab-link.active     { color: var(--text); border-bottom-color: var(--accent); }
+.tab-link:hover                    { color: var(--text); text-decoration: none; }
+.tab-link.active,
+.tab-link--active                  { color: var(--text); border-bottom-color: var(--accent); }
 
 /* ─── Empty states ───────────────────────────────────────────────────────────── */
 .empty-state {
