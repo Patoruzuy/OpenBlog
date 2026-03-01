@@ -190,6 +190,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.threads import threads_bp
     from backend.routes.users import ssr_users_bp
     from backend.routes.workspace import workspace_bp
+    from backend.routes.invites import invite_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(i18n_bp)
@@ -229,6 +230,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(json_feed_bp)
     app.register_blueprint(sitemap_bp)
     app.register_blueprint(workspace_bp)
+    app.register_blueprint(invite_bp)
 
 
 def _register_jinja_globals(app: Flask) -> None:

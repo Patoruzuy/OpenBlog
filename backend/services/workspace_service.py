@@ -478,3 +478,178 @@ def clone_to_public(post: Post, cloner: User) -> Post:
     db.session.add(clone)
     db.session.flush()  # Assign clone.id without committing.
     return clone
+
+
+# ── Member management ─────────────────────────────────────────────────────────
+
+
+def _is_site_admin(user: User) -> bool:
+    """Return True when *user* is a platform-level site admin."""
+    return (
+        user is not None
+        and getattr(user, "role", None) is not None
+        and user.role.value == "admin"
+    )
+
+
+def _require_owner_or_admin(
+    workspace: Workspace, actor: User, *, op_name: str = "this operation"
+) -> None:
+    """Raise :exc:`PermissionError` if *actor* is not owner/admin."""
+    if _is_site_admin(actor):
+        return
+    member = get_member(workspace, actor)
+    if member is None or not member.role.meets(WorkspaceMemberRole.owner):
+        raise PermissionError(
+            f"Only workspace owners or site admins can perform {op_name}"
+        )
+
+
+def _count_owners(workspace: Workspace) -> int:
+    """Return the number of members with the ``owner`` role in *workspace*."""
+    from sqlalchemy import func  # noqa: PLC0415
+
+    return (
+        db.session.scalar(
+            select(func.count())
+            .select_from(WorkspaceMember)
+            .where(
+                WorkspaceMember.workspace_id == workspace.id,
+                WorkspaceMember.role == WorkspaceMemberRole.owner,
+            )
+        )
+        or 0
+    )
+
+
+def list_members(workspace: Workspace, actor: User) -> list[WorkspaceMember]:
+    """Return all members of *workspace*, ordered by join date ascending.
+
+    Only workspace owners and site admins may call this function.
+
+    Raises
+    ------
+    PermissionError
+        If *actor* is not a workspace owner or site admin.
+    """
+    _require_owner_or_admin(workspace, actor, op_name="member listing")
+    return list(
+        db.session.scalars(
+            select(WorkspaceMember)
+            .where(WorkspaceMember.workspace_id == workspace.id)
+            .options(joinedload(WorkspaceMember.user))
+            .order_by(WorkspaceMember.created_at.asc())
+        )
+    )
+
+
+def change_member_role(
+    workspace: Workspace,
+    actor: User,
+    target_user_id: int,
+    new_role: WorkspaceMemberRole,
+) -> WorkspaceMember:
+    """Change the role of *target_user_id* in *workspace*.
+
+    Ownership invariants enforced here:
+    - Last-owner protection: demoting the sole remaining owner is rejected.
+    - Self-escalation guard: non-admin actors cannot promote themselves.
+
+    Parameters
+    ----------
+    workspace:
+        The workspace being modified.
+    actor:
+        The authenticated user requesting the change (must be owner/admin).
+    target_user_id:
+        PK of the member whose role will change.
+    new_role:
+        The desired :class:`~backend.models.workspace.WorkspaceMemberRole`.
+
+    Returns
+    -------
+    WorkspaceMember
+        The updated member row.  Callers must commit.
+
+    Raises
+    ------
+    PermissionError
+        Actor lacks permission, or self-escalation attempt.
+    ValueError
+        Target is not a member, or last-owner demotion.
+    """
+    _require_owner_or_admin(workspace, actor, op_name="role changes")
+
+    target_member = db.session.scalar(
+        select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == workspace.id,
+            WorkspaceMember.user_id == target_user_id,
+        )
+    )
+    if target_member is None:
+        raise ValueError("Target user is not a member of this workspace")
+
+    # Non-admin users cannot escalate their own role beyond their current level.
+    if not _is_site_admin(actor) and actor.id == target_user_id:
+        actor_member = get_member(workspace, actor)
+        if actor_member and new_role.rank > actor_member.role.rank:
+            raise PermissionError("Members cannot escalate their own role")
+
+    # Last-owner protection: cannot demote the only remaining owner.
+    if (
+        target_member.role == WorkspaceMemberRole.owner
+        and new_role != WorkspaceMemberRole.owner
+        and _count_owners(workspace) <= 1
+    ):
+        raise ValueError("Cannot demote the last owner of this workspace")
+
+    target_member.role = new_role
+    return target_member
+
+
+def remove_member(
+    workspace: Workspace,
+    actor: User,
+    target_user_id: int,
+) -> None:
+    """Remove *target_user_id* from *workspace*.
+
+    Ownership invariants enforced here:
+    - Cannot remove the sole remaining owner.
+    - Owners may remove themselves only when another owner exists.
+
+    Parameters
+    ----------
+    workspace:
+        The workspace being modified.
+    actor:
+        The authenticated user performing the removal (must be owner/admin).
+    target_user_id:
+        PK of the user to remove.
+
+    Raises
+    ------
+    PermissionError
+        *Actor* lacks permission.
+    ValueError
+        Target is not a member, or last-owner removal.
+    """
+    _require_owner_or_admin(workspace, actor, op_name="member removal")
+
+    target_member = db.session.scalar(
+        select(WorkspaceMember).where(
+            WorkspaceMember.workspace_id == workspace.id,
+            WorkspaceMember.user_id == target_user_id,
+        )
+    )
+    if target_member is None:
+        raise ValueError("Target user is not a member of this workspace")
+
+    # Last-owner protection.
+    if (
+        target_member.role == WorkspaceMemberRole.owner
+        and _count_owners(workspace) <= 1
+    ):
+        raise ValueError("Cannot remove the last owner of this workspace")
+
+    db.session.delete(target_member)

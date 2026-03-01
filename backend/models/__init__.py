@@ -32,6 +32,7 @@ from backend.models.portal import (
 )
 from backend.models.workspace import (
     Workspace,
+    WorkspaceInvitation,
     WorkspaceMember,
     WorkspaceMemberRole,
     WorkspaceVisibility,
@@ -80,6 +81,7 @@ __all__ = [
     "UserSocialLink",
     "Vote",
     "Workspace",
+    "WorkspaceInvitation",
     "WorkspaceMember",
     "WorkspaceMemberRole",
     "WorkspaceVisibility",

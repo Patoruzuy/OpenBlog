@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Members — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+
+  <nav class="breadcrumbs">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span class="breadcrumbs__sep">/</span>
+    <span>Members</span>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash flash--{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="page-header">
+    <h1 class="page-header__title">Members</h1>
+    <div class="page-header__actions">
+      <a class="btn btn--primary" href="{{ url_for('workspace.invites', workspace_slug=workspace.slug) }}">
+        Manage Invitations
+      </a>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Role</th>
+        <th>Joined</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in members %}
+        <tr>
+          <td>
+            <strong>{{ m.user.display_name or m.user.username }}</strong>
+            <span class="text-muted">@{{ m.user.username }}</span>
+          </td>
+          <td>
+            <span class="badge badge--role badge--{{ m.role.value }}">{{ m.role.value }}</span>
+          </td>
+          <td>
+            <time datetime="{{ m.created_at.isoformat() }}">
+              {{ m.created_at.strftime('%b %d, %Y') }}
+            </time>
+          </td>
+          <td class="actions">
+            {# Role change form #}
+            <form method="post"
+                  action="{{ url_for('workspace.change_role', workspace_slug=workspace.slug, user_id=m.user_id) }}"
+                  class="inline-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <select name="role" class="form-select form-select--small">
+                {% for role in roles %}
+                  <option value="{{ role.value }}" {% if role == m.role %}selected{% endif %}>
+                    {{ role.value }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="btn btn--ghost btn--small">Set Role</button>
+            </form>
+            {# Remove form #}
+            <form method="post"
+                  action="{{ url_for('workspace.remove_member', workspace_slug=workspace.slug, user_id=m.user_id) }}"
+                  class="inline-form"
+                  onsubmit="return confirm('Remove {{ m.user.username }} from this workspace?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="btn btn--danger btn--small">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+{% endblock %}

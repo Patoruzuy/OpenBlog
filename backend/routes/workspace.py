@@ -12,6 +12,13 @@ POST /w/<workspace_slug>/docs/<doc_slug>/clone-to-public clone to draft     [edi
 GET  /w/<workspace_slug>/compare                         compare versions   [viewer+]
 GET  /w/<workspace_slug>/changelog                       revision history   [viewer+]
 
+GET  /w/<workspace_slug>/members                         member list        [owner/admin]
+POST /w/<workspace_slug>/members/<int:user_id>/role      change role        [owner/admin]
+POST /w/<workspace_slug>/members/<int:user_id>/remove    remove member      [owner/admin]
+GET  /w/<workspace_slug>/invites                         invite list        [owner/admin]
+POST /w/<workspace_slug>/invites/new                     create invite      [owner/admin]
+GET  /w/<workspace_slug>/invites/<int:invite_id>/created show invite link   [owner/admin]
+
 Cache policy
 ------------
 ALL workspace responses carry ``Cache-Control: private, no-store`` via an
@@ -40,6 +47,7 @@ from flask import (
 from backend.extensions import db
 from backend.models.workspace import WorkspaceMemberRole
 from backend.security.permissions import PermissionService
+from backend.services import invite_service as inv_svc
 from backend.services import workspace_service as ws_svc
 from backend.utils.auth import get_current_user, require_auth
 from backend.utils.diff import compute_diff, parse_diff_lines
@@ -375,3 +383,207 @@ def changelog(workspace_slug: str):
         versions=versions,
         member=member,
     )
+
+
+# ── Members management ────────────────────────────────────────────────────────
+
+
+@workspace_bp.get("/<workspace_slug>/members")
+@require_auth
+def members(workspace_slug: str):
+    """List workspace members with their roles.  Owner/admin only."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+    try:
+        member_list = ws_svc.list_members(workspace, user)
+    except PermissionError:
+        abort(404)
+
+    return render_template(
+        "workspace/members.html",
+        workspace=workspace,
+        members=member_list,
+        member=ws_svc.get_member(workspace, user),
+        roles=WorkspaceMemberRole,
+    )
+
+
+@workspace_bp.post("/<workspace_slug>/members/<int:user_id>/role")
+@require_auth
+def change_role(workspace_slug: str, user_id: int):
+    """Change a member's role.  Owner/admin only."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+
+    new_role_str = request.form.get("role", "").strip().lower()
+    try:
+        new_role = WorkspaceMemberRole(new_role_str)
+    except ValueError:
+        flash(f"Invalid role: {new_role_str!r}.", "error")
+        return redirect(
+            url_for("workspace.members", workspace_slug=workspace_slug)
+        )
+
+    try:
+        ws_svc.change_member_role(workspace, user, user_id, new_role)
+        db.session.commit()
+        flash("Role updated.", "success")
+    except (PermissionError, ValueError) as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+
+    return redirect(url_for("workspace.members", workspace_slug=workspace_slug))
+
+
+@workspace_bp.post("/<workspace_slug>/members/<int:user_id>/remove")
+@require_auth
+def remove_member(workspace_slug: str, user_id: int):
+    """Remove a member from the workspace.  Owner/admin only."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+
+    try:
+        ws_svc.remove_member(workspace, user, user_id)
+        db.session.commit()
+        flash("Member removed.", "success")
+    except (PermissionError, ValueError) as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+
+    return redirect(url_for("workspace.members", workspace_slug=workspace_slug))
+
+
+# ── Invitations management ────────────────────────────────────────────────────
+
+
+@workspace_bp.get("/<workspace_slug>/invites")
+@require_auth
+def invites(workspace_slug: str):
+    """List workspace invitations.  Owner/admin only."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+
+    try:
+        invite_list = inv_svc.list_invites(workspace, user)
+    except PermissionError:
+        abort(404)
+
+    return render_template(
+        "workspace/invites.html",
+        workspace=workspace,
+        invites=invite_list,
+        member=ws_svc.get_member(workspace, user),
+    )
+
+
+@workspace_bp.post("/<workspace_slug>/invites/new")
+@require_auth
+def create_invite(workspace_slug: str):
+    """Create a new workspace invitation.  Owner/admin only.
+
+    On success, flashes the raw invite token and redirects to the
+    ``invite_created`` confirmation page (so the token appears exactly once).
+    """
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+
+    role = request.form.get("role", "viewer").strip().lower()
+    try:
+        expires_in_days = int(request.form.get("expires_in_days", "7"))
+    except (TypeError, ValueError):
+        expires_in_days = 7
+    try:
+        max_uses = int(request.form.get("max_uses", "1"))
+    except (TypeError, ValueError):
+        max_uses = 1
+
+    try:
+        invite, raw_token = inv_svc.create_invite(
+            workspace,
+            user,
+            role,
+            expires_in_days=expires_in_days,
+            max_uses=max_uses,
+        )
+        db.session.commit()
+        # Flash the raw token ONCE — it is never re-derivable from the DB.
+        flash(raw_token, "invite_token")
+        return redirect(
+            url_for(
+                "workspace.invite_created",
+                workspace_slug=workspace_slug,
+                invite_id=invite.id,
+            )
+        )
+    except (PermissionError, ValueError) as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("workspace.invites", workspace_slug=workspace_slug))
+
+
+@workspace_bp.get("/<workspace_slug>/invites/<int:invite_id>/created")
+@require_auth
+def invite_created(workspace_slug: str, invite_id: int):
+    """Confirmation page after creating an invite — shows the link exactly once.
+
+    The raw token is consumed from the flash message queue and rendered here.
+    After this page is loaded (or dismissed), the raw token is gone.
+    """
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+
+    from backend.models.workspace import WorkspaceInvitation  # noqa: PLC0415
+
+    invite = db.session.get(WorkspaceInvitation, invite_id)
+    if invite is None or invite.workspace_id != workspace.id:
+        abort(404)
+
+    # Consume the raw token from the flash queue (stored by create_invite POST).
+    # get_flashed_messages() removes items from the session on first call.
+    from flask import get_flashed_messages  # noqa: PLC0415
+
+    raw_token: str | None = None
+    for category, msg in get_flashed_messages(with_categories=True):
+        if category == "invite_token":
+            raw_token = msg
+            break
+
+    return render_template(
+        "workspace/invite_created.html",
+        workspace=workspace,
+        invite=invite,
+        raw_token=raw_token,
+        member=ws_svc.get_member(workspace, user),
+    )
+
+
+@workspace_bp.post("/<workspace_slug>/invites/<int:invite_id>/revoke")
+@require_auth
+def revoke_invite(workspace_slug: str, invite_id: int):
+    """Revoke an invitation.  Owner/admin only."""
+    user = get_current_user()
+    workspace = ws_svc.get_workspace_for_user(
+        workspace_slug, user, required_role=WorkspaceMemberRole.owner
+    )
+
+    try:
+        inv_svc.revoke_invite(invite_id, user)
+        db.session.commit()
+        flash("Invitation revoked.", "success")
+    except (PermissionError, ValueError) as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+
+    return redirect(url_for("workspace.invites", workspace_slug=workspace_slug))

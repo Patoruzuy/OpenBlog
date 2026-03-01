@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Invitation Created — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+
+  <nav class="breadcrumbs">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span class="breadcrumbs__sep">/</span>
+    <a href="{{ url_for('workspace.invites', workspace_slug=workspace.slug) }}">Invitations</a>
+    <span class="breadcrumbs__sep">/</span>
+    <span>Link Created</span>
+  </nav>
+
+  <div class="page-header">
+    <h1 class="page-header__title">Invitation Link</h1>
+  </div>
+
+  {% if raw_token %}
+    <div class="card card--highlight" role="alert">
+      <p>
+        <strong>Copy this link now.</strong>
+        It will not be shown again. Anyone with this link can join as
+        <strong>{{ invite.role }}</strong>.
+      </p>
+      <div class="invite-link-box">
+        <input id="invite-link"
+               type="text"
+               class="form-input"
+               readonly
+               value="{{ absolute_url(url_for('invites.redeem', raw_token=raw_token)) }}" />
+        <button type="button"
+                class="btn btn--ghost"
+                onclick="navigator.clipboard.writeText(document.getElementById('invite-link').value).then(function(){this.textContent='Copied!'},function(){}).bind(this)">
+          Copy
+        </button>
+      </div>
+      <ul class="invite-meta">
+        <li>Expires: <strong>{{ invite.expires_at.strftime('%b %d, %Y at %H:%M UTC') }}</strong></li>
+        <li>Max uses: <strong>{{ invite.max_uses }}</strong></li>
+      </ul>
+    </div>
+  {% else %}
+    <div class="flash flash--warning">
+      The invite link is no longer available. It was already displayed once.
+      <a href="{{ url_for('workspace.invites', workspace_slug=workspace.slug) }}">View all invitations</a>
+    </div>
+  {% endif %}
+
+  <div class="form-actions" style="margin-top: 1.5rem;">
+    <a href="{{ url_for('workspace.invites', workspace_slug=workspace.slug) }}" class="btn btn--ghost">
+      Back to Invitations
+    </a>
+  </div>
+
+</div>
+{% endblock %}
