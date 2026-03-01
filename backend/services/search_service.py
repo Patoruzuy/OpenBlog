@@ -160,7 +160,7 @@ class SearchService:
                 .order_by(func.ts_rank(tsvec, tsq).desc())
                 .limit(limit)
             )
-            user_stmt = SearchService._users_suggest_stmt_postgres(like_pat, limit)
+            user_stmt = SearchService._users_suggest_stmt(like_pat, limit)
         else:
             post_stmt = (
                 select(Post.id, Post.title, Post.slug, Post.markdown_body)
@@ -171,7 +171,7 @@ class SearchService:
                 .order_by(Post.published_at.desc())
                 .limit(limit)
             )
-            user_stmt = SearchService._users_suggest_stmt_sqlite(like_pat, limit)
+            user_stmt = SearchService._users_suggest_stmt(like_pat, limit)
 
         tag_stmt = (
             select(Tag.name, Tag.slug)
@@ -400,37 +400,13 @@ class SearchService:
         return users, total
 
     @staticmethod
-    def _users_suggest_stmt_sqlite(like_pat: str, limit: int):
-        """Suggest query for user profiles (SQLite LIKE)."""
-        return (
-            select(User.username, User.display_name, User.avatar_url)
-            .outerjoin(UserPrivacySettings, UserPrivacySettings.user_id == User.id)
-            .where(
-                User.is_active == True,  # noqa: E712
-                User.is_shadow_banned == False,  # noqa: E712
-                or_(
-                    UserPrivacySettings.id == None,  # noqa: E711
-                    and_(
-                        UserPrivacySettings.profile_visibility
-                        == ProfileVisibility.public.value,
-                        UserPrivacySettings.searchable_profile == True,  # noqa: E712
-                        UserPrivacySettings.default_identity_mode
-                        != IdentityMode.anonymous.value,
-                    ),
-                ),
-                or_(
-                    User.username.like(like_pat),
-                    User.display_name.like(like_pat),
-                    User.headline.like(like_pat),
-                ),
-            )
-            .order_by(User.username)
-            .limit(limit)
-        )
+    def _users_suggest_stmt(like_pat: str, limit: int):
+        """Suggest query for user profiles.
 
-    @staticmethod
-    def _users_suggest_stmt_postgres(like_pat: str, limit: int):
-        """Suggest query for user profiles (Postgres ILIKE)."""
+        Uses ``.ilike()`` throughout — on SQLite this compiles to a plain
+        ``LIKE`` (which is already case-insensitive for ASCII), so a single
+        implementation covers both dialects without branching.
+        """
         return (
             select(User.username, User.display_name, User.avatar_url)
             .outerjoin(UserPrivacySettings, UserPrivacySettings.user_id == User.id)

@@ -63,19 +63,17 @@ def _compute_site_last_modified(post_ids: list[int]) -> datetime:
     if not post_ids:
         return _EPOCH
 
-    row = (
-        db.session.query(
+    row = db.session.execute(
+        select(
             func.max(Post.updated_at).label("max_updated"),
             func.max(Post.published_at).label("max_published"),
-        )
-        .filter(Post.id.in_(post_ids))
-        .one()
-    )
+        ).where(Post.id.in_(post_ids))
+    ).one()
 
-    version_max: datetime | None = (
-        db.session.query(func.max(PostVersion.created_at))
-        .filter(PostVersion.post_id.in_(post_ids))
-        .scalar()
+    version_max: datetime | None = db.session.scalar(
+        select(func.max(PostVersion.created_at)).where(
+            PostVersion.post_id.in_(post_ids)
+        )
     )
 
     candidates: list[datetime] = []
@@ -125,11 +123,12 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
     )
 
     # ── Published posts ──────────────────────────────────────────────────
-    posts: list[Post] = (
-        db.session.query(Post)
-        .filter(Post.status == PostStatus.published)
-        .order_by(Post.published_at.desc(), Post.id.desc())
-        .all()
+    posts: list[Post] = list(
+        db.session.scalars(
+            select(Post)
+            .where(Post.status == PostStatus.published)
+            .order_by(Post.published_at.desc(), Post.id.desc())
+        )
     )
     # Compute site-wide last_modified now (only published post IDs are used).
     post_ids = [p.id for p in posts]
@@ -183,15 +182,19 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
         ).all()
     ]
 
-    active_authors = (
-        db.session.query(User)
-        .filter(
-            User.is_active.is_(True),
-            User.id.notin_(private_user_ids) if private_user_ids else True,
+    active_authors = list(
+        db.session.scalars(
+            select(User)
+            .where(
+                User.is_active.is_(True),
+                User.id.notin_(private_user_ids) if private_user_ids else True,
+            )
+            .join(
+                Post,
+                (Post.author_id == User.id) & (Post.status == PostStatus.published),
+            )
+            .distinct()
         )
-        .join(Post, (Post.author_id == User.id) & (Post.status == PostStatus.published))
-        .distinct()
-        .all()
     )
     for user in active_authors:
         entries.append(

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from backend.extensions import db
 from backend.models.post import Post
 from backend.models.post_version import PostVersion
@@ -18,10 +20,12 @@ class PostVersionService:
 
         Returns ``None`` when the version cannot be resolved.
         """
-        row = PostVersion.query.filter_by(
-            post_id=post_id,
-            version_number=version_number,
-        ).first()
+        row = db.session.scalar(
+            select(PostVersion).where(
+                PostVersion.post_id == post_id,
+                PostVersion.version_number == version_number,
+            )
+        )
         if row is not None:
             return row.markdown_body
 
@@ -35,10 +39,10 @@ class PostVersionService:
     @staticmethod
     def get_available_versions(post_id: int) -> list[int]:
         """Return sorted list of version numbers that have snapshots stored."""
-        rows = (
-            db.session.query(PostVersion.version_number)
-            .filter_by(post_id=post_id)
-            .order_by(PostVersion.version_number)
-            .all()
+        return list(
+            db.session.scalars(
+                select(PostVersion.version_number)
+                .where(PostVersion.post_id == post_id)
+                .order_by(PostVersion.version_number)
+            )
         )
-        return [r[0] for r in rows]

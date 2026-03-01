@@ -32,7 +32,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from flask import current_app, url_for
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
 from backend.extensions import db
@@ -109,8 +109,8 @@ def _channel(title: str, description: str, link: str, feed_url: str) -> dict[str
 def _published_query(limit: int):
     """Base query: published posts, author + tags eager-loaded, newest first."""
     return (
-        db.session.query(Post)
-        .filter(Post.status == PostStatus.published)
+        select(Post)
+        .where(Post.status == PostStatus.published)
         .options(joinedload(Post.author), joinedload(Post.tags))
         .order_by(Post.published_at.desc(), Post.id.desc())
         .limit(limit)
@@ -130,19 +130,17 @@ def _compute_last_modified(post_ids: list[int]) -> datetime:
     if not post_ids:
         return _EPOCH
 
-    row = (
-        db.session.query(
+    row = db.session.execute(
+        select(
             func.max(Post.updated_at).label("max_updated"),
             func.max(Post.published_at).label("max_published"),
-        )
-        .filter(Post.id.in_(post_ids))
-        .one()
-    )
+        ).where(Post.id.in_(post_ids))
+    ).one()
 
-    version_max: datetime | None = (
-        db.session.query(func.max(PostVersion.created_at))
-        .filter(PostVersion.post_id.in_(post_ids))
-        .scalar()
+    version_max: datetime | None = db.session.scalar(
+        select(func.max(PostVersion.created_at)).where(
+            PostVersion.post_id.in_(post_ids)
+        )
     )
 
     candidates: list[datetime] = []
@@ -167,7 +165,7 @@ def get_global_feed(
     site_link = absolute_url("/")
     feed_url = absolute_url(url_for("feed.global_feed"))
 
-    posts = _published_query(limit).all()
+    posts = list(db.session.scalars(_published_query(limit)))
     post_ids = [p.id for p in posts]
     last_modified = _compute_last_modified(post_ids)
 
@@ -188,7 +186,7 @@ def get_tag_feed(
 
     Returns ``None`` if the tag does not exist (caller should 404).
     """
-    tag: Tag | None = db.session.query(Tag).filter_by(slug=slug).first()
+    tag: Tag | None = db.session.scalar(select(Tag).where(Tag.slug == slug))
     if tag is None:
         return None
 
@@ -196,14 +194,17 @@ def get_tag_feed(
     tag_link = absolute_url(url_for("posts.list_posts", tag=slug))
     feed_url = absolute_url(url_for("feed.tag_feed", slug=slug))
 
-    posts = (
-        db.session.query(Post)
-        .filter(Post.status == PostStatus.published)
-        .filter(Post.tags.any(Tag.slug == slug))
-        .options(joinedload(Post.author), joinedload(Post.tags))
-        .order_by(Post.published_at.desc(), Post.id.desc())
-        .limit(limit)
-        .all()
+    posts = list(
+        db.session.scalars(
+            select(Post)
+            .where(
+                Post.status == PostStatus.published,
+                Post.tags.any(Tag.slug == slug),
+            )
+            .options(joinedload(Post.author), joinedload(Post.tags))
+            .order_by(Post.published_at.desc(), Post.id.desc())
+            .limit(limit)
+        )
     )
 
     post_ids = [p.id for p in posts]
@@ -232,7 +233,7 @@ def get_author_feed(
     has no auth mechanism).  Operators who need stricter privacy should set
     the profile to ``private``.
     """
-    user: User | None = db.session.query(User).filter_by(username=username).first()
+    user: User | None = db.session.scalar(select(User).where(User.username == username))
     if user is None:
         return None
 
@@ -246,13 +247,17 @@ def get_author_feed(
     author_link = absolute_url(url_for("users.profile", username=username))
     feed_url = absolute_url(url_for("feed.author_feed", username=username))
 
-    posts = (
-        db.session.query(Post)
-        .filter(Post.status == PostStatus.published, Post.author_id == user.id)
-        .options(joinedload(Post.author), joinedload(Post.tags))
-        .order_by(Post.published_at.desc(), Post.id.desc())
-        .limit(limit)
-        .all()
+    posts = list(
+        db.session.scalars(
+            select(Post)
+            .where(
+                Post.status == PostStatus.published,
+                Post.author_id == user.id,
+            )
+            .options(joinedload(Post.author), joinedload(Post.tags))
+            .order_by(Post.published_at.desc(), Post.id.desc())
+            .limit(limit)
+        )
     )
 
     post_ids = [p.id for p in posts]
@@ -332,7 +337,7 @@ def get_global_json_feed(
     home_url = absolute_url("/")
     feed_url = absolute_url(url_for("json_feed.global_json_feed"))
 
-    posts = _published_query(limit).all()
+    posts = list(db.session.scalars(_published_query(limit)))
     post_ids = [p.id for p in posts]
     last_modified = _compute_last_modified(post_ids)
 
@@ -353,7 +358,7 @@ def get_tag_json_feed(
 
     Returns ``None`` if the tag does not exist (caller should 404).
     """
-    tag: Tag | None = db.session.query(Tag).filter_by(slug=slug).first()
+    tag: Tag | None = db.session.scalar(select(Tag).where(Tag.slug == slug))
     if tag is None:
         return None
 
@@ -361,14 +366,17 @@ def get_tag_json_feed(
     tag_link = absolute_url(url_for("posts.list_posts", tag=slug))
     feed_url = absolute_url(url_for("json_feed.tag_json_feed", slug=slug))
 
-    posts = (
-        db.session.query(Post)
-        .filter(Post.status == PostStatus.published)
-        .filter(Post.tags.any(Tag.slug == slug))
-        .options(joinedload(Post.author), joinedload(Post.tags))
-        .order_by(Post.published_at.desc(), Post.id.desc())
-        .limit(limit)
-        .all()
+    posts = list(
+        db.session.scalars(
+            select(Post)
+            .where(
+                Post.status == PostStatus.published,
+                Post.tags.any(Tag.slug == slug),
+            )
+            .options(joinedload(Post.author), joinedload(Post.tags))
+            .order_by(Post.published_at.desc(), Post.id.desc())
+            .limit(limit)
+        )
     )
 
     post_ids = [p.id for p in posts]
@@ -393,7 +401,7 @@ def get_author_json_feed(
     - the user does not exist, or
     - the user's profile visibility is ``private``.
     """
-    user: User | None = db.session.query(User).filter_by(username=username).first()
+    user: User | None = db.session.scalar(select(User).where(User.username == username))
     if user is None:
         return None
 
@@ -406,13 +414,17 @@ def get_author_json_feed(
     author_link = absolute_url(url_for("users.profile", username=username))
     feed_url = absolute_url(url_for("json_feed.author_json_feed", username=username))
 
-    posts = (
-        db.session.query(Post)
-        .filter(Post.status == PostStatus.published, Post.author_id == user.id)
-        .options(joinedload(Post.author), joinedload(Post.tags))
-        .order_by(Post.published_at.desc(), Post.id.desc())
-        .limit(limit)
-        .all()
+    posts = list(
+        db.session.scalars(
+            select(Post)
+            .where(
+                Post.status == PostStatus.published,
+                Post.author_id == user.id,
+            )
+            .options(joinedload(Post.author), joinedload(Post.tags))
+            .order_by(Post.published_at.desc(), Post.id.desc())
+            .limit(limit)
+        )
     )
 
     post_ids = [p.id for p in posts]
