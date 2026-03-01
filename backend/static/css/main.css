@@ -2363,6 +2363,8 @@ a:hover {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  align-self: center;   /* ensure vertical centre inside header flex row */
+  height: var(--header-height);
 }
 
 /* Search icon toggle button */
@@ -2729,6 +2731,38 @@ a:hover {
 }
 .footer-nav a:hover { color: var(--text); }
 
+/* Footer newsletter form */
+.footer-newsletter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.footer-newsletter__form {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+.footer-newsletter__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.footer-newsletter__input::placeholder { color: var(--text-muted); }
+.footer-newsletter__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.12);
+}
+
 /* ─── Highlighted search terms ────────────────────────────────────────────────── */
 mark {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
@@ -2918,6 +2952,11 @@ mark {
 }
 textarea.form-input { resize: vertical; min-height: 80px; }
 select.form-input { cursor: pointer; }
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
 
 /* ─── Settings form ────────────────────────────────────────────────────────── */
 .settings-form__actions {
@@ -3871,6 +3910,9 @@ details.avatar-menu[open] .avatar-menu__caret { transform: rotate(180deg); }
 /* ─── Profile redesign ───────────────────────────────────────────────────────── */
 .profile-page {
   padding-block: var(--space-xl);
+  padding-inline: var(--space-lg);
+  max-width: var(--max-width);
+  margin-inline: auto;
 }
 
 .profile-layout {
@@ -3979,8 +4021,28 @@ details.avatar-menu[open] .avatar-menu__caret { transform: rotate(180deg); }
   color: var(--text-muted);
   margin-top: 0.1rem;
 }
-.profile-stat__link { text-decoration: none; color: inherit; }
-.profile-stat__link:hover .profile-stat__value { color: var(--accent); text-decoration: none; }
+.profile-stat__link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: transparent;
+  border: none;
+  padding: 0.3rem 0.5rem;
+  margin: -0.3rem -0.5rem;
+  border-radius: var(--radius);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  text-decoration: none;
+  transition: background var(--transition);
+}
+.profile-stat__link:hover { background: var(--surface-hover); }
+.profile-stat__link:hover .profile-stat__value { color: var(--accent); }
+.profile-stat__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 .profile-owner-actions {
   display: flex;
@@ -4294,6 +4356,44 @@ details.avatar-menu[open] .avatar-menu__caret { transform: rotate(180deg); }
 .profile-hidden__desc {
   color: var(--text-muted);
   margin-bottom: var(--space-lg);
+}
+
+/* ─── Improvements time-window filter pills ─────────────────────────────────── */
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: transparent;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+.filter-pill:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.filter-pill--active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: rgba(88, 166, 255, 0.3);
+}
+.filter-pill--active:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 /* ─── sr-only utility (if not already defined) ───────────────────────────────── */

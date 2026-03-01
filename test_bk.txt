@@ -1,7 +1,12 @@
 ============================= test session starts =============================
-collected 1 item
+platform win32 -- Python 3.13.2, pytest-8.4.2, pluggy-1.6.0
+rootdir: E:\Work\OpenBlog
+configfile: pyproject.toml
+plugins: anyio-4.9.0, asyncio-0.26.0, cov-7.0.0, mock-3.14.1, respx-0.22.0
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 9 items
 
-tests\test_bookmarks_ssr.py .                                            [100%]
+tests\test_bookmarks_ssr.py .........                                    [100%]
 
 ============================== warnings summary ===============================
 C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\dateutil\tz\tz.py:37
@@ -9,4 +14,4 @@ C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\dateutil\t
     EPOCH = datetime.datetime.utcfromtimestamp(0)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-======================== 1 passed, 1 warning in 0.54s =========================
+======================== 9 passed, 1 warning in 1.49s =========================

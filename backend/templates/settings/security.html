@@ -21,7 +21,7 @@
 
     <div class="form-field">
       <label class="form-label" for="current_password">Current password</label>
-      <div class="password-wrap">
+      <div class="field-pw-wrap">
         <input
           class="form-input"
           id="current_password"
@@ -30,7 +30,7 @@
           autocomplete="current-password"
           required
         />
-        <button type="button" class="password-toggle" aria-label="Toggle visibility" data-target="current_password">
+        <button type="button" class="pw-toggle" aria-label="Show password" data-target="current_password">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4"/>
             <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
@@ -41,7 +41,7 @@
 
     <div class="form-field">
       <label class="form-label" for="new_password">New password</label>
-      <div class="password-wrap">
+      <div class="field-pw-wrap">
         <input
           class="form-input"
           id="new_password"
@@ -51,7 +51,7 @@
           minlength="15"
           required
         />
-        <button type="button" class="password-toggle" aria-label="Toggle visibility" data-target="new_password">
+        <button type="button" class="pw-toggle" aria-label="Show password" data-target="new_password">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4"/>
             <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
@@ -63,7 +63,7 @@
 
     <div class="form-field">
       <label class="form-label" for="confirm_password">Confirm new password</label>
-      <div class="password-wrap">
+      <div class="field-pw-wrap">
         <input
           class="form-input"
           id="confirm_password"
@@ -73,7 +73,7 @@
           minlength="15"
           required
         />
-        <button type="button" class="password-toggle" aria-label="Toggle visibility" data-target="confirm_password">
+        <button type="button" class="pw-toggle" aria-label="Show password" data-target="confirm_password">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.4"/>
             <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/>
@@ -126,4 +126,18 @@
   </dl>
 </section>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.pw-toggle').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var inp = document.getElementById(btn.dataset.target);
+    var show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    btn.classList.toggle('pw-toggle--active', show);
+  });
+});
+</script>
 {% endblock %}

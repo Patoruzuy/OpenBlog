@@ -44,7 +44,7 @@ from backend.models.notification import Notification
 from backend.models.post import Post, PostStatus
 from backend.models.post_version import PostVersion
 from backend.models.revision import Revision, RevisionStatus
-from backend.models.user import User
+from backend.models.user import User, UserRole
 from backend.services.badge_service import BadgeService
 from backend.utils import metrics
 
@@ -266,6 +266,9 @@ class RevisionService:
             contributor.reputation_score = (
                 contributor.reputation_score or 0
             ) + RevisionService.ACCEPT_REPUTATION
+            # Promote reader to contributor on first accepted revision
+            if contributor.role == UserRole.reader:
+                contributor.role = UserRole.contributor
 
         # Award first-contribution badge if this is their first accepted revision.
         # Wrapped in try/except so a badge failure never aborts the acceptance.

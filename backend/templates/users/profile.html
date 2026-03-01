@@ -48,11 +48,12 @@
     {# Follow / Unfollow action #}
     {% if viewer and viewer.id != profile_user.id %}
       <button
+        type="button"
         id="follow-btn"
         class="btn btn--block {% if is_following %}btn--secondary{% else %}btn--primary{% endif %}"
         data-username="{{ profile_user.username }}"
         data-following="{{ 'true' if is_following else 'false' }}"
-        aria-pressed="{{ 'true' if is_following else 'false' }}"
+        {% if is_following %}aria-pressed="true"{% else %}aria-pressed="false"{% endif %}
       >
         {% if is_following %}Following{% else %}Follow{% endif %}
       </button>

@@ -17,7 +17,7 @@ from backend.services.post_service import RESERVED_SLUGS, PostError, PostService
 from backend.services.post_version_service import PostVersionService
 from backend.services.read_history_service import ReadHistoryService
 from backend.services.release_notes_service import get_post_release_notes
-from backend.utils.auth import get_current_user, require_auth, require_role
+from backend.utils.auth import get_current_user, require_auth
 from backend.utils.diff import compute_diff, parse_diff_lines
 from backend.utils.markdown import (  # noqa: F401
     get_rendered_html,
@@ -64,7 +64,6 @@ def list_posts():
 
 @ssr_posts_bp.route("/new", methods=["GET", "POST"])
 @require_auth
-@require_role("contributor")
 def new_post():
     """Create a new post and optionally publish it immediately."""
     user = get_current_user()

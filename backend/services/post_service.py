@@ -20,7 +20,7 @@ from sqlalchemy import func, select
 from backend.extensions import db
 from backend.models.post import Post, PostStatus
 from backend.models.tag import Tag
-from backend.models.user import User
+from backend.models.user import User, UserRole
 from backend.utils import metrics
 from backend.utils.markdown import invalidate_html_cache, reading_time_minutes
 from backend.utils.validation import validate_url
@@ -179,6 +179,21 @@ def _award_publish_badges(post: Post) -> None:
         pass
 
 
+def _maybe_promote_to_contributor(user_id: int) -> None:
+    """Promote a reader to contributor on their first published post.
+
+    Silently does nothing if the user already has a higher role or does not
+    exist.  Any failure is swallowed so role promotion never blocks publishing.
+    """
+    try:
+        user = db.session.get(User, user_id)
+        if user is not None and user.role == UserRole.reader:
+            user.role = UserRole.contributor
+            db.session.commit()
+    except Exception:  # noqa: BLE001
+        pass
+
+
 # ── Service ────────────────────────────────────────────────────────────────────
 
 
@@ -319,6 +334,7 @@ class PostService:
         if post.status == PostStatus.published:
             metrics.posts_published.inc()
             _award_publish_badges(post)
+            _maybe_promote_to_contributor(post.author_id)
         return post
 
     @staticmethod

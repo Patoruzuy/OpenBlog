@@ -1,0 +1,43 @@
+........................................................................ [  4%]
+........................................................................ [  9%]
+........................................................................ [ 14%]
+........................................................................ [ 19%]
+........................................................................ [ 24%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 38%]
+........................................................................ [ 43%]
+........................................................................ [ 48%]
+........................................................................ [ 53%]
+........................................................................ [ 58%]
+........................................................................ [ 62%]
+........................................................................ [ 67%]
+........................................................................ [ 72%]
+........................................................................ [ 77%]
+........................................................................ [ 82%]
+........................................................................ [ 87%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+..............................................                           [100%]
+============================== warnings summary ===============================
+C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\dateutil\tz\tz.py:37
+  C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\dateutil\tz\tz.py:37: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    EPOCH = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_contribution_graph_service.py: 12 warnings
+  E:\Work\OpenBlog\tests\test_contribution_graph_service.py:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    published_at = datetime.datetime.utcnow() - datetime.timedelta(days=days_ago)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1486 passed, 13 warnings in 113.66s (0:01:53)
+Exception ignored in atexit callback <function cleanup_numbered_dir at 0x000001955DF98B80>:
+Traceback (most recent call last):
+  File "C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\_pytest\pathlib.py", line 374, in cleanup_numbered_dir
+    cleanup_dead_symlinks(root)
+  File "C:\Users\soyse.TIBURON\AppData\Roaming\Python\Python313\site-packages\_pytest\pathlib.py", line 359, in cleanup_dead_symlinks
+    if not left_dir.resolve().exists():
+  File "C:\Python313\Lib\pathlib\_abc.py", line 450, in exists
+    self.stat(follow_symlinks=follow_symlinks)
+  File "C:\Python313\Lib\pathlib\_local.py", line 515, in stat
+    return os.stat(self, follow_symlinks=follow_symlinks)
+PermissionError: [WinError 5] Access is denied: 'C:\\Users\\soyse.TIBURON\\AppData\\Local\\Temp\\pytest-of-Seba\\pytest-current'
