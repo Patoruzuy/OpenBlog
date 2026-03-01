@@ -55,10 +55,16 @@ def index():
         ).all()
     ]
 
-    # Platform stats for hero (zero-safe)
+    # Platform stats for hero (zero-safe).
+    # Scoped to public articles only (workspace_id IS NULL, kind = 'article')
+    # so the count matches what list_published() actually returns.
     total_posts: int = (
         db.session.scalar(
-            select(func.count(Post.id)).where(Post.status == PostStatus.published)
+            select(func.count(Post.id)).where(
+                Post.status == PostStatus.published,
+                Post.workspace_id.is_(None),
+                Post.kind == "article",
+            )
         )
         or 0
     )
