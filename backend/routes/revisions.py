@@ -141,6 +141,10 @@ def submit_revision(slug: str):
 
     user = get_current_user()
 
+    if not user.is_email_verified:
+        flash("Please verify your email address before suggesting edits.", "warning")
+        return redirect(url_for("posts.post_detail", slug=slug))
+
     # Authors use the edit page; only non-authors can submit revisions.
     if user.id == post.author_id:
         flash("You own this post — use the edit page instead.", "info")

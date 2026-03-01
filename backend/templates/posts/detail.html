@@ -98,9 +98,15 @@
   <div class="post-actions" aria-label="{{ _('Post actions') }}">
     <a class="btn btn-sm btn-ghost" href="#comment-form-anchor">&#x1F4AC; {{ _('Comment') }}</a>
     {% if post.status.value == 'published' and current_user and current_user.id != post.author_id %}
-      <a class="btn btn-sm btn-ghost" href="{{ url_for('revisions.submit_revision', slug=post.slug) }}">
-        &#x270E; {{ _('Suggest edit') }}
-      </a>
+      {% if current_user.is_email_verified %}
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('revisions.submit_revision', slug=post.slug) }}">
+          &#x270E; {{ _('Suggest edit') }}
+        </a>
+      {% else %}
+        <span class="btn btn-sm btn-ghost" aria-disabled="true" title="{{ _('Verify your email to suggest edits') }}" style="opacity:.45;cursor:not-allowed">
+          &#x270E; {{ _('Suggest edit') }}
+        </span>
+      {% endif %}
     {% endif %}
     {% if current_user %}
       <button id="bookmark-btn" class="btn btn-sm btn-ghost" type="button"

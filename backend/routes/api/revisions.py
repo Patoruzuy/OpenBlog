@@ -94,6 +94,9 @@ def submit_revision(slug: str):
     summary = data["summary"]
 
     user = get_current_user()
+    if not user.is_email_verified:
+        return jsonify({"error": "Email verification required to suggest edits."}), 403
+
     try:
         revision = RevisionService.submit(
             post_id=post.id,

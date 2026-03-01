@@ -14,18 +14,24 @@ from backend.services.revision_service import RevisionService
 @pytest.fixture()
 def author(make_user_token):
     user, tok = make_user_token("author@example.com", "postauthor")
+    user.is_email_verified = True
+    db.session.commit()
     return user, tok
 
 
 @pytest.fixture()
 def contributor(make_user_token):
     user, tok = make_user_token("contrib@example.com", "contrib", role="contributor")
+    user.is_email_verified = True
+    db.session.commit()
     return user, tok
 
 
 @pytest.fixture()
 def editor(make_user_token):
     user, tok = make_user_token("editor@example.com", "editor", role="editor")
+    user.is_email_verified = True
+    db.session.commit()
     return user, tok
 
 
@@ -91,6 +97,19 @@ class TestSubmitRevision:
             json={"proposed_markdown": "# New", "summary": "Change"},
         )
         assert resp.status_code == 401
+
+    def test_submit_unverified_email_403(self, auth_client, make_user_token, pub_post):
+        """Unverified users must not be able to submit revisions."""
+        user, tok = make_user_token("unverified@example.com", "unverified_rev")
+        # is_email_verified is False by default
+        assert not user.is_email_verified
+        resp = auth_client.post(
+            f"/api/posts/{pub_post.slug}/revisions",
+            json={"proposed_markdown": "# Original\n\nChanged.", "summary": "A change"},
+            headers=_h(tok),
+        )
+        assert resp.status_code == 403
+        assert "verification" in resp.get_json()["error"].lower()
 
     def test_submit_unknown_post_404(self, auth_client, contributor):
         _, tok = contributor
