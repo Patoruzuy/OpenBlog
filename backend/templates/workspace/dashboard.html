@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ workspace.name }} — Workspace{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-header__meta">
+      <span class="badge badge--private" title="Private workspace">Private</span>
+    </div>
+    <h1 class="page-header__title">{{ workspace.name }}</h1>
+    {% if workspace.description %}
+      <p class="page-header__description">{{ workspace.description }}</p>
+    {% endif %}
+  </div>
+
+  <div class="workspace-toolbar">
+    {% if member and member.role.value in ('owner', 'editor') %}
+      <a class="btn btn--primary" href="{{ url_for('workspace.new_document', workspace_slug=workspace.slug) }}">
+        + New Document
+      </a>
+    {% endif %}
+    <span class="workspace-role-badge">
+      Your role: <strong>{{ member.role.value if member else '—' }}</strong>
+    </span>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash flash--{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if documents %}
+    <div class="post-cards-list">
+      {% for doc in documents %}
+        <article class="post-card">
+          <span class="post-card-title">
+            <a href="{{ url_for('workspace.document', workspace_slug=workspace.slug, doc_slug=doc.slug) }}">
+              {{ doc.title }}
+            </a>
+            <span class="badge badge--status badge--{{ doc.status.value }}">{{ doc.status.value }}</span>
+          </span>
+          {% if doc.seo_description %}
+            <p class="post-card-summary">{{ doc.seo_description }}</p>
+          {% endif %}
+          <div class="post-card-meta">
+            <span>{{ doc.author.display_name or doc.author.username }}</span>
+            <span class="post-meta-sep">&middot;</span>
+            <time datetime="{{ doc.updated_at.isoformat() }}">
+              Updated {{ doc.updated_at.strftime('%b %d, %Y') }}
+            </time>
+            {% if doc.version > 1 %}
+              <span class="post-meta-sep">&middot;</span>
+              <span class="version-badge">v{{ doc.version }}</span>
+            {% endif %}
+            {% if member and member.role.value in ('owner', 'editor') %}
+              <span class="post-meta-sep">&middot;</span>
+              <a href="{{ url_for('workspace.edit_document', workspace_slug=workspace.slug, doc_slug=doc.slug) }}">Edit</a>
+            {% endif %}
+            <span class="post-meta-sep">&middot;</span>
+            <a href="{{ url_for('workspace.changelog', workspace_slug=workspace.slug, slug=doc.slug) }}">Changelog</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No documents yet.</p>
+      {% if member and member.role.value in ('owner', 'editor') %}
+        <a href="{{ url_for('workspace.new_document', workspace_slug=workspace.slug) }}">Create the first document.</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

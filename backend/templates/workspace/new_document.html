@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}New Document — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container container--narrow">
+
+  <nav class="breadcrumbs">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span class="breadcrumbs__sep">/</span>
+    <span>New Document</span>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, msg in messages %}
+      <div class="flash flash--{{ category }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <h1 class="page-title">New Document</h1>
+
+  <form method="post" class="post-form">
+    {{ csrf_token_field() if csrf_token_field is defined }}
+
+    <div class="form-group">
+      <label for="title" class="form-label">Title <span class="required">*</span></label>
+      <input id="title" name="title" type="text" class="form-input" required
+             placeholder="Document title" autofocus />
+    </div>
+
+    <div class="form-group">
+      <label for="slug" class="form-label">Slug <span class="form-hint">(leave blank to auto-generate)</span></label>
+      <input id="slug" name="slug" type="text" class="form-input"
+             placeholder="my-document-slug" pattern="[a-z0-9\-]+" />
+    </div>
+
+    <div class="form-group">
+      <label for="markdown_body" class="form-label">Content (Markdown)</label>
+      <textarea id="markdown_body" name="markdown_body" class="form-textarea"
+                rows="20" placeholder="Write in Markdown…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="tags" class="form-label">Tags <span class="form-hint">(comma-separated)</span></label>
+      <input id="tags" name="tags" type="text" class="form-input" placeholder="tag1, tag2" />
+    </div>
+
+    <div class="form-group">
+      <label for="seo_description" class="form-label">Description</label>
+      <input id="seo_description" name="seo_description" type="text" class="form-input"
+             placeholder="Short description for listings" maxlength="512" />
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn--primary">Create Document</button>
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}" class="btn btn--ghost">Cancel</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

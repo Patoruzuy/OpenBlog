@@ -30,6 +30,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -52,7 +53,7 @@ class Post(db.Model):
 
     # ── Content ────────────────────────────────────────────────────────────
     slug: Mapped[str] = mapped_column(
-        String(255), nullable=False, unique=True, index=True
+        String(255), nullable=False
     )
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     markdown_body: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -95,6 +96,16 @@ class Post(db.Model):
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
+    # ── Workspace scope ────────────────────────────────────────────────────
+    # NULL → public layer (visible to everyone).
+    # NOT NULL → workspace layer (visible only to workspace members).
+    workspace_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("workspaces.id", ondelete="SET NULL"),
+        nullable=True,
+        default=None,
+    )
+
     # ── Autosave ───────────────────────────────────────────────────────────
     last_autosaved_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
@@ -128,6 +139,10 @@ class Post(db.Model):
     author: Mapped[User] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "User", back_populates="posts"
     )
+    workspace: Mapped[Workspace | None] = relationship(  # type: ignore[name-defined]  # noqa: F821
+        "Workspace",
+        foreign_keys="Post.workspace_id",
+    )
     tags: Mapped[list[Tag]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Tag", secondary="post_tags", back_populates="posts", lazy="select"
     )
@@ -158,8 +173,26 @@ class Post(db.Model):
     # raw SQL (op.execute) because SQLAlchemy doesn't model tsvector natively.
     # They are NOT declared here to keep the model SQLite-compatible for tests.
     __table_args__ = (
-        UniqueConstraint("slug", name="uq_posts_slug"),
+        # Partial unique indexes enforce slug uniqueness scoped by workspace.
+        # Public posts (workspace_id IS NULL): slug must be unique globally.
+        Index(
+            "uq_posts_public_slug",
+            "slug",
+            unique=True,
+            sqlite_where=text("workspace_id IS NULL"),
+            postgresql_where=text("workspace_id IS NULL"),
+        ),
+        # Workspace posts: (workspace_id, slug) pair must be unique per workspace.
+        Index(
+            "uq_posts_workspace_slug",
+            "workspace_id",
+            "slug",
+            unique=True,
+            sqlite_where=text("workspace_id IS NOT NULL"),
+            postgresql_where=text("workspace_id IS NOT NULL"),
+        ),
         Index("ix_posts_status_published_at", "status", "published_at"),
+        Index("ix_posts_workspace_id", "workspace_id"),
     )
 
     def __repr__(self) -> str:

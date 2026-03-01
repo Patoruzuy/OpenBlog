@@ -30,6 +30,12 @@ from backend.models.portal import (
     UserRepository,
     UserSocialLink,
 )
+from backend.models.workspace import (
+    Workspace,
+    WorkspaceMember,
+    WorkspaceMemberRole,
+    WorkspaceVisibility,
+)
 from backend.models.post import Post
 from backend.models.post_release_note import PostReleaseNote
 from backend.models.post_version import PostVersion
@@ -73,4 +79,8 @@ __all__ = [
     "UserRepository",
     "UserSocialLink",
     "Vote",
+    "Workspace",
+    "WorkspaceMember",
+    "WorkspaceMemberRole",
+    "WorkspaceVisibility",
 ]

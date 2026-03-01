@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Changelog — {{ post.title }} — {{ workspace.name }}{% endblock %}
+
+{% block og_meta %}
+<meta name="robots" content="noindex, nofollow" />
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <nav class="rev-breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span>/</span>
+    <a href="{{ url_for('workspace.document', workspace_slug=workspace.slug, doc_slug=post.slug) }}">{{ post.title }}</a>
+    <span>/</span>
+    <span>Changelog</span>
+  </nav>
+
+  <h1 class="page-title">Changelog — {{ post.title }}</h1>
+
+  <div class="post-header__meta">
+    <span class="badge badge--private">Private</span>
+    <span class="version-badge">v{{ post.version }}</span>
+  </div>
+
+  {% if release_notes %}
+    <ol class="changelog-list" reversed>
+      {% for note in release_notes %}
+        <li class="changelog-entry" id="v{{ note.version_number }}">
+          <div class="changelog-entry__header">
+            <span class="version-badge">v{{ note.version_number }}</span>
+            {% if note.released_at %}
+              <time class="changelog-entry__date" datetime="{{ note.released_at.isoformat() }}">
+                {{ note.released_at.strftime('%b %d, %Y') }}
+              </time>
+            {% endif %}
+            {% if note.is_breaking %}
+              <span class="badge badge--breaking">Breaking</span>
+            {% endif %}
+          </div>
+          <p class="changelog-entry__summary">{{ note.summary }}</p>
+          {% if versions | length >= 2 %}
+            {# Show compare link if there's a previous version to compare to #}
+            {% set prev_num = note.version_number - 1 %}
+            {% if prev_num >= 1 %}
+              <a class="changelog-entry__diff-link"
+                 href="{{ url_for('workspace.compare', workspace_slug=workspace.slug,
+                                  slug=post.slug, **{'from': prev_num, 'to': note.version_number}) }}">
+                View diff v{{ prev_num }} → v{{ note.version_number }} &rarr;
+              </a>
+            {% endif %}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="empty-state">No changelog entries yet. Changelog entries are created when a revision is accepted.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -192,6 +192,7 @@ class RecentlyImprovedService:
                 select(Post)
                 .where(
                     Post.id.in_(ordered_post_ids),
+                    Post.workspace_id.is_(None),
                     Post.status == PostStatus.published,
                 )
                 .options(
@@ -262,8 +263,10 @@ class RecentlyImprovedService:
             cutoff = datetime.now(UTC) - timedelta(days=int(days))
 
         # Shared WHERE clause expressions (reused across count + data queries).
+        # INV-001: only public published posts.
         base_filters = [
             Revision.status == RevisionStatus.accepted,
+            Post.workspace_id.is_(None),
             Post.status == PostStatus.published,
         ]
         if cutoff is not None:

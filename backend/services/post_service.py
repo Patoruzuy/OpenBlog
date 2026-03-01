@@ -65,10 +65,15 @@ def _unique_slug(base: str) -> str:
     rather than one round-trip per counter value.  Reserved slugs are treated
     as already-taken so they always get a numeric suffix.
     """
+    # Only compare against public-layer slugs (workspace_id IS NULL) to allow
+    # workspace posts to reuse slugs that already exist on the public side.
     existing = (
         set(
             db.session.scalars(
-                select(Post.slug).where(Post.slug.like(f"{base}%"))
+                select(Post.slug).where(
+                    Post.slug.like(f"{base}%"),
+                    Post.workspace_id.is_(None),
+                )
             ).all()
         )
         | RESERVED_SLUGS
@@ -351,11 +356,14 @@ class PostService:
         Results are ordered newest-published-first.  Shadow-banned authors'
         posts are always excluded.
         """
+        # INV-001: public published posts only.
         base = (
             select(Post)
             .join(User, User.id == Post.author_id)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 User.is_shadow_banned.is_(False),
             )
             .order_by(Post.published_at.desc())
@@ -393,11 +401,14 @@ class PostService:
     @staticmethod
     def get_featured() -> Post | None:
         """Return the featured post, or the most-recently published one as fallback."""
+        # INV-001: public published posts only.
         featured = db.session.scalar(
             select(Post)
             .join(User, User.id == Post.author_id)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 Post.is_featured.is_(True),
                 User.is_shadow_banned.is_(False),
             )
@@ -406,12 +417,14 @@ class PostService:
         )
         if featured:
             return featured
-        # Fallback: latest published post.
+        # Fallback: latest public published post.
         return db.session.scalar(
             select(Post)
             .join(User, User.id == Post.author_id)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 User.is_shadow_banned.is_(False),
             )
             .order_by(Post.published_at.desc())

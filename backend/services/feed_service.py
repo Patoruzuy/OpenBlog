@@ -107,10 +107,18 @@ def _channel(title: str, description: str, link: str, feed_url: str) -> dict[str
 
 
 def _published_query(limit: int):
-    """Base query: published posts, author + tags eager-loaded, newest first."""
+    """Base query: published posts, author + tags eager-loaded, newest first.
+
+    INV-001: only public (workspace_id IS NULL), published, with a published_at
+    timestamp — workspace docs are never exposed in public feeds.
+    """
     return (
         select(Post)
-        .where(Post.status == PostStatus.published)
+        .where(
+            Post.workspace_id.is_(None),
+            Post.status == PostStatus.published,
+            Post.published_at.is_not(None),
+        )
         .options(joinedload(Post.author), joinedload(Post.tags))
         .order_by(Post.published_at.desc(), Post.id.desc())
         .limit(limit)
@@ -165,7 +173,7 @@ def get_global_feed(
     site_link = absolute_url("/")
     feed_url = absolute_url(url_for("feed.global_feed"))
 
-    posts = list(db.session.scalars(_published_query(limit)))
+    posts = list(db.session.scalars(_published_query(limit)).unique())
     post_ids = [p.id for p in posts]
     last_modified = _compute_last_modified(post_ids)
 
@@ -198,13 +206,15 @@ def get_tag_feed(
         db.session.scalars(
             select(Post)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 Post.tags.any(Tag.slug == slug),
             )
             .options(joinedload(Post.author), joinedload(Post.tags))
             .order_by(Post.published_at.desc(), Post.id.desc())
             .limit(limit)
-        )
+        ).unique()
     )
 
     post_ids = [p.id for p in posts]
@@ -251,13 +261,15 @@ def get_author_feed(
         db.session.scalars(
             select(Post)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 Post.author_id == user.id,
             )
             .options(joinedload(Post.author), joinedload(Post.tags))
             .order_by(Post.published_at.desc(), Post.id.desc())
             .limit(limit)
-        )
+        ).unique()
     )
 
     post_ids = [p.id for p in posts]
@@ -337,7 +349,7 @@ def get_global_json_feed(
     home_url = absolute_url("/")
     feed_url = absolute_url(url_for("json_feed.global_json_feed"))
 
-    posts = list(db.session.scalars(_published_query(limit)))
+    posts = list(db.session.scalars(_published_query(limit)).unique())
     post_ids = [p.id for p in posts]
     last_modified = _compute_last_modified(post_ids)
 
@@ -370,13 +382,15 @@ def get_tag_json_feed(
         db.session.scalars(
             select(Post)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 Post.tags.any(Tag.slug == slug),
             )
             .options(joinedload(Post.author), joinedload(Post.tags))
             .order_by(Post.published_at.desc(), Post.id.desc())
             .limit(limit)
-        )
+        ).unique()
     )
 
     post_ids = [p.id for p in posts]
@@ -418,13 +432,15 @@ def get_author_json_feed(
         db.session.scalars(
             select(Post)
             .where(
+                Post.workspace_id.is_(None),
                 Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
                 Post.author_id == user.id,
             )
             .options(joinedload(Post.author), joinedload(Post.tags))
             .order_by(Post.published_at.desc(), Post.id.desc())
             .limit(limit)
-        )
+        ).unique()
     )
 
     post_ids = [p.id for p in posts]

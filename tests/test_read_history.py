@@ -13,6 +13,7 @@ Covers:
 
 from __future__ import annotations
 
+import datetime
 import pytest
 
 from backend.extensions import db
@@ -37,6 +38,7 @@ def _make_published_post(
         markdown_body="Some content.",
         author_id=author.id,
         status=PostStatus.published,
+        published_at=datetime.datetime.now(datetime.UTC),
         version=1,
     )
     db.session.add(post)

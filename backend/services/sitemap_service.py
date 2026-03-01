@@ -123,10 +123,15 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
     )
 
     # ── Published posts ──────────────────────────────────────────────────
+    # INV-001: public published posts only — workspace docs excluded.
     posts: list[Post] = list(
         db.session.scalars(
             select(Post)
-            .where(Post.status == PostStatus.published)
+            .where(
+                Post.workspace_id.is_(None),
+                Post.status == PostStatus.published,
+                Post.published_at.is_not(None),
+            )
             .order_by(Post.published_at.desc(), Post.id.desc())
         )
     )
@@ -156,7 +161,9 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
             .join(PostTag, PostTag.c.tag_id == Tag.id)
             .join(
                 Post,
-                (Post.id == PostTag.c.post_id) & (Post.status == PostStatus.published),
+                (Post.id == PostTag.c.post_id)
+                & (Post.status == PostStatus.published)
+                & Post.workspace_id.is_(None),
             )
             .distinct()
         ).all()
@@ -191,7 +198,9 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
             )
             .join(
                 Post,
-                (Post.author_id == User.id) & (Post.status == PostStatus.published),
+                (Post.author_id == User.id)
+                & (Post.status == PostStatus.published)
+                & Post.workspace_id.is_(None),
             )
             .distinct()
         )

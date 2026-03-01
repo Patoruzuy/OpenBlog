@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Compare v{{ from_ver }} → v{{ to_ver }} — {{ post.title }}{% endblock %}
+
+{% block og_meta %}
+<meta name="robots" content="noindex, nofollow" />
+{% endblock %}
+
+{% block content %}
+<div class="container rev-detail">
+
+  <nav class="rev-breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+    <span>/</span>
+    <a href="{{ url_for('workspace.document', workspace_slug=workspace.slug, doc_slug=post.slug) }}">{{ post.title }}</a>
+    <span>/</span>
+    <span>Compare</span>
+  </nav>
+
+  <header class="rev-hd">
+    <h1 class="rev-hd-title">Compare v{{ from_ver }} → v{{ to_ver }}</h1>
+    <div class="rev-hd-meta">
+      <span class="badge badge--private">Private</span>
+      {% if additions or deletions %}
+        <span class="rev-meta-chip">
+          <span class="rev-meta-chip__label--add">+{{ additions }}</span>
+          <span class="rev-meta-chip__label--del">&minus;{{ deletions }}</span>
+        </span>
+      {% endif %}
+    </div>
+
+    <!-- Version selector form -->
+    <form class="compare-version-form" method="GET"
+          action="{{ url_for('workspace.compare', workspace_slug=workspace.slug) }}">
+      <input type="hidden" name="slug" value="{{ post.slug }}" />
+      <label>From
+        <select name="from">
+          {% for v in versions %}
+            <option value="{{ v.version_number }}" {{ 'selected' if v.version_number == from_ver }}>
+              v{{ v.version_number }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>To
+        <select name="to">
+          {% for v in versions %}
+            <option value="{{ v.version_number }}" {{ 'selected' if v.version_number == to_ver }}>
+              v{{ v.version_number }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn btn--ghost btn--sm">Compare</button>
+    </form>
+  </header>
+
+  {% if diff_lines %}
+    <div class="diff-block">
+      {% for line in diff_lines %}
+        <div class="diff-line diff-line--{{ line.kind }}">
+          <span class="diff-line__gutter">
+            {{ '+' if line.kind == 'add' else ('-' if line.kind == 'del' else ' ') }}
+          </span>
+          <span class="diff-line__content">{{ line.content }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-state">No differences between these versions.</p>
+  {% endif %}
+
+</div>
+{% endblock %}
