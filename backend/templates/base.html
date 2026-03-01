@@ -17,7 +17,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v={{ static_ver }}" />
 
     {# ── Canonical URL (child templates may override via {% block canonical %}) ── #}
     {% block canonical %}
@@ -276,7 +276,7 @@
     {% block scripts %}{% endblock %}
 
     <!-- ── Search toggle + suggest ───────────────────────────────────────── -->
-    <script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}?v={{ static_ver }}" defer></script>
   </body>
 </html>
 

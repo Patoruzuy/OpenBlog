@@ -235,9 +235,21 @@ def _register_blueprints(app: Flask) -> None:
 
 def _register_jinja_globals(app: Flask) -> None:
     """Register utility functions available in every Jinja2 template."""
+    import hashlib
+    import os as _os
     from urllib.parse import urlencode
 
     from flask import url_for as _url_for
+
+    # Compute an 8-char content hash of main.css once at startup so that any
+    # CSS/JS change produces a new URL, busting the browser's immutable cache.
+    _css_path = _os.path.join(app.static_folder, "css", "main.css")
+    try:
+        with open(_css_path, "rb") as _fh:
+            _static_ver = hashlib.md5(_fh.read()).hexdigest()[:8]  # noqa: S324
+    except OSError:
+        _static_ver = "1"
+    app.jinja_env.globals["static_ver"] = _static_ver
 
     def url_with_query(endpoint: str, _qs: dict | None = None, **url_kwargs) -> str:  # noqa: ANN001
         """Return ``url_for(endpoint, **url_kwargs)`` with *_qs* appended as

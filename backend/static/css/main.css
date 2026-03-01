@@ -1,3 +1,8 @@
+/* ─── Baseline safety ───────────────────────────────────────────────────────── */
+/* Ensure the HTML `hidden` attribute always hides elements, even if a later
+   rule sets `display` on the element without checking its hidden state. */
+[hidden] { display: none !important; }
+
 /* ─── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
   /* Palette — GitHub dark inspired */
