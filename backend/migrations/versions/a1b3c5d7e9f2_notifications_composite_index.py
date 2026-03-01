@@ -8,7 +8,10 @@ Create Date: 2025-01-02 00:00:00.000000
 from alembic import op
 
 revision = "a1b3c5d7e9f2"
-down_revision = "f3a7d9e2b451"
+# Previously branched from f3a7d9e2b451 in parallel with a9c2e7f4b831.
+# Linearised: a9c2e7f4b831 creates comment_attachments which
+# b2c4e6f8a0d1 (downstream) alters; ordering must be respected.
+down_revision = "a9c2e7f4b831"
 branch_labels = None
 depends_on = None
 

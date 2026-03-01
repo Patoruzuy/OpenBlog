@@ -29,7 +29,10 @@ Create Date: 2026-02-28 00:00:00.000000
 from __future__ import annotations
 
 revision = "d3e6f0b2c5a8"
-down_revision = ("a9c2e7f4b831", "b1d4f6c8e295")
+# Chain is now linear: a9c2e7f4b831 → a1b3c5d7e9f2 → … → b1d4f6c8e295.
+# This revision is kept as a stable waypoint (referenced by e4f5a6b7c8d9)
+# but is no longer a true merge point.
+down_revision = "b1d4f6c8e295"
 branch_labels = None
 depends_on = None
 

@@ -53,15 +53,11 @@ def _index_exists(index_name: str, table_name: str = "posts") -> bool:
 # ── upgrade ───────────────────────────────────────────────────────────────────
 
 def upgrade() -> None:
-    # 1-2. Enums (PostgreSQL only; SQLite uses VARCHAR)
-    if _is_postgresql():
-        op.execute(
-            "CREATE TYPE workspace_visibility AS ENUM ('private')"
-        )
-        op.execute(
-            "CREATE TYPE workspace_member_role "
-            "AS ENUM ('owner', 'editor', 'contributor', 'viewer')"
-        )
+    # 1-2. Enums are created automatically by SQLAlchemy's _on_table_create
+    # event when op.create_table is called below.  We do NOT issue explicit
+    # CREATE TYPE statements because in SQLAlchemy 2.0 the _on_table_create
+    # hook fires unconditionally regardless of create_type=False, which would
+    # cause a DuplicateObject error if we created the type ourselves first.
 
     # 3. workspaces table
     op.create_table(
@@ -80,7 +76,7 @@ def upgrade() -> None:
         sa.Column(
             "visibility",
             sa.String(20) if not _is_postgresql() else sa.Enum(
-                "private", name="workspace_visibility", create_type=False
+                "private", name="workspace_visibility"
             ),
             nullable=False,
             server_default="private",
@@ -114,7 +110,6 @@ def upgrade() -> None:
             sa.String(20) if not _is_postgresql() else sa.Enum(
                 "owner", "editor", "contributor", "viewer",
                 name="workspace_member_role",
-                create_type=False,
             ),
             nullable=False,
         ),
