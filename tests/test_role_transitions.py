@@ -233,10 +233,8 @@ class TestDraftsCTAGating:
         assert resp.status_code == 200
         assert b"/posts/new" in resp.data
 
-    def test_unverified_user_sees_disabled_button(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
-    ):
-        """Unverified user should see a disabled button instead of the new-post link."""
+    def test_unverified_user_sees_disabled_button(self, auth_client, make_user_token, db_session):  # noqa: ARG002
+        """Unverified user should see a disabled button and a resend-verification link."""
         user, _ = make_user_token("unverified@test.com", "unverified_u", role="reader")
         user.is_email_verified = False
         db.session.commit()
@@ -244,5 +242,7 @@ class TestDraftsCTAGating:
         _login(auth_client, user.id)
         resp = auth_client.get("/drafts/")
         assert resp.status_code == 200
-        # Disabled button present and the new-post href is absent
+        # Disabled button present and the new-post href is absent from the CTA area
         assert b"disabled" in resp.data
+        # Visible resend link is present
+        assert b"resend_verification" in resp.data or b"Resend" in resp.data

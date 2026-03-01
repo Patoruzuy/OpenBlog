@@ -6,8 +6,16 @@
 
   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--space-lg);">
     <h1 class="page-title" style="margin:0;">{{ _('Drafts') }}</h1>
-    {% if not current_user.is_email_verified %}
-      <button class="btn btn-primary" disabled title="{{ _('Verify your email address to start posting') }}">{{ _('New post') }}</button>
+    {% if not current_user %}
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary">{{ _('Sign in to post') }}</a>
+    {% elif not current_user.is_email_verified %}
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem;">
+        <button class="btn btn-primary" disabled aria-disabled="true">{{ _('New post') }}</button>
+        <span class="form-hint">
+          {{ _('Verify your email to post.') }}
+          <a href="{{ url_for('auth.resend_verification') }}">{{ _('Resend link') }}</a>
+        </span>
+      </div>
     {% else %}
       <a href="{{ url_for('posts.new_post') }}" class="btn btn-primary">{{ _('New post') }}</a>
     {% endif %}
@@ -106,8 +114,14 @@
         <p style="color:var(--text-muted); margin-bottom:var(--space-md);">
           {{ _('Start writing and your drafts will appear here.') }}
         </p>
-        {% if not current_user.is_email_verified %}
-          <button class="btn btn-primary" disabled title="{{ _('Verify your email address to start posting') }}">{{ _('Write your first post') }}</button>
+        {% if not current_user %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary">{{ _('Sign in to post') }}</a>
+        {% elif not current_user.is_email_verified %}
+          <button class="btn btn-primary" disabled aria-disabled="true">{{ _('Write your first post') }}</button>
+          <p class="form-hint" style="margin-top:0.5rem;">
+            {{ _('Verify your email address to start posting.') }}
+            <a href="{{ url_for('auth.resend_verification') }}">{{ _('Resend verification link') }}</a>
+          </p>
         {% else %}
           <a href="{{ url_for('posts.new_post') }}" class="btn btn-primary">{{ _('Write your first post') }}</a>
         {% endif %}

@@ -2742,25 +2742,10 @@ a:hover {
   gap: var(--space-xs);
   flex-wrap: wrap;
 }
+/* .ui-input provides all border/color/focus styles; these rules add layout only. */
 .footer-newsletter__input {
   flex: 1;
   min-width: 0;
-  padding: 0.4rem 0.6rem;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: var(--font-ui);
-  font-size: 0.8125rem;
-  transition: border-color var(--transition), box-shadow var(--transition);
-  appearance: none;
-  -webkit-appearance: none;
-}
-.footer-newsletter__input::placeholder { color: var(--text-muted); }
-.footer-newsletter__input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.12);
 }
 
 /* ─── Highlighted search terms ────────────────────────────────────────────────── */
@@ -2923,6 +2908,32 @@ mark {
   font-weight: 500;
   color: var(--text-muted);
   letter-spacing: var(--tracking-label);
+}
+
+/* Shared compact input — use on any standalone <input> that needs a border.
+   Compose with layout helpers like .footer-newsletter__input for sizing. */
+.ui-input {
+  padding: 0.4rem 0.6rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.ui-input::placeholder { color: var(--text-muted); }
+.ui-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.12);
+}
+.ui-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .form-input {
