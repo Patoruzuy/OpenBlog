@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}New A/B Experiment{% if workspace %} — {{ workspace.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4" style="max-width:700px">
+
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      {% if workspace %}
+        <li class="breadcrumb-item"><a href="/w/{{ workspace.slug }}/ab">A/B Experiments</a></li>
+      {% else %}
+        <li class="breadcrumb-item"><a href="/ab">A/B Experiments</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active">New</li>
+    </ol>
+  </nav>
+
+  <h2>New A/B Experiment</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="mb-3">
+      <label for="name" class="form-label">Experiment Name <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" id="name" name="name" required
+             placeholder="e.g. GPT-4o v1 vs v2 on QA Suite">
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea class="form-control" id="description" name="description" rows="2"></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="suite_id" class="form-label">Benchmark Suite <span class="text-danger">*</span></label>
+      <select class="form-select" id="suite_id" name="suite_id" required>
+        <option value="">— choose a suite —</option>
+        {% for suite in suites %}
+          <option value="{{ suite.id }}">{{ suite.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <hr>
+    <h5>Variant A</h5>
+
+    <div class="mb-3">
+      <label for="variant_a_prompt_post_id" class="form-label">Prompt Post ID <span class="text-danger">*</span></label>
+      <input type="number" class="form-control" id="variant_a_prompt_post_id"
+             name="variant_a_prompt_post_id" min="1" required>
+      <div class="form-text">Numeric ID of the prompt post.</div>
+    </div>
+
+    <div class="mb-3">
+      <label for="variant_a_version" class="form-label">Version <span class="text-danger">*</span></label>
+      <input type="number" class="form-control" id="variant_a_version"
+             name="variant_a_version" min="1" required>
+    </div>
+
+    <hr>
+    <h5>Variant B</h5>
+
+    <div class="mb-3">
+      <label for="variant_b_prompt_post_id" class="form-label">Prompt Post ID <span class="text-danger">*</span></label>
+      <input type="number" class="form-control" id="variant_b_prompt_post_id"
+             name="variant_b_prompt_post_id" min="1" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="variant_b_version" class="form-label">Version <span class="text-danger">*</span></label>
+      <input type="number" class="form-control" id="variant_b_version"
+             name="variant_b_version" min="1" required>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <button type="submit" class="btn btn-primary">Create Experiment</button>
+      {% if workspace %}
+        <a href="/w/{{ workspace.slug }}/ab" class="btn btn-outline-secondary">Cancel</a>
+      {% else %}
+        <a href="/ab" class="btn btn-outline-secondary">Cancel</a>
+      {% endif %}
+    </div>
+  </form>
+
+</div>
+{% endblock %}

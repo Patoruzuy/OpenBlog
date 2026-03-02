@@ -10,6 +10,7 @@ Import order matters: models with foreign keys must be imported after the
 models they reference.  The ordering below satisfies all FK dependencies.
 """
 
+from backend.models.ab_experiment import ABExperiment, ABExperimentRun, ABExperimentStatus
 from backend.models.admin import AuditLog, SiteSetting
 from backend.models.benchmark import (
     BenchmarkCase,

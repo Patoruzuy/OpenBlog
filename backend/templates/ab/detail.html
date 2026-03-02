@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}{{ exp.name }}{% if workspace %} — {{ workspace.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  {# breadcrumb #}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      {% if workspace %}
+        <li class="breadcrumb-item"><a href="/w/{{ workspace.slug }}/ab">A/B Experiments</a></li>
+      {% else %}
+        <li class="breadcrumb-item"><a href="/ab">A/B Experiments</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active">{{ exp.name }}</li>
+    </ol>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {# ── Header ─────────────────────────────────────────────────── #}
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h2>{{ exp.name }}</h2>
+      {% if exp.description %}
+        <p class="text-muted">{{ exp.description }}</p>
+      {% endif %}
+    </div>
+    <span class="badge bg-{{ 'success' if exp.status == 'completed' else
+                               'warning text-dark' if exp.status == 'running' else
+                               'secondary' if exp.status == 'canceled' else
+                               'light text-dark border' }} fs-6">
+      {{ exp.status }}
+    </span>
+  </div>
+
+  {# ── Variant Definitions ─────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header fw-bold">Variant A</div>
+        <div class="card-body">
+          <p class="mb-1">
+            <strong>Prompt:</strong>
+            <a href="/p/{{ exp.variant_a_prompt.slug }}">{{ exp.variant_a_prompt.title }}</a>
+          </p>
+          <p class="mb-0"><strong>Version:</strong> {{ exp.variant_a_version }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header fw-bold">Variant B</div>
+        <div class="card-body">
+          <p class="mb-1">
+            <strong>Prompt:</strong>
+            <a href="/p/{{ exp.variant_b_prompt.slug }}">{{ exp.variant_b_prompt.title }}</a>
+          </p>
+          <p class="mb-0"><strong>Version:</strong> {{ exp.variant_b_version }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p><strong>Suite:</strong> {{ exp.suite.name }}</p>
+
+  {# ── Action Buttons ──────────────────────────────────────────── #}
+  {% if exp.status == 'draft' %}
+    <form method="post" action="{% if workspace %}/w/{{ workspace.slug }}/ab/{{ exp.slug }}/start{% else %}/ab/{{ exp.slug }}/start{% endif %}" class="d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-success">▶ Start Experiment</button>
+    </form>
+  {% endif %}
+
+  {% if exp.status in ('draft', 'running') %}
+    <form method="post" action="{% if workspace %}/w/{{ workspace.slug }}/ab/{{ exp.slug }}/cancel{% else %}/ab/{{ exp.slug }}/cancel{% endif %}" class="d-inline ms-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger btn-sm"
+              onclick="return confirm('Cancel this experiment?')">Cancel</button>
+    </form>
+  {% endif %}
+
+  {# ── Run Links ────────────────────────────────────────────────── #}
+  {% if exp.experiment_run %}
+    <div class="mt-3">
+      {% set er = exp.experiment_run %}
+      <strong>Runs:</strong>
+      {% if workspace %}
+        <a href="/w/{{ workspace.slug }}/benchmarks/runs/{{ er.run_a_id }}" class="ms-2">Run A (#{{ er.run_a_id }})</a>
+        —
+        <a href="/w/{{ workspace.slug }}/benchmarks/runs/{{ er.run_b_id }}">Run B (#{{ er.run_b_id }})</a>
+      {% else %}
+        <a href="/benchmarks/runs/{{ er.run_a_id }}" class="ms-2">Run A (#{{ er.run_a_id }})</a>
+        —
+        <a href="/benchmarks/runs/{{ er.run_b_id }}">Run B (#{{ er.run_b_id }})</a>
+      {% endif %}
+      <span class="ms-3 text-muted small">
+        A: <strong>{{ comparison.run_a_status or '—' }}</strong>
+        &nbsp;|&nbsp;
+        B: <strong>{{ comparison.run_b_status or '—' }}</strong>
+      </span>
+    </div>
+  {% endif %}
+
+  {# ── Comparison Summary Cards ─────────────────────────────────── #}
+  {% if exp.status == 'completed' or comparison.cases %}
+  <hr class="my-4">
+  <h4>Comparison Summary</h4>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="fs-4 fw-bold">
+            {% if comparison.avg_score_a is not none %}
+              {{ "%.3f"|format(comparison.avg_score_a|float) }}
+            {% else %}—{% endif %}
+          </div>
+          <div class="text-muted small">Avg Score A</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="fs-4 fw-bold">
+            {% if comparison.avg_score_b is not none %}
+              {{ "%.3f"|format(comparison.avg_score_b|float) }}
+            {% else %}—{% endif %}
+          </div>
+          <div class="text-muted small">Avg Score B</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="fs-4 fw-bold
+            {% if comparison.delta is not none %}
+              {{ ' text-success' if comparison.delta > 0 else ' text-danger' if comparison.delta < 0 else '' }}
+            {% endif %}">
+            {% if comparison.delta is not none %}
+              {{ "%+.3f"|format(comparison.delta|float) }}
+            {% else %}—{% endif %}
+          </div>
+          <div class="text-muted small">Delta (B − A)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <div class="fs-4 fw-bold">{{ comparison.count_matched }} / {{ comparison.count_total }}</div>
+          <div class="text-muted small">Cases Matched</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Per-Case Table ───────────────────────────────────────────── #}
+  {% if comparison.cases %}
+  <h5>Per-Case Results</h5>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Case</th>
+          <th class="text-center">Score A</th>
+          <th class="text-center">Score B</th>
+          <th class="text-center">Δ</th>
+          <th>Output A</th>
+          <th>Output B</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in comparison.cases %}
+        <tr>
+          <td>{{ c.case_name }}</td>
+          <td class="text-center">
+            {% if c.score_a is not none %}{{ "%.3f"|format(c.score_a|float) }}{% else %}—{% endif %}
+          </td>
+          <td class="text-center">
+            {% if c.score_b is not none %}{{ "%.3f"|format(c.score_b|float) }}{% else %}—{% endif %}
+          </td>
+          <td class="text-center {% if c.score_delta is not none %}{{ 'text-success' if c.score_delta > 0 else 'text-danger' if c.score_delta < 0 else '' }}{% endif %}">
+            {% if c.score_delta is not none %}{{ "%+.3f"|format(c.score_delta|float) }}{% else %}—{% endif %}
+          </td>
+          <td>
+            <details>
+              <summary class="text-muted small" style="cursor:pointer">show</summary>
+              <pre class="mt-1 p-2 bg-light rounded small" style="white-space:pre-wrap;max-height:120px;overflow:auto">{{ c.output_a or '(no output)' }}</pre>
+            </details>
+          </td>
+          <td>
+            <details>
+              <summary class="text-muted small" style="cursor:pointer">show</summary>
+              <pre class="mt-1 p-2 bg-light rounded small" style="white-space:pre-wrap;max-height:120px;overflow:auto">{{ c.output_b or '(no output)' }}</pre>
+            </details>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {# ── Back link ─────────────────────────────────────────────────── #}
+  <div class="mt-4">
+    {% if workspace %}
+      <a href="/w/{{ workspace.slug }}/ab">&larr; Back to experiments</a>
+    {% else %}
+      <a href="/ab">&larr; Back to experiments</a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

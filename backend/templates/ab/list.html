@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}A/B Experiments{% if workspace %} — {{ workspace.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  {# breadcrumb #}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      {% if workspace %}
+        <li class="breadcrumb-item"><a href="/w/{{ workspace.slug }}">{{ workspace.name }}</a></li>
+        <li class="breadcrumb-item active">A/B Experiments</li>
+      {% else %}
+        <li class="breadcrumb-item active">A/B Experiments</li>
+      {% endif %}
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>A/B Experiments</h2>
+    {% if workspace %}
+      <a href="/w/{{ workspace.slug }}/ab/new" class="btn btn-primary btn-sm">+ New Experiment</a>
+    {% else %}
+      <a href="/ab/new" class="btn btn-primary btn-sm">+ New Experiment</a>
+    {% endif %}
+  </div>
+
+  {# flash messages #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="alert alert-{{ 'danger' if cat == 'error' else cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if experiments %}
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Suite</th>
+        <th>Status</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for exp in experiments %}
+      <tr>
+        <td>
+          {% if workspace %}
+            <a href="/w/{{ workspace.slug }}/ab/{{ exp.slug }}">{{ exp.name }}</a>
+          {% else %}
+            <a href="/ab/{{ exp.slug }}">{{ exp.name }}</a>
+          {% endif %}
+        </td>
+        <td>{{ exp.suite.name }}</td>
+        <td>
+          <span class="badge bg-{{ 'success' if exp.status == 'completed' else
+                                    'warning text-dark' if exp.status == 'running' else
+                                    'secondary' if exp.status == 'canceled' else
+                                    'light text-dark border' }}">
+            {{ exp.status }}
+          </span>
+        </td>
+        <td>{{ exp.created_at.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted">No experiments yet.
+    {% if workspace %}
+      <a href="/w/{{ workspace.slug }}/ab/new">Create one</a>.
+    {% else %}
+      <a href="/ab/new">Create one</a>.
+    {% endif %}
+  </p>
+  {% endif %}
+
+</div>
+{% endblock %}
