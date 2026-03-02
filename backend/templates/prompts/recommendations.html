@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Fork Recommendations — {{ prompt.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:900px;padding-top:var(--space-xl);padding-bottom:var(--space-xl)">
+
+  {# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-md)">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.ws_prompt_list', ws_slug=workspace.slug) }}">Prompts</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}">{{ prompt.title }}</a>
+    {% else %}
+      <a href="{{ url_for('prompts.public_prompt_list') }}">Prompt Library</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}">{{ prompt.title }}</a>
+    {% endif %}
+    <span class="breadcrumb-sep">/</span>
+    <span>Recommended Forks</span>
+  </nav>
+
+  {# ── Page header ──────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 .4rem">
+      Recommended Forks
+      <span style="color:var(--text-muted);font-weight:400;font-size:1rem">— {{ prompt.title }}</span>
+    </h1>
+    <p style="color:var(--text-muted);font-size:.875rem;margin:.4rem 0 0">
+      Ranked by benchmark scores, ratings, execution count, recency, and A/B experiment results.
+      {% if recommendations %}
+        {{ recommendations | length }} fork{{ 's' if recommendations | length != 1 else '' }} found.
+      {% endif %}
+    </p>
+  </header>
+
+  {% if not recommendations %}
+  {# ── Empty state ──────────────────────────────────────────────────────────── #}
+  <div style="padding:var(--space-xl);text-align:center;color:var(--text-muted);border:1px dashed var(--border);border-radius:var(--radius)">
+    <p style="margin:0;font-size:.95rem">No forks found for this prompt in the current scope.</p>
+    <p style="margin:.5rem 0 0;font-size:.8rem">
+      Forks are created by linking a prompt with
+      <em>derived from</em> as the relationship type.
+    </p>
+  </div>
+
+  {% else %}
+
+  {# ── Scoring note ─────────────────────────────────────────────────────────── #}
+  <div style="margin-bottom:var(--space-lg);padding:.75rem 1rem;background:var(--surface-2);border-radius:var(--radius);font-size:.8rem;color:var(--text-muted)">
+    <strong>Scoring formula:</strong>
+    40% benchmark avg &nbsp;+&nbsp; 25% rating &nbsp;+&nbsp; 15% execution count &nbsp;+&nbsp; 10% recency &nbsp;+&nbsp; 10% A/B win rate.
+    All dimensions normalised within this prompt family.
+  </div>
+
+  {# ── Recommendations table ────────────────────────────────────────────────── #}
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);color:var(--text-muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.04em">
+          <th style="text-align:left;padding:.5rem .75rem">#</th>
+          <th style="text-align:left;padding:.5rem .75rem">Fork</th>
+          <th style="text-align:center;padding:.5rem .75rem">Scope</th>
+          <th style="text-align:center;padding:.5rem .75rem">Ver.</th>
+          <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap" title="Weighted composite score">Score</th>
+          <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap" title="Avg numeric score from completed benchmark runs">Bench</th>
+          <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap" title="Total upvotes">Votes</th>
+          <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap" title="View count (execution proxy)">Views</th>
+          <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap" title="Fraction of A/B experiments won">A/B win</th>
+          <th style="text-align:left;padding:.5rem .75rem"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in recommendations %}
+        {% set bd = rec.breakdown %}
+        <tr style="border-bottom:1px solid var(--border){% if loop.first %};background:var(--surface-highlight, var(--surface-2)){% endif %}">
+
+          {# Rank #}
+          <td style="padding:.6rem .75rem;color:var(--text-muted);font-size:.8rem;font-weight:600">
+            {{ loop.index }}
+          </td>
+
+          {# Title + kind badge #}
+          <td style="padding:.6rem .75rem">
+            {% if rec.workspace_id and workspace %}
+              <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=rec.slug) }}"
+                 style="font-weight:500">{{ rec.title }}</a>
+            {% else %}
+              <a href="{{ url_for('prompts.public_prompt_detail', slug=rec.slug) }}"
+                 style="font-weight:500">{{ rec.title }}</a>
+            {% endif %}
+            {% if rec.kind != 'prompt' %}
+              <span class="badge" style="margin-left:.4rem;font-size:.65rem;padding:.1rem .35rem;background:var(--surface-2);border-radius:var(--radius-sm)">{{ rec.kind }}</span>
+            {% endif %}
+          </td>
+
+          {# Scope badge #}
+          <td style="padding:.6rem .75rem;text-align:center">
+            {% if rec.scope == 'workspace' %}
+              <span class="badge" style="font-size:.7rem;padding:.15rem .45rem;background:var(--color-purple-subtle,#ede9fe);color:var(--color-purple,#6d28d9);border-radius:var(--radius-sm)">workspace</span>
+            {% else %}
+              <span class="badge" style="font-size:.7rem;padding:.15rem .45rem;background:var(--surface-2);border-radius:var(--radius-sm)">public</span>
+            {% endif %}
+          </td>
+
+          {# Version #}
+          <td style="padding:.6rem .75rem;text-align:center;color:var(--text-muted)">v{{ rec.version }}</td>
+
+          {# Overall score #}
+          <td style="padding:.6rem .75rem;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">
+            {{ "%.4f" | format(rec.score) }}
+          </td>
+
+          {# Benchmark avg #}
+          <td style="padding:.6rem .75rem;text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums">
+            {% if bd.benchmark_raw is not none %}
+              {{ "%.3f" | format(bd.benchmark_raw) }}
+            {% else %}
+              <span title="No benchmark runs">—</span>
+            {% endif %}
+          </td>
+
+          {# Rating (votes) #}
+          <td style="padding:.6rem .75rem;text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums">
+            {{ bd.rating_raw }}
+          </td>
+
+          {# Execution count (views) #}
+          <td style="padding:.6rem .75rem;text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums">
+            {{ bd.execution_raw }}
+          </td>
+
+          {# A/B win rate #}
+          <td style="padding:.6rem .75rem;text-align:right;color:var(--text-muted);font-variant-numeric:tabular-nums">
+            {% if bd.ab_win_rate is not none %}
+              {{ "%.0f" | format(bd.ab_win_rate * 100) }}%
+            {% else %}
+              <span title="No A/B experiments">—</span>
+            {% endif %}
+          </td>
+
+          {# Diff link #}
+          <td style="padding:.6rem .75rem">
+            {% if rec.workspace_id and workspace %}
+              <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=rec.slug) }}"
+                 style="font-size:.78rem;white-space:nowrap" title="View this fork">View fork</a>
+            {% else %}
+              <a href="{{ url_for('prompts.public_prompt_detail', slug=rec.slug) }}"
+                 style="font-size:.78rem;white-space:nowrap" title="View this fork">View fork</a>
+            {% endif %}
+          </td>
+        </tr>
+
+        {# ── Score breakdown accordion ─────────────────────────────────────── #}
+        <tr style="border-bottom:1px solid var(--border)">
+          <td colspan="10" style="padding:0">
+            <details style="font-size:.8rem;color:var(--text-muted)">
+              <summary style="padding:.25rem .75rem;cursor:pointer;list-style:none;user-select:none">
+                ▸ Score breakdown
+              </summary>
+              <div style="padding:.5rem 1.25rem .75rem;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem">
+                <span><strong>Benchmark:</strong> {{ "%.4f" | format(bd.benchmark_contrib) }} (raw: {% if bd.benchmark_raw is not none %}{{ "%.3f" | format(bd.benchmark_raw) }}{% else %}—{% endif %})</span>
+                <span><strong>Rating:</strong> {{ "%.4f" | format(bd.rating_contrib) }} ({{ bd.rating_raw }} votes)</span>
+                <span><strong>Execution:</strong> {{ "%.4f" | format(bd.execution_contrib) }} ({{ bd.execution_raw }} views)</span>
+                <span><strong>Recency:</strong> {{ "%.4f" | format(bd.recency_contrib) }} (factor {{ "%.3f" | format(bd.recency_factor) }})</span>
+                <span><strong>A/B:</strong> {{ "%.4f" | format(bd.ab_contrib) }} ({% if bd.ab_win_rate is not none %}{{ "%.0f" | format(bd.ab_win_rate * 100) }}%{% else %}no experiments{% endif %})</span>
+              </div>
+            </details>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {# ── Back link ────────────────────────────────────────────────────────────── #}
+  <div style="margin-top:var(--space-xl);font-size:.875rem">
+    {% if workspace %}
+      <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}">&larr; Back to prompt</a>
+    {% else %}
+      <a href="{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}">&larr; Back to prompt</a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
