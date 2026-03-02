@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{% if workspace %}{{ workspace.name }} — Prompts{% else %}Prompt Library{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container posts-list">
+
+  <div class="posts-header">
+    <h1 class="posts-title">
+      {% if workspace %}
+        {{ workspace.name }} &mdash; Prompts
+      {% else %}
+        Prompt Library
+      {% endif %}
+    </h1>
+    <p class="posts-meta">{{ prompts|length }} prompt{{ 's' if prompts|length != 1 }}</p>
+  </div>
+
+  {# ── Category filter ────────────────────────────────────────────────────── #}
+  {% if not workspace %}
+  <form class="search-filter-row" method="get" action="{{ url_for('prompts.public_prompt_list') }}">
+    <input
+      type="text"
+      name="category"
+      value="{{ category or '' }}"
+      placeholder="Filter by category…"
+      class="search-input"
+      style="max-width:220px"
+    />
+    <button class="btn btn-sm btn-ghost" type="submit">Filter</button>
+    {% if category %}
+      <a class="btn btn-sm btn-ghost" href="{{ url_for('prompts.public_prompt_list') }}">Clear</a>
+    {% endif %}
+  </form>
+  {% endif %}
+
+  {# ── Action bar ─────────────────────────────────────────────────────────── #}
+  {% if workspace %}
+    <div style="margin-bottom:var(--space-md)">
+      <a class="btn btn-sm btn-primary"
+         href="{{ url_for('prompts.ws_prompt_new', ws_slug=workspace.slug) }}">
+        + New prompt
+      </a>
+    </div>
+  {% elif current_user %}
+    <div style="margin-bottom:var(--space-md)">
+      <a class="btn btn-sm btn-primary" href="{{ url_for('prompts.public_prompt_new') }}">
+        + New prompt
+      </a>
+    </div>
+  {% endif %}
+
+  {% if prompts %}
+    <div class="post-cards-list">
+      {% for prompt in prompts %}
+        <article class="post-card">
+          <span class="post-card-title">
+            <a href="{% if workspace %}{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}{% else %}{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}{% endif %}">
+              {{ prompt.title }}
+            </a>
+            <span class="badge badge--kind" style="font-size:.7rem;margin-left:.3em;">prompt</span>
+          </span>
+          {% if prompt.seo_description %}
+            <p class="post-card-summary">{{ prompt.seo_description }}</p>
+          {% endif %}
+          <div class="post-card-meta">
+            <span>{{ prompt.author.display_name or prompt.author.username }}</span>
+            {% if prompt.prompt_metadata %}
+              <span class="post-meta-sep">&middot;</span>
+              <span class="tag-badge">{{ prompt.prompt_metadata.category }}</span>
+              <span class="post-meta-sep">&middot;</span>
+              <span style="color:var(--text-muted);font-size:.8rem">{{ prompt.prompt_metadata.complexity_level }}</span>
+            {% endif %}
+            {% if prompt.published_at %}
+              <span class="post-meta-sep">&middot;</span>
+              <time datetime="{{ prompt.published_at.isoformat() }}">
+                {{ prompt.published_at.strftime('%b %d, %Y') }}
+              </time>
+            {% else %}
+              <span class="post-meta-sep">&middot;</span>
+              <span class="badge badge--draft">draft</span>
+            {% endif %}
+            {% if prompt.version > 1 %}
+              <span class="post-meta-sep">&middot;</span>
+              <span class="version-badge">v{{ prompt.version }}</span>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    {# ── Pagination (public only) ────────────────────────────────────────── #}
+    {% if not workspace %}
+      <nav class="pagination" aria-label="Prompt pagination">
+        {% if page > 1 %}
+          <a class="page-link" href="{{ url_for('prompts.public_prompt_list', page=page-1, category=category) }}">&larr; Prev</a>
+        {% endif %}
+        {% if has_next %}
+          <a class="page-link" href="{{ url_for('prompts.public_prompt_list', page=page+1, category=category) }}">Next &rarr;</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="empty-state">
+      <span class="empty-state-icon">&empty;</span>
+      <p>No prompts found{% if category %} in category <em>{{ category }}</em>{% endif %}.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -255,10 +255,16 @@ class TestBookmarkMetrics:
 def metrics_client():
     """A test client for an app with METRICS_ENABLED=True.
 
-    Module-scoped so that init_metrics() is called exactly once per test
-    session.  Calling it more than once would raise
-    ``ValueError: Duplicated timeseries`` because PrometheusMetrics registers
-    Gauge/Histogram families in the shared prometheus_client REGISTRY.
+    Module-scoped so that PrometheusMetrics (and its metric families) are
+    only created once even when this fixture is used by multiple tests.
+
+    ``init_metrics`` now uses a per-app guard (``app.extensions``) rather than
+    a global singleton, so it is safe to call for a second app after the
+    integration-test ``live_client`` fixture has already initialised metrics
+    for the development app.  The underlying Prometheus metric families stay in
+    the shared global REGISTRY; subsequent app instances get a lightweight
+    ``/metrics`` route that calls ``generate_latest()`` directly — no
+    ``ValueError: Duplicated timeseries`` is raised.
     """
     import backend.utils.metrics as _m
     from backend.app import create_app
@@ -266,13 +272,17 @@ def metrics_client():
 
     metrics_app = create_app("testing")
     metrics_app.config["METRICS_ENABLED"] = True
-    # TestingConfig never calls init_metrics, so _flask_metrics is None here.
     init_metrics(metrics_app)
 
     yield metrics_app.test_client()
 
-    # Teardown: reset singleton so other modules start clean.
-    _m._flask_metrics = None
+    # Teardown: remove per-app extension state so a future call to
+    # init_metrics for this specific app object would re-run.  We intentionally
+    # do NOT reset _m._flask_metrics here: resetting it would allow
+    # PrometheusMetrics to be constructed again for another app, which would
+    # raise ValueError: Duplicated timeseries for the already-registered
+    # flask_http_request_* metric families.
+    metrics_app.extensions.pop("_openblog_prometheus_metrics", None)
 
 
 class TestMetricsEndpoint:

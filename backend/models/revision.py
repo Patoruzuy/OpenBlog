@@ -27,7 +27,7 @@ from __future__ import annotations
 import enum
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.extensions import db
@@ -121,6 +121,18 @@ class Revision(db.Model):
         String(512),
         nullable=True,
         comment="Avatar URL captured at submission time (may be None for anonymous).",
+    )
+
+    # ── AI source attribution ───────────────────────────────────────────────
+    # Populated only when the revision was generated from an AI suggestion.
+    # Format: {"source": "ai_suggestion", "ai_review_request_id": int, "suggestion_id": str}
+    source_metadata_json: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+        comment=(
+            'Source attribution for AI-generated revisions: '
+            '{"source": "ai_suggestion", "ai_review_request_id": int, "suggestion_id": str}.'
+        ),
     )
 
     # ── Timestamps ─────────────────────────────────────────────────────────

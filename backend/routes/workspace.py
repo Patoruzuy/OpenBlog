@@ -176,6 +176,15 @@ def document(workspace_slug: str, doc_slug: str):
     revisions = ws_svc.list_workspace_document_revisions(post)
     release_notes = ws_svc.list_workspace_document_release_notes(post)
 
+    # AI reviews — load latest 5 requests with their results.
+    from backend.services import ai_review_service as ai_svc  # noqa: PLC0415
+
+    ai_reviews = ai_svc.get_latest_reviews_for_post(post.id, limit=5)
+
+    from backend.services.notification_service import is_subscribed  # noqa: PLC0415
+
+    is_watching_post = is_subscribed(user, "post", post.id) if user else False
+
     return render_template(
         "workspace/document.html",
         workspace=workspace,
@@ -184,6 +193,9 @@ def document(workspace_slug: str, doc_slug: str):
         revisions=revisions,
         release_notes=release_notes,
         member=member,
+        ai_reviews=ai_reviews,
+        ai_review_types=["clarity", "architecture", "security", "full"],
+        is_watching_post=is_watching_post,
     )
 
 

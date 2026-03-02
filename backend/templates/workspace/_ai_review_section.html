@@ -1,0 +1,191 @@
+{#
+  _ai_review_section.html — AI Review Engine panel for workspace documents.
+
+  Context variables expected:
+    workspace      Workspace instance
+    post           Post instance (workspace document)
+    member         WorkspaceMember | None
+    ai_reviews     list[AIReviewRequest] (may be empty; loaded with .result)
+    ai_review_types  list[str] — e.g. ["clarity", "architecture", "security", "full"]
+
+  Uses existing card / badge / btn styles only.  No visual redesign.
+#}
+{% if config.AI_REVIEWS_ENABLED %}
+<section class="workspace-card ai-review-section" id="ai-review" aria-label="AI Review">
+
+  <div class="workspace-card__header">
+    <h2 class="workspace-card__title">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zm.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+      </svg>
+      AI Review
+    </h2>
+
+    {# Request form — any member may submit #}
+    <form method="post"
+          action="{{ url_for('ai_reviews.request_doc_review', workspace_slug=workspace.slug, doc_slug=post.slug) }}"
+          class="ai-review-request-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <select name="review_type" class="form-select form-select--sm" aria-label="Review type">
+        {% for rt in ai_review_types %}
+          <option value="{{ rt }}" {% if rt == 'full' %}selected{% endif %}>{{ rt | title }}</option>
+        {% endfor %}
+      </select>
+
+      <button type="submit" class="btn btn--sm btn--primary">
+        Request AI Review
+      </button>
+    </form>
+  </div>{# /workspace-card__header #}
+
+  {# Results list #}
+  {% if ai_reviews %}
+    <ul class="ai-review-list">
+      {% for req in ai_reviews %}
+        <li class="ai-review-item" id="ai-review-{{ req.id }}">
+
+          {# Status badge + meta row #}
+          <div class="ai-review-item__meta">
+            <span class="badge badge--{{ req.status }}
+              {%- if req.status == 'completed' %} badge--success
+              {%- elif req.status == 'failed'    %} badge--danger
+              {%- elif req.status == 'running'   %} badge--warning
+              {%- elif req.status == 'canceled'  %} badge--muted
+              {%- else                            %} badge--info
+              {%- endif %}">
+              {{ req.status | title }}
+            </span>
+            <span class="ai-review-item__type">{{ req.review_type | title }}</span>
+            <time class="ai-review-item__time"
+                  datetime="{{ req.created_at.isoformat() }}">
+              {{ req.created_at.strftime('%b %d, %Y %H:%M') }}
+            </time>
+            {% if req.revision_id %}
+              <span class="ai-review-item__badge badge badge--ghost">Revision #{{ req.revision_id }}</span>
+            {% endif %}
+
+            {# Cancel button — only for queued/running; requester or editor+ #}
+            {% if req.status in ('queued', 'running') %}
+              {% if member and (member.user_id == req.requested_by_user_id or member.role.value in ('editor', 'owner')) %}
+                <form method="post"
+                      action="{{ url_for('ai_reviews.cancel_review', workspace_slug=workspace.slug, request_id=req.id) }}"
+                      class="ai-review-cancel-form"
+                      style="display:inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <button type="submit" class="btn btn--xs btn--ghost"
+                          onclick="return confirm('Cancel this review?')">
+                    Cancel
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </div>{# /ai-review-item__meta #}
+
+          {# Completed result #}
+          {% if req.status == 'completed' and req.result %}
+            <div class="ai-review-item__result">
+
+              {# Summary #}
+              {% if req.result.summary_md %}
+                <div class="ai-review-summary prose prose--sm">
+                  {{ req.result.summary_md | markdown | safe }}
+                </div>
+              {% endif %}
+
+              {# Findings #}
+              {% if req.result.findings_json %}
+                <ul class="ai-findings-list">
+                  {% for f in req.result.findings_json %}
+                    <li class="ai-finding ai-finding--{{ f.severity }}">
+                      <span class="ai-finding__severity badge
+                        {%- if f.severity == 'high'  %} badge--danger
+                        {%- elif f.severity == 'warn' %} badge--warning
+                        {%- else                      %} badge--info
+                        {%- endif %}">{{ f.severity }}</span>
+                      <span class="ai-finding__category badge badge--ghost">{{ f.category }}</span>
+                      <span class="ai-finding__message">{{ f.message }}</span>
+                      {% if f.suggested_fix %}
+                        <p class="ai-finding__fix">
+                          <strong>Suggestion:</strong> {{ f.suggested_fix }}
+                        </p>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              {# Provider footnote #}
+              <p class="ai-review-item__footnote">
+                Reviewed by <em>{{ req.result.model_name }}</em>
+                ({{ req.result.provider }}) &middot;
+                Prompt: <code>{{ req.result.prompt_version }}</code>
+              </p>
+
+              {# ── Suggested edits ─────────────────────────────────────────────── #}
+              {% set edits = (req.result.suggested_edits_json or {}).get('edits', []) %}
+              {% if edits %}
+                <div class="ai-suggested-edits">
+                  <h4 class="ai-suggested-edits__title">
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                    </svg>
+                    Suggested Edits
+                  </h4>
+                  <ul class="ai-suggestions-list">
+                    {% for edit in edits %}
+                      <li class="ai-suggestion">
+                        <div class="ai-suggestion__header">
+                          <strong class="ai-suggestion__title">{{ edit.title }}</strong>
+                          <span class="tag-chip tag-chip--sm">{{ edit.kind | replace('_', ' ') }}</span>
+                        </div>
+                        {% if edit.rationale %}
+                          <p class="ai-suggestion__rationale">{{ edit.rationale }}</p>
+                        {% endif %}
+                        {% if member and member.role.value in ('contributor', 'editor', 'owner') %}
+                          <form method="post"
+                                action="{{ url_for('ai_reviews.create_revision_from_suggestion',
+                                          workspace_slug=workspace.slug,
+                                          doc_slug=post.slug,
+                                          request_id=req.id,
+                                          suggestion_id=edit.id) }}"
+                                class="ai-suggestion__form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn--xs btn--secondary"
+                                    onclick="return confirm('Create a revision proposal from this AI suggestion?\n\nAn editor or owner will need to review and accept it before any change is applied.')">
+                              Create Revision
+                            </button>
+                          </form>
+                        {% endif %}
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>{# /ai-suggested-edits #}
+              {% endif %}
+
+            </div>{# /ai-review-item__result #}
+          {% endif %}
+
+          {# Error message for failed reviews #}
+          {% if req.status == 'failed' and req.error_message %}
+            <p class="ai-review-item__error text-danger">
+              <strong>Error:</strong> {{ req.error_message }}
+            </p>
+          {% endif %}
+
+          {# In-flight hint #}
+          {% if req.status in ('queued', 'running') %}
+            <p class="ai-review-item__pending text-muted">
+              Review is {{ req.status }}. Refresh the page to see results.
+            </p>
+          {% endif %}
+
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty-state">No AI reviews yet. Use the form above to request one.</p>
+  {% endif %}
+
+</section>
+{% endif %}

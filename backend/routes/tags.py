@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from backend.extensions import db
 from backend.models.post import Post, PostStatus
 from backend.models.tag import PostTag, Tag
+from backend.utils.auth import get_current_user
 
 ssr_tags_bp = Blueprint("tags", __name__, url_prefix="/tags")
 
@@ -56,6 +57,21 @@ def tag_index():
         .order_by(post_count.desc(), Tag.name)
     )
     rows = db.session.execute(stmt).all()
+
+    # Resolve which tags the current user is following (in one query).
+    current_user = get_current_user()
+    following_tag_ids: set[int] = set()
+    if current_user is not None:
+        from backend.models.subscription import Subscription  # noqa: PLC0415
+
+        ids = db.session.scalars(
+            select(Subscription.target_id).where(
+                Subscription.user_id == current_user.id,
+                Subscription.target_type == "tag",
+            )
+        ).all()
+        following_tag_ids = set(ids)
+
     tags = [
         {
             "tag": row.Tag,
@@ -65,8 +81,9 @@ def tag_index():
                 or _TAG_DESCRIPTIONS.get(row.Tag.slug.lower())
                 or None
             ),
+            "is_following": row.Tag.id in following_tag_ids,
         }
         for row in rows
     ]
 
-    return render_template("tags/index.html", tags=tags)
+    return render_template("tags/index.html", tags=tags, current_user=current_user)

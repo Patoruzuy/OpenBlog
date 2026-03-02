@@ -1,0 +1,50 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Notification Stats{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Notification Stats</h1>
+  <span class="adm-page-subtitle adm-text-muted">Aggregate counts — no user content shown</span>
+</div>
+
+<div class="adm-stat-grid">
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Created (Last 24 h)</span>
+    <span class="adm-stat-card__value">{{ count_24h }}</span>
+  </div>
+  <div class="adm-stat-card">
+    <span class="adm-stat-card__label">Created (Last 7 d)</span>
+    <span class="adm-stat-card__value">{{ count_7d }}</span>
+  </div>
+</div>
+
+{% if top_event_types %}
+<section class="adm-section" style="margin-top:2rem">
+  <h2 class="adm-section-title">Top Event Types (Last 7 d)</h2>
+  <div class="adm-table-wrap" style="max-width:36rem">
+    <table class="adm-table">
+      <thead>
+        <tr>
+          <th>Event Type</th>
+          <th style="text-align:right">Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in top_event_types %}
+        <tr>
+          <td><code>{{ row.event_type }}</code></td>
+          <td style="text-align:right">{{ row.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<p class="adm-text-muted" style="margin-top:1.5rem">No structured event types recorded in the last 7 days.</p>
+{% endif %}
+
+<div style="margin-top:1.5rem">
+  <a href="{{ url_for('admin_ops.index') }}" class="adm-btn adm-btn--ghost">← Ops Overview</a>
+</div>
+{% endblock %}

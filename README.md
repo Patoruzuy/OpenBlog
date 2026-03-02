@@ -1,7 +1,30 @@
 # OpenBlog
 
-A production-ready developer blog platform with GitHub-style collaborative editing,
-full-text search, analytics, Prometheus observability, and RSS/JSON feed support.
+> **A developer blog platform** — collaborative editing, AI-powered review, full-text search, digest emails, and deep observability. Built with Flask, Celery, and PostgreSQL. Ships as a single `docker compose up`.
+
+![Python](https://img.shields.io/badge/python-3.12%2B-blue?logo=python&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-1800%2B%20passing-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Code style](https://img.shields.io/badge/code%20style-ruff-orange)
+
+---
+
+### What makes it production-ready?
+
+| | |
+|---|---|
+| ✍️ **Collaborative editing** | Contributor revisions, editor review, immutable version snapshots |
+| 🤖 **AI Review Engine** | Async, workspace-scoped analysis with structured severity findings |
+| 🔍 **Full-text search** | PostgreSQL `tsvector`/GIN, tunable ranking, tag feeds |
+| 📬 **Digest emails** | Daily/weekly digests with idempotent retry and ops visibility |
+| 📊 **Observability** | Prometheus metrics, structured JSON logs, `/livez` + `/readyz` |
+| 🔒 **Security-first** | Argon2, CSRF, rate limiting, workspace isolation, scope-checked fanout |
+| 🛠️ **Admin Ops Dashboard** | Health snapshot, AI review queue, digest history — all behind `Cache-Control: private, no-store` |
+
+```bash
+cp .env.example .env && make up
+curl http://localhost/readyz   # → {"status":"ok","db":"ok","redis":"ok"}
+```
 
 ---
 
@@ -74,8 +97,8 @@ make format    # ruff format
 | `web`    | `8000` (internal) | Flask / Gunicorn application            |
 | `db`     | `5432` (internal) | PostgreSQL 16                           |
 | `redis`  | `6379` (internal) | Redis 7 (Celery broker + rate limiter)  |
-| `worker` | —                 | Celery async worker (email, analytics)  |
-| `beat`   | —                 | Celery beat (scheduled publish, flush)  |
+| `worker` | —                 | Celery async worker (AI reviews, digests, notifications, email) |
+| `beat`   | —                 | Celery beat (scheduled digests, publishing, maintenance)        |
 
 ## Features
 
@@ -105,7 +128,14 @@ make format    # ruff format
 - **Votes** (upvote/downvote on posts and comments)
 - **Bookmarks** with SSR bookmark page
 - **Follow** (user → user)
-- **Notifications** — in-app + email with Redis-backed unread count
+- **Notifications** — in-app + email digests (daily/weekly), tag follows, threaded grouping
+
+### AI & Collaboration
+
+- **AI Review Engine** — async, workspace-scoped AI analysis (clarity, architecture, security, full)
+- **Suggestion → Revision workflow** — create human-reviewed revisions directly from AI suggestions
+- **Structured findings** — severity-tagged insights with optional structured edit proposals
+- **Workspace isolation** — AI review and suggestions never leak outside workspace scope
 
 ### Distribution & SEO
 - **RSS 2.0** feeds (global + per-tag)
@@ -123,6 +153,29 @@ make format    # ruff format
 - **Newsletter** — double opt-in with HMAC token verification
 - **i18n** — Flask-Babel with `en` / `es` locale support
 - **Admin dashboard** — user management, post moderation, report queue, analytics
+
+### Admin Ops Dashboard
+
+OpenBlog includes an admin-only operational dashboard for async systems:
+
+- `/admin/ops` — health snapshot (DB, Redis, Celery) + 24h metrics
+- `/admin/ops/ai-reviews` — filterable AI review requests with retry/cancel
+- `/admin/ops/digests` — digest run history with retry support
+- `/admin/ops/notifications` — aggregate notification stats and event distribution
+
+#### Retry / Cancel Semantics
+
+- **AI retry** — allowed only for `failed` or `canceled` requests. Resets status to `queued`, clears timestamps/errors, and re-enqueues the task.
+- **AI cancel** — allowed only for `queued` or `running`. Marks `canceled`. If cancellation happens mid-task, the worker discards the result.
+- **Digest retry** — allowed only for `failed`. The idempotency key is reset and the digest task is re-enqueued.
+
+All admin routes are role-protected and return:
+
+```
+Cache-Control: private, no-store
+```
+
+No workspace content bodies are rendered in Ops views.
 
 ### Security
 - **Argon2** password hashing
@@ -149,12 +202,22 @@ backend/
 └── migrations/              # Alembic migration scripts
 tests/
 ├── conftest.py              # Shared fixtures (TestingConfig, fakeredis, db_session)
-├── test_*.py                # 1 440+ unit tests
+├── test_*.py                # 1 800+ unit tests (fast, deterministic)
 └── integration/             # Real-DB integration tests (opt-in)
 docker/
 ├── Dockerfile               # Multi-stage: builder + non-root runtime
 └── nginx/nginx.conf         # Reverse proxy + static file serving
 ```
+
+## Security & Isolation Invariants
+
+OpenBlog enforces strict scope boundaries:
+
+- Public feeds (`/feed.xml`, `/feed.json`, `/sitemap.xml`) include **only** published posts with `workspace_id IS NULL`.
+- Workspace routes return `404` for non-members (fail-closed).
+- Admin and workspace endpoints use `Cache-Control: private, no-store`.
+- Async fanout (notifications, digests, AI reviews) re-checks visibility at delivery time.
+- Dedupe fingerprints prevent duplicate notification or task execution on retry.
 
 ## Environment Variables
 

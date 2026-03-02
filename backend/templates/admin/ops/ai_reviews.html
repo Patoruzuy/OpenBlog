@@ -1,0 +1,91 @@
+{% extends "admin/_layout.html" %}
+{% block title %}AI Review Requests{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">AI Review Requests</h1>
+  <span class="adm-page-subtitle adm-text-muted">Latest 100 requests</span>
+</div>
+
+{# ── Filters ─────────────────────────────────────────────────────────────── #}
+<form method="get" action="{{ url_for('admin_ops.ai_reviews') }}" class="adm-filter-bar" style="margin-bottom:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end">
+  <div>
+    <label class="adm-label" for="status-filter">Status</label>
+    <select id="status-filter" name="status" class="adm-select">
+      <option value="">All</option>
+      {% for s in ai_statuses %}
+        <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label class="adm-label" for="ws-filter">Workspace ID</label>
+    <input id="ws-filter" type="number" name="workspace_id" class="adm-input" style="width:8rem"
+           value="{{ ws_filter }}" placeholder="any" min="1">
+  </div>
+  <button type="submit" class="adm-btn">Filter</button>
+  <a href="{{ url_for('admin_ops.ai_reviews') }}" class="adm-btn adm-btn--ghost">Reset</a>
+</form>
+
+{% if not requests %}
+  <p class="adm-text-muted">No requests match the current filter.</p>
+{% else %}
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Type</th>
+        <th>Post ID</th>
+        <th>Revision ID</th>
+        <th>Workspace</th>
+        <th>Requested By</th>
+        <th>Created</th>
+        <th>Completed</th>
+        <th>Error</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+      <tr>
+        <td>{{ req.id }}</td>
+        <td>
+          <span class="adm-badge adm-badge--{{ req.status }}">{{ req.status }}</span>
+        </td>
+        <td>{{ req.review_type }}</td>
+        <td>{{ req.post_id }}</td>
+        <td>{{ req.revision_id or '—' }}</td>
+        <td>{{ req.workspace_id or '—' }}</td>
+        <td>{{ req.requested_by_user_id }}</td>
+        <td class="adm-text-muted" style="white-space:nowrap">{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '—' }}</td>
+        <td class="adm-text-muted" style="white-space:nowrap">{{ req.completed_at.strftime('%Y-%m-%d %H:%M') if req.completed_at else '—' }}</td>
+        <td>
+          {% if req.error_message %}
+            <span class="adm-text-warn" title="{{ req.error_message }}">{{ req.error_message | truncate(60) }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td style="white-space:nowrap">
+          {% if req.status in ('failed', 'canceled') %}
+            <form method="post" action="{{ url_for('admin_ops.ai_review_retry', request_id=req.id) }}" style="display:inline">
+              <button type="submit" class="adm-btn adm-btn--sm">Retry</button>
+            </form>
+          {% endif %}
+          {% if req.status in ('queued', 'running') %}
+            <form method="post" action="{{ url_for('admin_ops.ai_review_cancel', request_id=req.id) }}" style="display:inline">
+              <button type="submit" class="adm-btn adm-btn--sm adm-btn--warn">Cancel</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div style="margin-top:1rem">
+  <a href="{{ url_for('admin_ops.index') }}" class="adm-btn adm-btn--ghost">← Ops Overview</a>
+</div>
+{% endblock %}

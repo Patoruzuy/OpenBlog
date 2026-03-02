@@ -14,20 +14,53 @@
   {% if tags %}
     <div class="tag-grid">
       {% for item in tags %}
-        <a
-          class="tag-card"
-          href="{{ url_for('posts.list_posts', tag=item.tag.slug) }}"
-        >
-          <span class="tag-card__name">#{{ item.tag.slug }}</span>
-          {% if item.description %}
-            <p class="tag-card__desc">{{ item.description }}</p>
-          {% elif item.tag.description %}
-            <p class="tag-card__desc">{{ item.tag.description }}</p>
+        <div class="tag-card">
+          <a
+            class="tag-card__link"
+            href="{{ url_for('posts.list_posts', tag=item.tag.slug) }}"
+          >
+            <span class="tag-card__name">#{{ item.tag.slug }}</span>
+            {% if item.description %}
+              <p class="tag-card__desc">{{ item.description }}</p>
+            {% elif item.tag.description %}
+              <p class="tag-card__desc">{{ item.tag.description }}</p>
+            {% endif %}
+            <span class="tag-card__count">
+              {{ item.post_count }} {{ ngettext('post', 'posts', item.post_count) }}
+            </span>
+          </a>
+
+          {# Follow / unfollow button — only shown to authenticated users #}
+          {% if current_user %}
+            <div class="tag-card__actions">
+              {% if item.is_following %}
+                <form method="post"
+                      action="{{ url_for('watches.unfollow_tag', slug=item.tag.slug) }}"
+                      style="margin:0">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button
+                    type="submit"
+                    class="btn btn-xs btn-ghost tag-follow-btn tag-follow-btn--following"
+                    aria-label="Unfollow #{{ item.tag.slug }}"
+                    title="Unfollow this topic"
+                  >Following ✓</button>
+                </form>
+              {% else %}
+                <form method="post"
+                      action="{{ url_for('watches.follow_tag', slug=item.tag.slug) }}"
+                      style="margin:0">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button
+                    type="submit"
+                    class="btn btn-xs tag-follow-btn"
+                    aria-label="Follow #{{ item.tag.slug }}"
+                    title="Follow this topic to get notified of new posts"
+                  >Follow</button>
+                </form>
+              {% endif %}
+            </div>
           {% endif %}
-          <span class="tag-card__count">
-            {{ item.post_count }} {{ ngettext('post', 'posts', item.post_count) }}
-          </span>
-        </a>
+        </div>
       {% endfor %}
     </div>
   {% else %}

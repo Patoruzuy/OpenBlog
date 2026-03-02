@@ -115,11 +115,40 @@ def init_metrics(app) -> PrometheusMetrics:  # type: ignore[return]
     - Registers SQLAlchemy query-timing event hooks.
     - Registers Celery task lifecycle signal handlers.
 
-    Safe to call more than once; subsequent calls are no-ops.
+    Safe to call for multiple app instances.  The Prometheus metric families
+    (Counters, Histograms, etc.) are only registered in the global REGISTRY
+    once; each subsequent *app* gets its own ``/metrics`` scrape endpoint that
+    serves ``generate_latest()`` from the same shared REGISTRY.  This avoids
+    ``ValueError: Duplicated timeseries`` when the test suite creates more
+    than one Flask app with metrics enabled.
     """
     global _flask_metrics
+
+    # ── Per-app idempotency guard ─────────────────────────────────────────────
+    # Use Flask's extensions dict so each app instance tracks its own state.
+    # The old global-singleton guard fired incorrectly when a second app was
+    # created (e.g. an integration-test live_client created before the unit
+    # metrics_client), preventing the /metrics route from ever being added.
+    if "_openblog_prometheus_metrics" in app.extensions:
+        return app.extensions["_openblog_prometheus_metrics"]  # type: ignore[return-value]
+
     if _flask_metrics is not None:
-        return _flask_metrics  # type: ignore[return-value]
+        # PrometheusMetrics (and its metric families) already live in the global
+        # REGISTRY from a previous app.  Re-creating PrometheusMetrics would
+        # raise ValueError: Duplicated timeseries.  Instead, add only the
+        # /metrics scrape endpoint to this app so its test client can reach it.
+        from flask import Response as _FlaskResponse  # noqa: PLC0415
+        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: PLC0415
+
+        def _metrics_view() -> _FlaskResponse:
+            return _FlaskResponse(
+                generate_latest(),
+                headers={"Content-Type": CONTENT_TYPE_LATEST},
+            )
+
+        app.add_url_rule("/metrics", "prometheus_metrics", _metrics_view)
+        app.extensions["_openblog_prometheus_metrics"] = _flask_metrics
+        return _flask_metrics
 
     flask_m = PrometheusMetrics(
         app,
@@ -128,6 +157,7 @@ def init_metrics(app) -> PrometheusMetrics:  # type: ignore[return]
     )
     flask_m.info("app_info", "OpenBlog application metadata", version="0.1.0")
     _flask_metrics = flask_m
+    app.extensions["_openblog_prometheus_metrics"] = flask_m
 
     build_info.info({"version": "0.1.0", "env": app.config.get("ENV", "development")})
 
@@ -169,7 +199,9 @@ def _register_celery_signals() -> None:
 
     @task_prerun.connect(weak=False)
     def _on_prerun(task_id, task, *args, **kwargs):  # noqa: ANN001
-        task.request["_metrics_start"] = time.perf_counter()
+        # ``task.request`` is a Celery ``Context`` object which does not
+        # support subscript assignment; use the supported ``update()`` API.
+        task.request.update({"_metrics_start": time.perf_counter()})
 
     @task_postrun.connect(weak=False)
     def _on_postrun(task_id, task, retval, state, *args, **kwargs):  # noqa: ANN001

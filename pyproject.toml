@@ -55,5 +55,10 @@ ignore = ["E501"]
 testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
-    "integration: requires external services (PostgreSQL + Redis)",
+    "integration: requires live Docker services (PostgreSQL + Redis) — skipped by default; enable with --run-integration or RUN_INTEGRATION_TESTS=1",
+    "docker: alias for integration; requires running Docker services",
+]
+filterwarnings = [
+    # Third-party deprecation warnings that are noise in the test output.
+    "ignore::DeprecationWarning:dateutil",
 ]

@@ -1,0 +1,21 @@
+Your {{ frequency }} digest from OpenBlog
+==========================================
+
+Hi {{ user.username }},
+
+Here is a summary of activity from {{ period_start }} to {{ period_end }}.
+
+{% for group in groups %}
+── {{ group.event_label }} ({{ group.count }} notification{{ 's' if group.count != 1 else '' }}) ──
+{% if group.target_url %}  {{ group.target_title }}
+  {{ group.target_url }}
+{% else %}  {{ group.target_title }}
+{% endif %}
+{% endfor %}
+
+──────────────────────────────────────────
+View your full inbox: {{ inbox_url }}
+Manage notification preferences: {{ preferences_url }}
+
+You are receiving this because you subscribed to {{ frequency }} email digests on OpenBlog.
+To stop receiving digest emails, update your preferences at the link above.

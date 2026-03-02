@@ -48,6 +48,23 @@
        href="{{ url_for('workspace.changelog', workspace_slug=workspace.slug, slug=post.slug) }}">
       Changelog
     </a>
+    {% if current_user %}
+      {% if is_watching_post %}
+        <form method="post"
+              action="{{ url_for('watches.unwatch_workspace_doc', workspace_slug=workspace.slug, doc_slug=post.slug) }}"
+              style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn--ghost btn--sm" title="Stop watching">&#x1F514; Unwatch</button>
+        </form>
+      {% else %}
+        <form method="post"
+              action="{{ url_for('watches.watch_workspace_doc', workspace_slug=workspace.slug, doc_slug=post.slug) }}"
+              style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn--ghost btn--sm" title="Get notified about changes">&#x1F515; Watch</button>
+        </form>
+      {% endif %}
+    {% endif %}
   </div>
 
   <article class="post-body prose">
@@ -92,6 +109,9 @@
       {% endif %}
     </section>
   {% endif %}
+
+  <!-- AI Review section -->
+  {% include "workspace/_ai_review_section.html" %}
 
 </div>
 {% endblock %}

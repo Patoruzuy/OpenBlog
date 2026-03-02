@@ -34,13 +34,11 @@ should warn reviewers but still allow acceptance (human judgement call).
 from __future__ import annotations
 
 import difflib
-import json
 from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 
 from backend.extensions import db
-from backend.models.notification import Notification
 from backend.models.post import Post, PostStatus
 from backend.models.post_version import PostVersion
 from backend.models.revision import Revision, RevisionStatus
@@ -277,18 +275,25 @@ class RevisionService:
         except Exception:  # noqa: BLE001
             pass
 
-        # Deliver an in-app notification to the contributor.
-        notif_payload = json.dumps({"post_slug": post.slug, "revision_id": revision.id})
-        notification = Notification(
-            user_id=revision.author_id,
-            notification_type="revision_accepted",
-            title="Your revision was accepted",
-            body=f'Your proposed changes to "{post.title}" were accepted.',
-            payload=notif_payload,
-        )
-        db.session.add(notification)
-
         db.session.commit()
+
+        # Fanout in-app notification via subscription system.
+        from backend.services.notification_service import emit as _emit  # noqa: PLC0415
+
+        _emit(
+            "revision.accepted",
+            reviewer_id,
+            "revision",
+            revision.id,
+            {
+                "post_id": post.id,
+                "post_slug": post.slug,
+                "post_title": post.title,
+                "version": post.version,
+                "revision_author_id": revision.author_id,
+                "revision_id": revision.id,
+            },
+        )
         metrics.revisions_accepted.inc()
         return revision
 
@@ -318,22 +323,25 @@ class RevisionService:
         revision.reviewed_at = datetime.now(UTC)
         revision.rejection_note = note.strip() or None
 
-        # Notify the contributor.
-        notif_payload = json.dumps({"post_slug": post_slug, "revision_id": revision.id})
-        body_text = f'Your proposed changes to "{post_title}" were not accepted.'
-        if note.strip():
-            body_text += f" Reason: {note.strip()}"
-
-        notification = Notification(
-            user_id=revision.author_id,
-            notification_type="revision_rejected",
-            title="Your revision was not accepted",
-            body=body_text,
-            payload=notif_payload,
-        )
-        db.session.add(notification)
-
         db.session.commit()
+
+        # Fanout in-app notification via subscription system.
+        from backend.services.notification_service import emit as _emit  # noqa: PLC0415
+
+        _emit(
+            "revision.rejected",
+            reviewer_id,
+            "revision",
+            revision.id,
+            {
+                "post_id": post.id if post else None,
+                "post_slug": post_slug,
+                "post_title": post_title,
+                "revision_author_id": revision.author_id,
+                "revision_id": revision.id,
+                "rejection_note": note.strip(),
+            },
+        )
         metrics.revisions_rejected.inc()
         return revision
 

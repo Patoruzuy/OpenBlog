@@ -1,0 +1,83 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Digest Runs{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Digest Runs</h1>
+  <span class="adm-page-subtitle adm-text-muted">Latest 100 digest delivery records</span>
+</div>
+
+{# ── Filters ─────────────────────────────────────────────────────────────── #}
+<form method="get" action="{{ url_for('admin_ops.digests') }}" class="adm-filter-bar" style="margin-bottom:1.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end">
+  <div>
+    <label class="adm-label" for="status-filter">Status</label>
+    <select id="status-filter" name="status" class="adm-select">
+      <option value="">All</option>
+      {% for s in digest_statuses %}
+        <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="adm-btn">Filter</button>
+  <a href="{{ url_for('admin_ops.digests') }}" class="adm-btn adm-btn--ghost">Reset</a>
+</form>
+
+{% if not runs %}
+  <p class="adm-text-muted">No digest runs match the current filter.</p>
+{% else %}
+<div class="adm-table-wrap">
+  <table class="adm-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User ID</th>
+        <th>Frequency</th>
+        <th>Period Key</th>
+        <th>Status</th>
+        <th>Notifications</th>
+        <th>Period Start</th>
+        <th>Sent At</th>
+        <th>Error</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for run in runs %}
+      <tr>
+        <td>{{ run.id }}</td>
+        <td>{{ run.user_id }}</td>
+        <td>{{ run.frequency }}</td>
+        <td><code>{{ run.period_key }}</code></td>
+        <td>
+          <span class="adm-badge adm-badge--{{ run.status }}">{{ run.status }}</span>
+        </td>
+        <td>{{ run.notification_count }}</td>
+        <td class="adm-text-muted" style="white-space:nowrap">
+          {{ run.period_start.strftime('%Y-%m-%d') if run.period_start else '—' }}
+        </td>
+        <td class="adm-text-muted" style="white-space:nowrap">
+          {{ run.sent_at.strftime('%Y-%m-%d %H:%M') if run.sent_at else '—' }}
+        </td>
+        <td>
+          {% if run.error_message %}
+            <span class="adm-text-warn" title="{{ run.error_message }}">{{ run.error_message | truncate(60) }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if run.status == 'failed' %}
+            <form method="post" action="{{ url_for('admin_ops.digest_retry', digest_run_id=run.id) }}" style="display:inline">
+              <button type="submit" class="adm-btn adm-btn--sm">Retry</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div style="margin-top:1rem">
+  <a href="{{ url_for('admin_ops.index') }}" class="adm-btn adm-btn--ghost">← Ops Overview</a>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{% if workspace %}{{ workspace.name }} — New Prompt{% else %}New Prompt{% endif %}{% endblock %}
+
+{% block head %}
+  <script src="{{ url_for('static', filename='js/editor.js') }}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="container compose-page">
+
+  <header class="compose-header">
+    <h1 style="font-size:1.125rem;font-weight:600;color:var(--text-muted);margin-bottom:var(--space-sm)">
+      {% if workspace %}{{ workspace.name }} &mdash; {% endif %}New Prompt
+    </h1>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+      <div class="flash flash--{{ category }}" style="margin-bottom:var(--space-md)">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post"
+        action="{% if workspace %}{{ url_for('prompts.ws_prompt_new', ws_slug=workspace.slug) }}{% else %}{{ url_for('prompts.public_prompt_new') }}{% endif %}"
+        id="prompt-compose-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+    {# ── Title ──────────────────────────────────────────────────────────────── #}
+    <input
+      id="prompt-title"
+      name="title"
+      type="text"
+      class="compose-title-input"
+      placeholder="Prompt title…"
+      value="{{ form_data.get('title', '') if form_data else '' }}"
+      autocomplete="off"
+      required
+    />
+
+    <div class="compose-layout">
+
+      {# ── Main editor ──────────────────────────────────────────────────────── #}
+      <div class="compose-main">
+        <div class="write-preview-tabs tab-bar" role="tablist" aria-label="Editor mode">
+          <button type="button" class="tab-link tab-link--active" role="tab" aria-selected="true"
+                  data-tab-target="write" id="tab-write">Write</button>
+          <button type="button" class="tab-link" role="tab" aria-selected="false"
+                  data-tab-target="preview" id="tab-preview">Preview</button>
+        </div>
+
+        <div data-md-editor>
+          <div class="md-toolbar" data-md-toolbar role="toolbar" aria-label="Formatting">
+            <button type="button" class="md-toolbar__btn" data-action="bold" title="Bold">B</button>
+            <button type="button" class="md-toolbar__btn" data-action="italic" title="Italic"><em>i</em></button>
+            <button type="button" class="md-toolbar__btn" data-action="code" title="Inline code">`</button>
+            <span class="md-toolbar__sep" aria-hidden="true"></span>
+            <button type="button" class="md-toolbar__btn" data-action="codeblock" title="Code block">```</button>
+          </div>
+
+          <div id="tab-write-panel" role="tabpanel" aria-labelledby="tab-write">
+            <textarea
+              id="markdown_body"
+              name="markdown_body"
+              class="compose-editor"
+              placeholder="Write your prompt text here…"
+              rows="16"
+              data-md-textarea
+            >{{ form_data.get('markdown_body', '') if form_data else '' }}</textarea>
+          </div>
+
+          <div id="tab-preview-panel" role="tabpanel" aria-labelledby="tab-preview" hidden>
+            <div class="compose-preview prose" data-md-preview></div>
+          </div>
+        </div>
+      </div>
+
+      {# ── Sidebar: prompt metadata ─────────────────────────────────────────── #}
+      <aside class="compose-sidebar" style="display:flex;flex-direction:column;gap:var(--space-md)">
+
+        {# Category #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="category">Category <span aria-hidden="true">*</span></label>
+          <input
+            id="category"
+            name="category"
+            type="text"
+            class="compose-input"
+            placeholder="e.g. code-review, summarisation…"
+            value="{{ form_data.get('category', '') if form_data else '' }}"
+            required
+          />
+        </div>
+
+        {# Intended model #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="intended_model">Intended model</label>
+          <input
+            id="intended_model"
+            name="intended_model"
+            type="text"
+            class="compose-input"
+            placeholder="e.g. gpt-4o, claude-3-5-sonnet"
+            value="{{ form_data.get('intended_model', '') if form_data else '' }}"
+          />
+        </div>
+
+        {# Complexity #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="complexity_level">Complexity</label>
+          <select id="complexity_level" name="complexity_level" class="compose-input">
+            {% set current_complexity = form_data.get('complexity_level', 'intermediate') if form_data else 'intermediate' %}
+            <option value="beginner" {% if current_complexity == 'beginner' %}selected{% endif %}>Beginner</option>
+            <option value="intermediate" {% if current_complexity == 'intermediate' %}selected{% endif %}>Intermediate</option>
+            <option value="advanced" {% if current_complexity == 'advanced' %}selected{% endif %}>Advanced</option>
+          </select>
+        </div>
+
+        {# Variables JSON #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="variables_json">
+            Variables <small style="color:var(--text-muted)">(JSON: {"NAME":"desc"})</small>
+          </label>
+          <textarea
+            id="variables_json"
+            name="variables_json"
+            class="compose-input"
+            rows="3"
+            placeholder='{"LANGUAGE": "target programming language"}'
+            style="font-family:var(--font-mono);font-size:.8rem"
+          >{{ form_data.get('variables_json', '{}') if form_data else '{}' }}</textarea>
+        </div>
+
+        {# SEO description #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="seo_description">Short description</label>
+          <textarea
+            id="seo_description"
+            name="seo_description"
+            class="compose-input"
+            rows="2"
+            placeholder="One-sentence summary shown in listings and feeds."
+          >{{ form_data.get('seo_description', '') if form_data else '' }}</textarea>
+        </div>
+
+        {# Example input #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="example_input">Example input</label>
+          <textarea
+            id="example_input"
+            name="example_input"
+            class="compose-input"
+            rows="3"
+            placeholder="Sample text you would paste into this prompt…"
+          >{{ form_data.get('example_input', '') if form_data else '' }}</textarea>
+        </div>
+
+        {# Example output #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="example_output">Example output</label>
+          <textarea
+            id="example_output"
+            name="example_output"
+            class="compose-input"
+            rows="3"
+            placeholder="Expected model response…"
+          >{{ form_data.get('example_output', '') if form_data else '' }}</textarea>
+        </div>
+
+        {# Usage notes #}
+        <div class="compose-field-group">
+          <label class="compose-field-label" for="usage_notes">Usage notes</label>
+          <textarea
+            id="usage_notes"
+            name="usage_notes"
+            class="compose-input"
+            rows="3"
+            placeholder="Tips, caveats, or context about this prompt…"
+          >{{ form_data.get('usage_notes', '') if form_data else '' }}</textarea>
+        </div>
+
+        {# ── Publish actions ──────────────────────────────────────────────── #}
+        <div class="compose-publish-group" style="display:flex;gap:.5rem;margin-top:auto">
+          <button name="action" value="draft" type="submit" class="btn btn-sm btn-ghost">
+            Save draft
+          </button>
+          <button name="action" value="publish" type="submit" class="btn btn-sm btn-primary">
+            Publish
+          </button>
+        </div>
+
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -114,6 +114,19 @@
         &#x1F516; {{ _('Bookmark') }}
       </button>
     {% endif %}
+    {% if current_user and post.status.value == 'published' %}
+      {% if is_watching_post %}
+        <form method="post" action="{{ url_for('watches.unwatch_post', slug=post.slug) }}" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-sm btn-ghost" title="Stop watching this post">&#x1F514; {{ _('Unwatch') }}</button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('watches.watch_post', slug=post.slug) }}" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-sm btn-ghost" title="Get notified about changes">&#x1F515; {{ _('Watch') }}</button>
+        </form>
+      {% endif %}
+    {% endif %}
     <button id="share-btn" class="btn btn-sm btn-ghost" type="button"
             data-share-url="{{ request.url }}" data-share-title="{{ post.title }}">
       &#x1F517; {{ _('Share') }}
@@ -355,6 +368,9 @@
   {% endif %}
 
 </section>
+
+{# ── Knowledge Graph: Related content ─────────────────────────────────────── #}
+{% include '_partials/related_section.html' %}
 
 {# ── Report modal ──────────────────────────────────────────────────────────── #}
 <dialog id="report-modal" class="report-modal"

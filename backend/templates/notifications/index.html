@@ -11,6 +11,15 @@
         <span class="badge badge--unread">{{ unread_count }} unread</span>
       {% endif %}
     </div>
+    <div class="page-header-actions">
+      {% if unread_count > 0 %}
+        <form method="post" action="{{ url_for('notifications.mark_all_notifications_read') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-sm">Mark all read</button>
+        </form>
+      {% endif %}
+    </div>
+
     <div class="filter-pills">
       <a
         class="filter-pill {% if not unread_only %}filter-pill--active{% endif %}"
@@ -20,10 +29,65 @@
         class="filter-pill {% if unread_only %}filter-pill--active{% endif %}"
         href="{{ url_for('notifications.notification_inbox', unread_only=1) }}"
       >Unread</a>
+      {% if filter_target_type and filter_target_id %}
+        <a
+          class="filter-pill"
+          href="{{ url_for('notifications.notification_inbox', unread_only='1' if unread_only else '0') }}"
+        >← All groups</a>
+      {% endif %}
     </div>
   </header>
 
-  {% if notifications %}
+  {# ═══ GROUPED VIEW (default) ═══ #}
+  {% if grouped and groups %}
+    <ul class="notification-list" aria-live="polite">
+      {% for grp in groups %}
+        {% set notif = grp.latest %}
+        <li
+          class="notification-item notification-item--group{% if grp.unread_count > 0 %} notification-item--unread{% endif %}"
+          data-target-type="{{ grp.target_type or '' }}"
+          data-target-id="{{ grp.target_id or '' }}"
+        >
+          <div class="notification-body">
+            <p class="notification-title">
+              {{ notif.title }}
+              {% if grp.count > 1 %}
+                <span class="notif-group-badge" title="{{ grp.count }} notifications" aria-label="{{ grp.count }} notifications">{{ grp.count }}</span>
+              {% endif %}
+            </p>
+            {% if notif.body %}
+              <p class="notification-text">{{ notif.body }}</p>
+            {% endif %}
+          </div>
+          <div class="notification-meta">
+            <time datetime="{{ notif.created_at.isoformat() }}"
+                  title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M UTC') }}"
+            >{{ notif.created_at.strftime('%b %d, %Y') }}</time>
+            {% if grp.target_type and grp.target_id %}
+              <a
+                class="btn btn-xs btn-ghost"
+                href="{{ url_for('notifications.notification_inbox',
+                                 target_type=grp.target_type, target_id=grp.target_id,
+                                 unread_only='1' if unread_only else '0') }}"
+                aria-label="View all {{ grp.count }} notifications"
+              >View {% if grp.count > 1 %}{{ grp.count }}{% endif %} →</a>
+            {% endif %}
+            {% if grp.unread_count > 0 %}
+              <span class="notification-dot" aria-label="{{ grp.unread_count }} unread"></span>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+
+  {% elif grouped %}
+    <p class="empty-state">
+      {% if unread_only %}No unread notifications. <a href="{{ url_for('notifications.notification_inbox') }}">View all</a>.
+      {% else %}No notifications yet.{% endif %}
+    </p>
+
+  {# ═══ FLAT / FILTERED VIEW (expanded group for a specific target) ═══ #}
+  {% elif notifications %}
     <ul class="notification-list" aria-live="polite">
       {% for notif in notifications %}
         <li
@@ -37,38 +101,48 @@
             {% endif %}
           </div>
           <div class="notification-meta">
-            <time
-              datetime="{{ notif.created_at.isoformat() }}"
-              title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M UTC') }}"
+            <time datetime="{{ notif.created_at.isoformat() }}"
+                  title="{{ notif.created_at.strftime('%Y-%m-%d %H:%M UTC') }}"
             >{{ notif.created_at.strftime('%b %d, %Y') }}</time>
             {% if not notif.is_read %}
               <span class="notification-dot" aria-label="Unread"></span>
+              <form method="post"
+                    action="{{ url_for('notifications.mark_notification_read', notification_id=notif.id) }}"
+                    style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-xs btn-ghost">Mark read</button>
+              </form>
             {% endif %}
           </div>
         </li>
       {% endfor %}
     </ul>
-
-    {# ── Pagination ──────────────────────────────────────────────────────── #}
     {% if pages > 1 %}
       <nav class="pagination" aria-label="Notifications pagination">
         {% if page > 1 %}
-          <a class="pagination__prev" href="{{ url_for('notifications.notification_inbox', page=page - 1, unread_only='1' if unread_only else '0') }}">← Previous</a>
+          <a class="pagination__prev"
+             href="{{ url_for('notifications.notification_inbox', page=page-1,
+                              target_type=filter_target_type, target_id=filter_target_id,
+                              unread_only='1' if unread_only else '0') }}"
+          >← Previous</a>
         {% endif %}
         <span class="pagination__info">Page {{ page }} of {{ pages }}</span>
         {% if page < pages %}
-          <a class="pagination__next" href="{{ url_for('notifications.notification_inbox', page=page + 1, unread_only='1' if unread_only else '0') }}">Next →</a>
+          <a class="pagination__next"
+             href="{{ url_for('notifications.notification_inbox', page=page+1,
+                              target_type=filter_target_type, target_id=filter_target_id,
+                              unread_only='1' if unread_only else '0') }}"
+          >Next →</a>
         {% endif %}
       </nav>
     {% endif %}
 
   {% else %}
     <p class="empty-state">
-      {% if unread_only %}
-        No unread notifications. <a href="{{ url_for('notifications.notification_inbox') }}">View all</a>.
-      {% else %}
-        No notifications yet.
-      {% endif %}
+      {% if unread_only %}No unread notifications here.
+        <a href="{{ url_for('notifications.notification_inbox',
+                            target_type=filter_target_type, target_id=filter_target_id) }}">View all</a>.
+      {% else %}No notifications for this topic yet.{% endif %}
     </p>
   {% endif %}
 

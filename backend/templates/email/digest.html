@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body style="font-family:system-ui,sans-serif;background:#0d0d0d;color:#e0e0e0;margin:0;padding:32px 16px">
+  <div style="max-width:520px;margin:0 auto;background:#1a1a1a;border-radius:8px;padding:32px">
+
+    <p style="font-family:monospace;font-weight:700;font-size:1.1rem;margin:0 0 4px">ob/ OpenBlog</p>
+    <p style="color:#666;font-size:0.85rem;margin:0 0 28px">{{ frequency | capitalize }} digest · {{ period_label }}</p>
+
+    <h1 style="font-size:1.2rem;font-weight:600;margin:0 0 8px">
+      Your {{ frequency }} update, {{ user.username }}
+    </h1>
+    <p style="color:#a8a8a8;font-size:0.9rem;margin:0 0 24px">
+      {{ groups | length }} topic{{ 's' if groups | length != 1 else '' }},
+      {{ total_count }} notification{{ 's' if total_count != 1 else '' }}
+    </p>
+
+    {% for group in groups %}
+    <div style="border-left:3px solid #4fafff;padding:12px 16px;margin:0 0 16px;background:#111">
+      <p style="margin:0 0 4px;font-size:0.75rem;color:#666;text-transform:uppercase;letter-spacing:.05em">
+        {{ group.event_label }}
+        {% if group.count > 1 %}
+          <span style="background:#4fafff;color:#000;border-radius:9999px;padding:1px 7px;font-weight:700;margin-left:6px">{{ group.count }}</span>
+        {% endif %}
+      </p>
+      {% if group.target_url %}
+        <a href="{{ group.target_url }}" style="color:#e0e0e0;font-weight:600;text-decoration:none;font-size:0.95rem">{{ group.target_title }}</a>
+      {% else %}
+        <span style="color:#e0e0e0;font-weight:600;font-size:0.95rem">{{ group.target_title }}</span>
+      {% endif %}
+      {% if group.target_url %}
+        <p style="margin:6px 0 0">
+          <a href="{{ group.target_url }}" style="color:#4fafff;font-size:0.8rem;text-decoration:none">View →</a>
+        </p>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div style="margin:28px 0 0;text-align:center">
+      <a href="{{ inbox_url }}"
+         style="display:inline-block;background:#4fafff;color:#000;font-weight:600;
+                padding:12px 28px;border-radius:6px;text-decoration:none;font-size:0.95rem">
+        Open inbox
+      </a>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #2a2a2a;margin:28px 0"/>
+    <p style="color:#555;font-size:0.78rem;margin:0;line-height:1.6">
+      You're receiving this {{ frequency }} digest because you enabled email notifications on OpenBlog.<br/>
+      <a href="{{ preferences_url }}" style="color:#4fafff">Manage preferences</a> to change frequency or unsubscribe.
+    </p>
+
+  </div>
+</body>
+</html>

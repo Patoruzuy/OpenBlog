@@ -43,6 +43,19 @@ def _make_celery(app: Flask) -> Celery:
 
     class FlaskTask(Task):
         def __call__(self, *args: object, **kwargs: object) -> object:
+            from flask import has_app_context
+
+            # When tasks run eagerly (CELERY_TASK_ALWAYS_EAGER=True, used in
+            # tests), the caller already holds an active app context (e.g. the
+            # db_session fixture's ``with app.app_context()``).  Pushing a
+            # *nested* context here would create a new SQLAlchemy session scope
+            # that is isolated from the outer session, which means it does not
+            # see tables created by the outer session's ``create_all()`` on a
+            # SQLite :memory: database.  Reusing the existing context fixes
+            # that, while production workers (which have no prior context) still
+            # get a fresh context as before.
+            if has_app_context():
+                return self.run(*args, **kwargs)
             with app.app_context():
                 return self.run(*args, **kwargs)
 
@@ -51,6 +64,9 @@ def _make_celery(app: Flask) -> Celery:
         {
             "broker_url": app.config["CELERY_BROKER_URL"],
             "result_backend": app.config["CELERY_RESULT_BACKEND"],
+            # Honour TASK_ALWAYS_EAGER for synchronous test execution.
+            "task_always_eager": app.config.get("CELERY_TASK_ALWAYS_EAGER", False),
+            "task_eager_propagates": app.config.get("CELERY_TASK_EAGER_PROPAGATES", False),
         }
     )
     # Make this instance the Celery "current app" so @celery.task shortcuts

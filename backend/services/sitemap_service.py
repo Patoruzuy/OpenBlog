@@ -121,14 +121,23 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
             priority="0.4",
         )
     )
+    entries.append(
+        _entry(
+            absolute_url(url_for("prompts.public_prompt_list")),
+            changefreq="daily",
+            priority="0.7",
+        )
+    )
 
-    # ── Published posts ──────────────────────────────────────────────────
+    # ── Published posts and prompts ──────────────────────────────────────────
     # INV-001: public published posts only — workspace docs excluded.
+    # Includes kind='article' AND kind='prompt'; playbooks/frameworks excluded.
     posts: list[Post] = list(
         db.session.scalars(
             select(Post)
             .where(
                 Post.workspace_id.is_(None),
+                Post.kind.in_(["article", "prompt"]),
                 Post.status == PostStatus.published,
                 Post.published_at.is_not(None),
             )
@@ -143,9 +152,14 @@ def build_entries() -> tuple[list[dict[str, Any]], datetime]:
         # Use the most recent of published_at / updated_at as lastmod.
         candidates = [t for t in (post.published_at, post.updated_at) if t is not None]
         lastmod = max(candidates) if candidates else None
+        # Route prompts to /prompts/<slug>, articles to /posts/<slug>.
+        if post.kind == "prompt":
+            loc = absolute_url(url_for("prompts.public_prompt_detail", slug=post.slug))
+        else:
+            loc = absolute_url(url_for("posts.post_detail", slug=post.slug))
         entries.append(
             _entry(
-                loc=absolute_url(url_for("posts.post_detail", slug=post.slug)),
+                loc=loc,
                 lastmod=lastmod,
                 changefreq="monthly",
                 priority="0.8",

@@ -122,7 +122,10 @@ class User(db.Model):
         "UserBadge", back_populates="user", lazy="select"
     )
     notifications: Mapped[list[Notification]] = relationship(  # type: ignore[name-defined]  # noqa: F821
-        "Notification", back_populates="user", lazy="select"
+        "Notification",
+        back_populates="user",
+        foreign_keys="[Notification.user_id]",
+        lazy="select",
     )
     # ── Portal relationships (lazy-loaded; created on first access) ────────
     privacy_settings: Mapped[UserPrivacySettings | None] = relationship(  # type: ignore[name-defined]  # noqa: F821

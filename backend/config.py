@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from typing import ClassVar
 
+from celery.schedules import crontab as _crontab
 from dotenv import load_dotenv
 from sqlalchemy.pool import StaticPool
 
@@ -106,6 +107,30 @@ class BaseConfig:
         os.environ.get("THREAD_NOTIF_COOLDOWN_SECONDS", "900")  # 15 min default
     )
 
+    # ── AI Review Engine ────────────────────────────────────────────────────
+    # Feature flag — set False to disable all AI review endpoints.
+    AI_REVIEWS_ENABLED: bool = os.environ.get("AI_REVIEWS_ENABLED", "true").lower() == "true"
+    # Workspace-only gate: reject any request without a workspace_id.
+    AI_REVIEWS_WORKSPACE_ONLY: bool = True
+    # Which provider to use: mock | openai | ollama
+    AI_PROVIDER: str = os.environ.get("AI_PROVIDER", "mock")
+    # Model name forwarded to provider (provider-specific, e.g. "gpt-4.1-mini").
+    AI_MODEL_NAME: str = os.environ.get("AI_MODEL_NAME", "mock-model-v1")
+    # OpenAI API key — only required when AI_PROVIDER=openai.
+    OPENAI_API_KEY: str | None = os.environ.get("OPENAI_API_KEY")
+    # Ollama base URL — only required when AI_PROVIDER=ollama.
+    OLLAMA_BASE_URL: str | None = os.environ.get("OLLAMA_BASE_URL")
+    # Hard limit on input characters sent to provider (prevents runaway billing).
+    AI_MAX_INPUT_CHARS: int = int(os.environ.get("AI_MAX_INPUT_CHARS", "32768"))
+    # Per-request timeout in seconds.
+    AI_TIMEOUT_SECONDS: int = int(os.environ.get("AI_TIMEOUT_SECONDS", "60"))
+    # Per-user per-workspace daily review request limit.
+    AI_REVIEWS_DAILY_LIMIT: int = int(os.environ.get("AI_REVIEWS_DAILY_LIMIT", "10"))
+    # Dedup window: seconds to look back for identical fingerprint (7 days).
+    AI_REVIEWS_DEDUP_WINDOW_SECONDS: int = int(
+        os.environ.get("AI_REVIEWS_DEDUP_WINDOW_SECONDS", str(7 * 24 * 3600))
+    )
+
     # ── Flags ──────────────────────────────────────────────────────────────
     DEBUG: bool = False
     TESTING: bool = False
@@ -115,7 +140,12 @@ class BaseConfig:
     # and SQLAlchemy event hooks on ephemeral in-memory test databases.
     METRICS_ENABLED: bool = True
 
-    # ── Celery beat schedule ───────────────────────────────────────────────
+    # ── Email feature flag ──────────────────────────────────────────
+    # Set True to enable outbound email (digest, transactional).  Requires
+    # valid MAIL_SERVER / MAIL_USERNAME / MAIL_PASSWORD configuration.
+    EMAIL_ENABLED: bool = os.environ.get("EMAIL_ENABLED", "false").lower() == "true"
+
+    # ── Celery beat schedule ─────────────────────────────────────────
     CELERYBEAT_SCHEDULE: ClassVar[dict] = {
         "publish-scheduled-posts": {
             "task": "tasks.publish_scheduled_posts",
@@ -124,6 +154,17 @@ class BaseConfig:
         "flush-analytics-queue": {
             "task": "tasks.flush_analytics_queue",
             "schedule": 30.0,  # every 30 seconds
+        },
+        # ── Digest emails ────────────────────────────────
+        # daily   → 09:00 UTC every day
+        # weekly  → 09:00 UTC every Monday (celery crontab day_of_week=1)
+        "send-daily-digests": {
+            "task": "tasks.digests.send_daily_digests",
+            "schedule": _crontab(hour=9, minute=0),
+        },
+        "send-weekly-digests": {
+            "task": "tasks.digests.send_weekly_digests",
+            "schedule": _crontab(hour=9, minute=0, day_of_week=1),
         },
     }
 
@@ -200,6 +241,9 @@ class TestingConfig(BaseConfig):
     REDIS_URL: str = "redis://localhost:6379/0"  # type: ignore[assignment]
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"  # type: ignore[assignment]
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"  # type: ignore[assignment]
+    # Run Celery tasks synchronously (no broker needed) in tests.
+    CELERY_TASK_ALWAYS_EAGER: bool = True  # type: ignore[assignment]
+    CELERY_TASK_EAGER_PROPAGATES: bool = True  # type: ignore[assignment]
     # Disable rate limiting in tests — no Redis required.
     RATELIMIT_ENABLED: bool = False  # type: ignore[assignment]
     RATELIMIT_STORAGE_URI: str = "memory://"  # type: ignore[assignment]

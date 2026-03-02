@@ -176,12 +176,27 @@ def post_detail(slug: str):
     post_html = get_rendered_html(post.id, post.markdown_body)
     release_notes = get_post_release_notes(post.id)
 
+    from backend.services.notification_service import is_subscribed  # noqa: PLC0415
+    from backend.services.content_link_service import list_links_grouped  # noqa: PLC0415
+    from backend.models.user import UserRole  # noqa: PLC0415
+
+    is_watching_post = is_subscribed(user, "post", post.id) if user else False
+
+    links_grouped = list_links_grouped(post, workspace_id=None)
+    can_manage_links = (
+        user is not None and user.role in (UserRole.editor, UserRole.admin)
+    )
+
     return render_template(
         "posts/detail.html",
         post=post,
         post_html=post_html,
         last_read_version=last_read_version,
         release_notes=release_notes,
+        is_watching_post=is_watching_post,
+        links_grouped=links_grouped,
+        can_manage_links=can_manage_links,
+        from_post=post,
     )
 
 

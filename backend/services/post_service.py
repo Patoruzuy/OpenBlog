@@ -335,6 +335,21 @@ class PostService:
             metrics.posts_published.inc()
             _award_publish_badges(post)
             _maybe_promote_to_contributor(post.author_id)
+            # Notify post-watchers and tag-followers for public posts.
+            if post.workspace_id is None:
+                from backend.services.notification_service import emit  # noqa: PLC0415
+
+                emit(
+                    event_type="post.published",
+                    actor_user_id=post.author_id,
+                    target_type="post",
+                    target_id=post.id,
+                    payload={
+                        "post_title": post.title or "",
+                        "post_slug": post.slug or "",
+                        "tag_ids": [tag.id for tag in post.tags],
+                    },
+                )
         return post
 
     @staticmethod

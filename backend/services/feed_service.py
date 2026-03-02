@@ -81,8 +81,12 @@ def _post_to_item(post: Post) -> dict[str, Any]:
 
     The ``link`` and ``guid`` values are absolute URLs built from
     ``PUBLIC_BASE_URL`` via :func:`~backend.utils.seo.absolute_url`.
+    Routes prompts to /prompts/<slug> and articles to /posts/<slug>.
     """
-    post_url = absolute_url(url_for("posts.post_detail", slug=post.slug))
+    if post.kind == "prompt":
+        post_url = absolute_url(url_for("prompts.public_prompt_detail", slug=post.slug))
+    else:
+        post_url = absolute_url(url_for("posts.post_detail", slug=post.slug))
     return {
         "title": post.title,
         "link": post_url,
@@ -111,12 +115,13 @@ def _published_query(limit: int):
 
     INV-001: only public (workspace_id IS NULL), published, with a published_at
     timestamp — workspace docs are never exposed in public feeds.
+    Includes kind='article' and kind='prompt'; playbooks/frameworks excluded.
     """
     return (
         select(Post)
         .where(
             Post.workspace_id.is_(None),
-            Post.kind == "article",
+            Post.kind.in_(["article", "prompt"]),
             Post.status == PostStatus.published,
             Post.published_at.is_not(None),
         )
@@ -306,8 +311,12 @@ def _post_to_json_item(post: Post) -> dict[str, Any]:
     - ``id`` and ``url`` are canonical absolute URLs.
     - ``authors`` contains only display names — no email addresses.
     - ``content_text`` uses the SEO description or a plain-text excerpt.
+    Routes prompts to /prompts/<slug> and articles to /posts/<slug>.
     """
-    post_url = absolute_url(url_for("posts.post_detail", slug=post.slug))
+    if post.kind == "prompt":
+        post_url = absolute_url(url_for("prompts.public_prompt_detail", slug=post.slug))
+    else:
+        post_url = absolute_url(url_for("posts.post_detail", slug=post.slug))
     item: dict[str, Any] = {
         "id": post_url,
         "url": post_url,

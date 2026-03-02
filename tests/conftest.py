@@ -13,10 +13,22 @@ stub so auth tests can run without a live Redis server.
 
 The `auth_client` fixture depends on `db_session` and returns a Flask test
 client backed by the live in-memory SQLite database.
+
+Integration test gating
+-----------------------
+Tests marked ``@pytest.mark.integration`` require live Docker services
+(PostgreSQL + Redis) and are **skipped by default**.  Enable them with::
+
+    pytest --run-integration
+    # or
+    RUN_INTEGRATION_TESTS=1 pytest
+
+See TESTING.md for full CI/CD guidance.
 """
 
 from __future__ import annotations
 
+import os
 from unittest.mock import patch
 
 import fakeredis
@@ -25,6 +37,51 @@ from sqlalchemy import text as sa_text
 
 from backend.app import create_app
 from backend.extensions import db as _db
+
+
+# ── Integration-test gating ───────────────────────────────────────────────────
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Add --run-integration CLI option."""
+    parser.addoption(
+        "--run-integration",
+        action="store_true",
+        default=False,
+        help=(
+            "Run integration tests that require Docker services "
+            "(PostgreSQL + Redis).  See TESTING.md for prerequisites."
+        ),
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Skip all 'integration' marked tests unless explicitly enabled.
+
+    Tests are skipped unless:
+    - ``--run-integration`` CLI flag is passed, OR
+    - ``RUN_INTEGRATION_TESTS`` environment variable is set to ``1``, ``true``
+      or ``yes`` (case-insensitive).
+    """
+    run_integration: bool = config.getoption(
+        "--run-integration", default=False
+    ) or os.environ.get("RUN_INTEGRATION_TESTS", "").lower() in ("1", "true", "yes")
+
+    if run_integration:
+        return  # Let all tests run normally.
+
+    skip = pytest.mark.skip(
+        reason=(
+            "Integration test skipped (requires Docker: PostgreSQL + Redis). "
+            "Enable with:  pytest --run-integration  "
+            "or  RUN_INTEGRATION_TESTS=1 pytest"
+        )
+    )
+    for item in items:
+        if item.get_closest_marker("integration"):
+            item.add_marker(skip)
 
 # ── Global Celery task stubs ──────────────────────────────────────────────────
 
@@ -37,6 +94,21 @@ def _stub_notification_task():
     """
     with patch("backend.tasks.notifications.notify_thread_comment_created.delay"):
         yield
+
+
+@pytest.fixture
+def stub_ai_review_task():
+    """Opt-in fixture: replace run_ai_review.delay() with a no-op.
+
+    Use this in tests that only care about permission or rate-limit logic and
+    do NOT need the task to actually execute (e.g. checking the queued state).
+
+    In most AI review tests you should NOT use this fixture — instead rely on
+    ``CELERY_TASK_ALWAYS_EAGER=True`` (set in TestingConfig) which runs tasks
+    synchronously with the mock provider so you can assert on completed state.
+    """
+    with patch("backend.tasks.ai_reviews.run_ai_review.delay") as mock_delay:
+        yield mock_delay
 
 
 # ── Session-scoped app ────────────────────────────────────────────────────────

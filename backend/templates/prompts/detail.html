@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}{{ prompt.title }}{% endblock %}
+
+{% block og_meta %}
+<meta name="description" content="{{ prompt.seo_description or prompt.title }}" />
+{% if workspace %}
+  {# No indexable OG for workspace prompts #}
+{% else %}
+  <meta property="og:url" content="{{ absolute_url(url_for('prompts.public_prompt_detail', slug=prompt.slug)) }}" />
+  <meta property="og:title" content="{{ prompt.title }}" />
+  <meta property="og:description" content="{{ prompt.seo_description or prompt.title }}" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="{{ config.SITE_NAME }}" />
+  {% if prompt.published_at %}
+    <meta property="article:published_time" content="{{ prompt.published_at.isoformat() }}" />
+  {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container post-detail">
+
+  {# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.workspace_dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.ws_prompt_list', ws_slug=workspace.slug) }}">Prompts</a>
+    {% else %}
+      <a href="{{ url_for('prompts.public_prompt_list') }}">&larr; Prompt Library</a>
+    {% endif %}
+  </nav>
+
+  {# ── Flash messages ──────────────────────────────────────────────────────── #}
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+      <div class="flash flash--{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {# ── Header ─────────────────────────────────────────────────────────────── #}
+  <header class="post-header" style="margin-bottom:var(--space-lg)">
+    <h1 class="post-title" itemprop="headline">{{ prompt.title }}</h1>
+    <div class="post-meta" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.5rem">
+      <span>{{ prompt.author.display_name or prompt.author.username }}</span>
+      {% if prompt.published_at %}
+        <span class="post-meta-sep">&middot;</span>
+        <time datetime="{{ prompt.published_at.isoformat() }}">
+          {{ prompt.published_at.strftime('%b %d, %Y') }}
+        </time>
+      {% elif prompt.status.value == 'draft' %}
+        <span class="badge badge--draft">draft</span>
+      {% endif %}
+      {% if prompt.version > 1 %}
+        <span class="post-meta-sep">&middot;</span>
+        <span class="version-badge">v{{ prompt.version }}</span>
+      {% endif %}
+      <span class="post-meta-sep">&middot;</span>
+      <span class="badge badge--kind" style="font-size:.7rem">prompt</span>
+    </div>
+  </header>
+
+  {# ── Metadata card ──────────────────────────────────────────────────────── #}
+  {% if meta %}
+  <div class="post-card" style="margin-bottom:var(--space-lg);padding:var(--space-md);border-radius:var(--radius)">
+    <dl class="prompt-meta-grid" style="display:grid;grid-template-columns:max-content 1fr;gap:.4rem 1rem">
+      <dt style="color:var(--text-muted);font-size:.85rem">Category</dt>
+      <dd style="margin:0">{{ meta.category }}</dd>
+
+      <dt style="color:var(--text-muted);font-size:.85rem">Complexity</dt>
+      <dd style="margin:0">{{ meta.complexity_level }}</dd>
+
+      {% if meta.intended_model %}
+        <dt style="color:var(--text-muted);font-size:.85rem">Model</dt>
+        <dd style="margin:0"><code>{{ meta.intended_model }}</code></dd>
+      {% endif %}
+    </dl>
+
+    {# ── Variables ──────────────────────────────────────────────────────── #}
+    {% if variables %}
+    <div style="margin-top:var(--space-sm)">
+      <p style="font-size:.85rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem">Variables</p>
+      <ul style="margin:0;padding-left:1.2rem;font-size:.9rem">
+        {% for var_name, var_desc in variables.items() %}
+          <li><code>{{ '{{' }} {{ var_name }} {{ '}}' }}</code>{% if var_desc %} — {{ var_desc }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {# ── Body (main prompt text) ─────────────────────────────────────────────── #}
+  <div class="post-body prose" itemprop="articleBody">
+    {{ prompt.markdown_body | markdown }}
+  </div>
+
+  {# ── Example usage ──────────────────────────────────────────────────────── #}
+  {% if meta and (meta.example_input or meta.example_output) %}
+  <section style="margin-top:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-sm)">Example Usage</h2>
+    {% if meta.example_input %}
+    <div style="margin-bottom:var(--space-md)">
+      <p style="font-size:.8rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Input</p>
+      <pre style="background:var(--surface-2);padding:var(--space-sm);border-radius:var(--radius);overflow-x:auto;font-size:.85rem;white-space:pre-wrap"><code>{{ meta.example_input }}</code></pre>
+    </div>
+    {% endif %}
+    {% if meta.example_output %}
+    <div>
+      <p style="font-size:.8rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">Output</p>
+      <pre style="background:var(--surface-2);padding:var(--space-sm);border-radius:var(--radius);overflow-x:auto;font-size:.85rem;white-space:pre-wrap"><code>{{ meta.example_output }}</code></pre>
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {# ── Usage notes ────────────────────────────────────────────────────────── #}
+  {% if meta and meta.usage_notes %}
+  <section style="margin-top:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-sm)">Usage Notes</h2>
+    <div class="prose">{{ meta.usage_notes | markdown }}</div>
+  </section>
+  {% endif %}
+
+  {# ── Actions ────────────────────────────────────────────────────────────── #}
+  {% if current_user %}
+  <div class="post-actions" style="margin-top:var(--space-xl);display:flex;gap:.75rem;flex-wrap:wrap">
+    {# Suggest revision (mirrors post detail) #}
+    <a class="btn btn-sm btn-ghost"
+       href="{{ url_for('revisions.new_revision', slug=prompt.slug) }}">
+      Suggest Revision
+    </a>
+    {# AI review (same endpoint as posts) #}
+    <a class="btn btn-sm btn-ghost"
+       href="{{ url_for('ai_reviews.request_review_form', slug=prompt.slug) }}">
+      Request AI Review
+    </a>
+  </div>
+  {% endif %}
+
+  {# ── Knowledge Graph: Related content ─────────────────────────────────── #}
+  {% include '_partials/related_section.html' %}
+
+</div>
+{% endblock %}

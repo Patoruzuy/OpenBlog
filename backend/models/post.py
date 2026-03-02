@@ -195,6 +195,14 @@ class Post(db.Model):
         lazy="select",
         order_by="PostReleaseNote.version_number.desc()",
     )
+    prompt_metadata: Mapped[object | None] = relationship(
+        "PromptMetadata",
+        foreign_keys="PromptMetadata.post_id",
+        back_populates="post",
+        uselist=False,
+        lazy="select",
+        cascade="all, delete-orphan",
+    )
     comments: Mapped[list[Comment]] = relationship(  # type: ignore[name-defined]  # noqa: F821
         "Comment",
         back_populates="post",

@@ -101,11 +101,21 @@ def create_app(config_name: str | None = None) -> Flask:
     def _inject_current_user() -> dict:
         from datetime import UTC, datetime  # noqa: PLC0415
 
+        from flask import has_request_context  # noqa: PLC0415
         from flask_babel import get_locale  # noqa: PLC0415
 
         from backend.utils.auth import (
             get_current_user,  # local to avoid circular import
         )
+
+        # Email / background rendering has no request context; return defaults.
+        if not has_request_context():
+            return {
+                "current_user": None,
+                "unread_notifications": 0,
+                "current_locale": "en",
+                "current_year": lambda: datetime.now(UTC).year,
+            }
 
         user = get_current_user()
         unread = 0
@@ -191,10 +201,16 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.users import ssr_users_bp
     from backend.routes.workspace import workspace_bp
     from backend.routes.invites import invite_bp
+    from backend.routes.admin_ops import admin_ops_bp
+    from backend.routes.ai_reviews import ai_reviews_bp
+    from backend.routes.content_links import content_links_bp
+    from backend.routes.prompts import prompts_bp
+    from backend.routes.watches import watches_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(i18n_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(admin_ops_bp)
     app.register_blueprint(index_bp)
     app.register_blueprint(explore_bp)
     app.register_blueprint(ssr_auth_bp)
@@ -231,6 +247,10 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(sitemap_bp)
     app.register_blueprint(workspace_bp)
     app.register_blueprint(invite_bp)
+    app.register_blueprint(ai_reviews_bp)
+    app.register_blueprint(content_links_bp)
+    app.register_blueprint(prompts_bp)
+    app.register_blueprint(watches_bp)
 
 
 def _register_jinja_globals(app: Flask) -> None:
@@ -246,7 +266,7 @@ def _register_jinja_globals(app: Flask) -> None:
     _css_path = _os.path.join(app.static_folder, "css", "main.css")
     try:
         with open(_css_path, "rb") as _fh:
-            _static_ver = hashlib.md5(_fh.read()).hexdigest()[:8]  # noqa: S324
+            _static_ver = hashlib.md5(_fh.read()).hexdigest()[:8]  # noqa: S324  # nosec B324
     except OSError:
         _static_ver = "1"
     app.jinja_env.globals["static_ver"] = _static_ver
@@ -272,6 +292,11 @@ def _register_jinja_globals(app: Flask) -> None:
 
     app.jinja_env.globals["absolute_url"] = absolute_url
     app.jinja_env.globals["canonical_url"] = canonical_url
+
+    # ── Jinja2 template filters ───────────────────────────────────────────
+    from backend.utils.markdown import render_markdown as _render_markdown
+
+    app.jinja_env.filters["markdown"] = _render_markdown
 
 
 def _register_cli(app: Flask) -> None:

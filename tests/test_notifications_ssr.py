@@ -17,13 +17,19 @@ def alice(make_user_token, db_session):  # noqa: ARG001
 
 @pytest.fixture()
 def _alice_notifications(alice, db_session):
-    """Two notifications for alice: one read, one unread."""
+    """Two notifications for alice: one read, one unread.
+
+    Each has a distinct target_id so they appear as separate groups in the
+    grouped inbox view (grouped by (target_type, target_id)).
+    """
     from backend.extensions import db
 
     read_notif = Notification(
         user_id=alice.id,
         notification_type="new_follower",
         title="Bob started following you",
+        target_type="user",
+        target_id=9901,
         is_read=True,
     )
     unread_notif = Notification(
@@ -31,6 +37,8 @@ def _alice_notifications(alice, db_session):
         notification_type="revision_accepted",
         title="Your revision was accepted",
         body="The editor approved your changes to 'Great Post'.",
+        target_type="user",
+        target_id=9902,
         is_read=False,
     )
     db.session.add_all([read_notif, unread_notif])

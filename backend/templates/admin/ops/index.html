@@ -1,0 +1,101 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Ops Dashboard{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Ops Dashboard</h1>
+  <span class="adm-page-subtitle adm-text-muted">Async system health &amp; 24-hour snapshot</span>
+</div>
+
+{# ── Health cards ────────────────────────────────────────────────────────── #}
+<div class="adm-stat-grid">
+
+  <div class="adm-health-card {% if health.db.ok %}adm-health-card--ok{% else %}adm-health-card--err{% endif %}">
+    <span class="adm-health-card__icon" aria-hidden="true">{{ '✓' if health.db.ok else '✗' }}</span>
+    <span class="adm-health-card__title">Database</span>
+    <span class="adm-health-card__label">{{ health.db.label }}</span>
+    {% if not health.db.ok and health.db.error %}
+      <pre class="adm-health-card__err">{{ health.db.error }}</pre>
+    {% endif %}
+  </div>
+
+  <div class="adm-health-card {% if health.redis.ok %}adm-health-card--ok{% else %}adm-health-card--err{% endif %}">
+    <span class="adm-health-card__icon" aria-hidden="true">{{ '✓' if health.redis.ok else '✗' }}</span>
+    <span class="adm-health-card__title">Redis</span>
+    <span class="adm-health-card__label">{{ health.redis.label }}</span>
+    {% if not health.redis.ok and health.redis.error %}
+      <pre class="adm-health-card__err">{{ health.redis.error }}</pre>
+    {% endif %}
+  </div>
+
+  <div class="adm-health-card {% if health.celery.ok %}adm-health-card--ok{% else %}adm-health-card--warn{% endif %}">
+    <span class="adm-health-card__icon" aria-hidden="true">{{ '✓' if health.celery.ok else '⚠' }}</span>
+    <span class="adm-health-card__title">Celery</span>
+    <span class="adm-health-card__label">{{ health.celery.label }}</span>
+    {% if health.celery.broker %}
+      <span class="adm-health-card__sub adm-text-muted">{{ health.celery.broker }}</span>
+    {% endif %}
+  </div>
+
+</div>
+
+{# ── 24-hour counts ──────────────────────────────────────────────────────── #}
+<section class="adm-section" style="margin-top:2rem">
+  <h2 class="adm-section-title">Last 24 Hours</h2>
+  <div class="adm-stat-grid">
+
+    {# AI Reviews #}
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">AI Reviews — Queued</span>
+      <span class="adm-stat-card__value">{{ ai_stats.queued }}</span>
+      <a href="{{ url_for('admin_ops.ai_reviews') }}?status=queued" class="adm-stat-card__action">View →</a>
+    </div>
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">AI Reviews — Running</span>
+      <span class="adm-stat-card__value">{{ ai_stats.running }}</span>
+      <a href="{{ url_for('admin_ops.ai_reviews') }}?status=running" class="adm-stat-card__action">View →</a>
+    </div>
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">AI Reviews — Failed</span>
+      <span class="adm-stat-card__value {% if ai_stats.failed > 0 %}adm-stat-card__value--warn{% endif %}">{{ ai_stats.failed }}</span>
+      <a href="{{ url_for('admin_ops.ai_reviews') }}?status=failed" class="adm-stat-card__action">View →</a>
+    </div>
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">AI Reviews — Completed</span>
+      <span class="adm-stat-card__value">{{ ai_stats.completed }}</span>
+      <a href="{{ url_for('admin_ops.ai_reviews') }}?status=completed" class="adm-stat-card__action">View →</a>
+    </div>
+
+    {# Digests #}
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">Digests — Sent</span>
+      <span class="adm-stat-card__value">{{ digest_stats.sent }}</span>
+      <a href="{{ url_for('admin_ops.digests') }}?status=sent" class="adm-stat-card__action">View →</a>
+    </div>
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">Digests — Failed</span>
+      <span class="adm-stat-card__value {% if digest_stats.failed > 0 %}adm-stat-card__value--warn{% endif %}">{{ digest_stats.failed }}</span>
+      <a href="{{ url_for('admin_ops.digests') }}?status=failed" class="adm-stat-card__action">View →</a>
+    </div>
+
+    {# Notifications #}
+    <div class="adm-stat-card">
+      <span class="adm-stat-card__label">Notifications Created</span>
+      <span class="adm-stat-card__value">{{ notif_count_24h }}</span>
+      <a href="{{ url_for('admin_ops.notifications') }}" class="adm-stat-card__action">Details →</a>
+    </div>
+
+  </div>
+</section>
+
+{# ── Quick links ─────────────────────────────────────────────────────────── #}
+<section class="adm-section" style="margin-top:2rem">
+  <h2 class="adm-section-title">Quick Links</h2>
+  <div style="display:flex; gap:0.75rem; flex-wrap:wrap">
+    <a href="{{ url_for('admin_ops.ai_reviews') }}" class="adm-btn">AI Reviews</a>
+    <a href="{{ url_for('admin_ops.ai_reviews') }}?status=failed" class="adm-btn adm-btn--warn">Failed Reviews</a>
+    <a href="{{ url_for('admin_ops.digests') }}" class="adm-btn">Digest Runs</a>
+    <a href="{{ url_for('admin_ops.notifications') }}" class="adm-btn">Notifications</a>
+  </div>
+</section>
+{% endblock %}
