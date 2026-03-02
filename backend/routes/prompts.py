@@ -3,16 +3,18 @@
 URL structure
 -------------
 Public layer:
-  GET  /prompts/                       list published public prompts
-  GET  /prompts/<slug>                 prompt detail page
-  GET  /prompts/new                    creation form        [auth required]
-  POST /prompts/new                    create prompt        [auth required]
+  GET  /prompts/                         list published public prompts
+  GET  /prompts/<slug>                   prompt detail page
+  GET  /prompts/<slug>/analytics         prompt evolution analytics (public)
+  GET  /prompts/new                      creation form        [auth required]
+  POST /prompts/new                      create prompt        [auth required]
 
 Workspace layer:
-  GET  /w/<ws_slug>/prompts/           list workspace prompts   [member+]
-  GET  /w/<ws_slug>/prompts/<slug>     prompt detail            [member+]
-  GET  /w/<ws_slug>/prompts/new        creation form            [editor+]
-  POST /w/<ws_slug>/prompts/new        create prompt            [editor+]
+  GET  /w/<ws_slug>/prompts/             list workspace prompts   [member+]
+  GET  /w/<ws_slug>/prompts/<slug>       prompt detail            [member+]
+  GET  /w/<ws_slug>/prompts/<slug>/analytics  prompt analytics    [member+]
+  GET  /w/<ws_slug>/prompts/new          creation form            [editor+]
+  POST /w/<ws_slug>/prompts/new          create prompt            [editor+]
 
 Permission rules
 ----------------
@@ -193,6 +195,37 @@ def _ws_no_store(response):
     return response
 
 
+@prompts_bp.get("/prompts/<slug>/analytics")
+def public_prompt_analytics(slug: str):
+    """Prompt evolution analytics page — public scope."""
+    prompt = get_prompt_by_slug(slug, workspace_id=None)
+    if prompt is None or prompt.status != PostStatus.published:
+        abort(404)
+
+    from backend.services.prompt_analytics_service import (  # noqa: PLC0415
+        get_execution_stats,
+        get_fork_tree,
+        get_rating_trend,
+        get_version_timeline,
+    )
+
+    timeline = get_version_timeline(prompt, workspace_id=None)
+    rating_trend = get_rating_trend(prompt, workspace_id=None)
+    forks = get_fork_tree(prompt, workspace_id=None)
+    exec_stats = get_execution_stats(prompt, workspace_id=None)
+
+    return render_template(
+        "prompts/analytics.html",
+        prompt=prompt,
+        workspace=None,
+        timeline=timeline,
+        rating_trend=rating_trend,
+        forks=forks,
+        exec_stats=exec_stats,
+        current_user=get_current_user(),
+    )
+
+
 @prompts_bp.get("/w/<ws_slug>/prompts/")
 def ws_prompt_list(ws_slug: str):
     """List prompts visible to the current workspace member."""
@@ -209,6 +242,43 @@ def ws_prompt_list(ws_slug: str):
             has_next=False,
             category=None,
             workspace=ws,
+        )
+    )
+    return _ws_no_store(resp)
+
+
+@prompts_bp.get("/w/<ws_slug>/prompts/<slug>/analytics")
+def ws_prompt_analytics(ws_slug: str, slug: str):
+    """Prompt evolution analytics page — workspace scope (member+)."""
+    user = get_current_user()
+    ws = ws_svc.get_workspace_for_user(ws_slug, user)
+
+    prompt = get_prompt_by_slug(slug, workspace_id=ws.id)
+    if prompt is None:
+        abort(404)
+
+    from backend.services.prompt_analytics_service import (  # noqa: PLC0415
+        get_execution_stats,
+        get_fork_tree,
+        get_rating_trend,
+        get_version_timeline,
+    )
+
+    timeline = get_version_timeline(prompt, workspace_id=ws.id)
+    rating_trend = get_rating_trend(prompt, workspace_id=ws.id)
+    forks = get_fork_tree(prompt, workspace_id=ws.id)
+    exec_stats = get_execution_stats(prompt, workspace_id=ws.id)
+
+    resp = make_response(
+        render_template(
+            "prompts/analytics.html",
+            prompt=prompt,
+            workspace=ws,
+            timeline=timeline,
+            rating_trend=rating_trend,
+            forks=forks,
+            exec_stats=exec_stats,
+            current_user=user,
         )
     )
     return _ws_no_store(resp)

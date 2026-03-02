@@ -123,8 +123,20 @@
   {% endif %}
 
   {# ── Actions ────────────────────────────────────────────────────────────── #}
-  {% if current_user %}
   <div class="post-actions" style="margin-top:var(--space-xl);display:flex;gap:.75rem;flex-wrap:wrap">
+    {# Analytics (always visible for published prompts) #}
+    {% if workspace %}
+      <a class="btn btn-sm btn-ghost"
+         href="{{ url_for('prompts.ws_prompt_analytics', ws_slug=workspace.slug, slug=prompt.slug) }}">
+        Analytics
+      </a>
+    {% else %}
+      <a class="btn btn-sm btn-ghost"
+         href="{{ url_for('prompts.public_prompt_analytics', slug=prompt.slug) }}">
+        Analytics
+      </a>
+    {% endif %}
+    {% if current_user %}
     {# Suggest revision (mirrors post detail) #}
     <a class="btn btn-sm btn-ghost"
        href="{{ url_for('revisions.new_revision', slug=prompt.slug) }}">
@@ -135,8 +147,8 @@
        href="{{ url_for('ai_reviews.request_review_form', slug=prompt.slug) }}">
       Request AI Review
     </a>
+    {% endif %}
   </div>
-  {% endif %}
 
   {# ── Knowledge Graph: Related content ─────────────────────────────────── #}
   {% include '_partials/related_section.html' %}

@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Analytics — {{ prompt.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:860px;padding-top:var(--space-xl);padding-bottom:var(--space-xl)">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-md)">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.ws_prompt_list', ws_slug=workspace.slug) }}">Prompts</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}">{{ prompt.title }}</a>
+    {% else %}
+      <a href="{{ url_for('prompts.public_prompt_list') }}">Prompt Library</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}">{{ prompt.title }}</a>
+    {% endif %}
+    <span class="breadcrumb-sep">/</span>
+    <span>Analytics</span>
+  </nav>
+
+  {# ── Page header ──────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 .4rem">
+      Analytics
+      <span style="color:var(--text-muted);font-weight:400;font-size:1rem">— {{ prompt.title }}</span>
+    </h1>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;font-size:.85rem;color:var(--text-muted)">
+      <span>v{{ prompt.version }}</span>
+      <span class="post-meta-sep">&middot;</span>
+      <span>{{ timeline | length }} version{{ 's' if timeline | length != 1 else '' }}</span>
+      <span class="post-meta-sep">&middot;</span>
+      <span>{{ forks | length }} fork{{ 's' if forks | length != 1 else '' }}</span>
+      <span class="post-meta-sep">&middot;</span>
+      <span>{{ exec_stats.total_views }} total view{{ 's' if exec_stats.total_views != 1 else '' }}</span>
+      {% if workspace %}
+        <span class="post-meta-sep">&middot;</span>
+        <span class="badge" style="font-size:.7rem;padding:.1rem .4rem;background:var(--surface-2);border-radius:var(--radius-sm)">workspace</span>
+      {% endif %}
+    </div>
+  </header>
+
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 1 — Execution Stats
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Execution Stats</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--space-md)">
+
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">{{ exec_stats.total_views }}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Total views</div>
+      </div>
+
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">{{ exec_stats.views_last_30_days }}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Views last 30 days</div>
+      </div>
+
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">{{ exec_stats.unique_readers }}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Unique readers</div>
+      </div>
+
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">
+          {{ (rating_trend | last).vote_count if rating_trend else 0 }}
+        </div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Total upvotes</div>
+      </div>
+
+    </div>
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 2 — Version Timeline
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Version Timeline</h2>
+
+    {% if timeline %}
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em">
+            <th style="text-align:left;padding:.5rem .75rem;white-space:nowrap">Version</th>
+            <th style="text-align:left;padding:.5rem .75rem;white-space:nowrap">Date</th>
+            <th style="text-align:left;padding:.5rem .75rem">Summary</th>
+            <th style="text-align:left;padding:.5rem .75rem;white-space:nowrap">Author</th>
+            <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap">Votes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in timeline %}
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:.6rem .75rem;white-space:nowrap">
+              <span class="version-badge">v{{ entry.version_number }}</span>
+              {% if entry.is_ai_generated %}
+                <span style="font-size:.7rem;color:var(--accent);margin-left:.3rem" title="Generated by AI">AI</span>
+              {% endif %}
+            </td>
+            <td style="padding:.6rem .75rem;white-space:nowrap;color:var(--text-muted)">
+              <time datetime="{{ entry.created_at.isoformat() }}">
+                {{ entry.created_at.strftime('%b %d, %Y') }}
+              </time>
+            </td>
+            <td style="padding:.6rem .75rem;max-width:320px">{{ entry.summary }}</td>
+            <td style="padding:.6rem .75rem;color:var(--text-muted);white-space:nowrap">{{ entry.author_display }}</td>
+            <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+              {{ entry.vote_count_cumulative }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);font-size:.875rem">No version history recorded yet.</p>
+    {% endif %}
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 3 — Rating Trend
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Rating Trend</h2>
+
+    {% if rating_trend %}
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em">
+            <th style="text-align:left;padding:.5rem .75rem">Version</th>
+            <th style="text-align:right;padding:.5rem .75rem">Cumulative votes</th>
+            <th style="text-align:right;padding:.5rem .75rem">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for snap in rating_trend %}
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:.6rem .75rem">
+              <span class="version-badge">v{{ snap.version_number }}</span>
+            </td>
+            <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+              {{ snap.vote_count }}
+            </td>
+            <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+              {% if snap.delta > 0 %}
+                <span style="color:#4caf50">+{{ snap.delta }}</span>
+              {% elif snap.delta < 0 %}
+                <span style="color:#f44336">{{ snap.delta }}</span>
+              {% else %}
+                <span style="color:var(--text-muted)">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);font-size:.875rem">No version history to compute rating trend.</p>
+    {% endif %}
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 4 — Fork Tree
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Forks
+      <span style="font-size:.8rem;font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0"
+            title="Posts linked to this prompt with 'derived from'">— links with 'derived from'</span>
+    </h2>
+
+    {% if forks %}
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);color:var(--text-muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em">
+            <th style="text-align:left;padding:.5rem .75rem">Title</th>
+            <th style="text-align:left;padding:.5rem .75rem">Kind</th>
+            <th style="text-align:left;padding:.5rem .75rem">Scope</th>
+            <th style="text-align:right;padding:.5rem .75rem;white-space:nowrap">Upvotes</th>
+            <th style="text-align:left;padding:.5rem .75rem;white-space:nowrap">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fork in forks %}
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:.6rem .75rem">
+              {% if fork.scope == 'workspace' and workspace %}
+                <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=fork.slug) if fork.kind == 'prompt'
+                            else url_for('workspace.document', workspace_slug=workspace.slug, doc_slug=fork.slug) }}"
+                   style="color:var(--link)">{{ fork.title }}</a>
+              {% else %}
+                <a href="{{ url_for('prompts.public_prompt_detail', slug=fork.slug) if fork.kind == 'prompt'
+                            else url_for('posts.post_detail', slug=fork.slug) }}"
+                   style="color:var(--link)">{{ fork.title }}</a>
+              {% endif %}
+            </td>
+            <td style="padding:.6rem .75rem">
+              <span class="badge badge--kind" style="font-size:.7rem">{{ fork.kind }}</span>
+            </td>
+            <td style="padding:.6rem .75rem">
+              {% if fork.scope == 'workspace' %}
+                <span class="badge" style="font-size:.7rem;background:var(--surface-2);border-radius:var(--radius-sm)">workspace</span>
+              {% else %}
+                <span style="color:var(--text-muted);font-size:.85rem">public</span>
+              {% endif %}
+            </td>
+            <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ fork.vote_count }}</td>
+            <td style="padding:.6rem .75rem;color:var(--text-muted);white-space:nowrap">
+              <time datetime="{{ fork.created_at.isoformat() }}">
+                {{ fork.created_at.strftime('%b %d, %Y') }}
+              </time>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);font-size:.875rem">No forks found.
+      Forks are other posts or prompts that link here with a <em>derived from</em> relationship.</p>
+    {% endif %}
+  </section>
+
+  {# ── Back link ─────────────────────────────────────────────────────────────── #}
+  <div style="padding-top:var(--space-md);border-top:1px solid var(--border)">
+    {% if workspace %}
+      <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}"
+         style="color:var(--text-muted);font-size:.875rem">&larr; Back to prompt</a>
+    {% else %}
+      <a href="{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}"
+         style="color:var(--text-muted);font-size:.875rem">&larr; Back to prompt</a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
