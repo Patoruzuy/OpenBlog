@@ -153,5 +153,66 @@
   {# ── Knowledge Graph: Related content ─────────────────────────────────── #}
   {% include '_partials/related_section.html' %}
 
+  {# ── Ontology mapping ─────────────────────────────────────────────────── #}
+  {% if ontology_mappings or can_manage_ontology %}
+  <section style="margin-top:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-sm)">Concepts</h2>
+
+    {# Display current mappings as chips #}
+    {% if ontology_mappings %}
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:var(--space-sm)">
+      {% for mapping in ontology_mappings %}
+        {% if workspace %}
+          <a class="tag-badge"
+             href="{{ url_for('ontology.ws_node_detail', ws_slug=workspace.slug, slug=mapping.node.slug) }}">
+            {{ mapping.node.name }}
+          </a>
+        {% else %}
+          <a class="tag-badge"
+             href="{{ url_for('ontology.public_node_detail', slug=mapping.node.slug) }}">
+            {{ mapping.node.name }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% elif can_manage_ontology %}
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:var(--space-sm)">No concepts mapped yet.</p>
+    {% endif %}
+
+    {# Editor: mapping form #}
+    {% if can_manage_ontology %}
+    <details style="margin-top:var(--space-sm)">
+      <summary style="cursor:pointer;font-size:.85rem;color:var(--text-muted)">Edit concept mapping</summary>
+      <form method="post"
+            action="{{ url_for('ontology.set_ws_mapping', ws_slug=workspace.slug, slug=prompt.slug) if workspace else url_for('ontology.set_public_mapping', slug=prompt.slug) }}"
+            style="margin-top:var(--space-sm);padding:var(--space-sm);border:1px solid var(--border);border-radius:var(--radius)">
+        {% macro flat_tree_render(items, depth) %}
+          {% for item in items %}
+            <label style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;padding-left:{{ depth * 1.2 }}rem">
+              <input type="checkbox" name="node_ids" value="{{ item.node.id }}"
+                     {% if item.node.id in mapping_node_ids %}checked{% endif %}>
+              <span>{{ item.node.name }}</span>
+            </label>
+            {% if item.children %}
+              {{ flat_tree_render(item.children, depth + 1) }}
+            {% endif %}
+          {% endfor %}
+        {% endmacro %}
+
+        {% if ontology_all_nodes %}
+          {{ flat_tree_render(ontology_all_nodes, 0) }}
+        {% else %}
+          <p style="font-size:.85rem;color:var(--text-muted)">No ontology nodes defined yet.</p>
+        {% endif %}
+
+        <div style="margin-top:var(--space-sm)">
+          <button type="submit" class="btn btn-sm btn-primary">Save</button>
+        </div>
+      </form>
+    </details>
+    {% endif %}
+  </section>
+  {% endif %}
+
 </div>
 {% endblock %}

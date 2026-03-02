@@ -1,0 +1,66 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Ontology Nodes{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">Ontology Nodes</h1>
+  {% if can("manage_content") %}
+    <a href="{{ url_for('admin_ontology.ontology_new') }}" class="btn btn-sm btn-primary">+ New Node</a>
+  {% endif %}
+</div>
+
+{% if tree %}
+  {# ── Recursive tree macro ──────────────────────────────────────────────── #}
+  {% macro render_admin_tree(items, depth) %}
+    {% for item in items %}
+      <tr>
+        <td style="padding-left:{{ depth * 1.4 }}rem">
+          {% if depth > 0 %}<span style="color:var(--text-muted);margin-right:.3rem">└</span>{% endif %}
+          <span style="font-weight:{{ '600' if depth == 0 else '400' }}">{{ item.node.name }}</span>
+        </td>
+        <td><code style="font-size:.82rem">{{ item.node.slug }}</code></td>
+        <td>{{ item.node.sort_order }}</td>
+        <td>
+          {% if item.node.is_public %}
+            <span class="adm-badge adm-badge--published">public</span>
+          {% else %}
+            <span class="adm-badge adm-badge--draft">private</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if can("manage_content") %}
+            <a href="{{ url_for('admin_ontology.ontology_edit', node_id=item.node.id) }}"
+               class="btn btn-xs btn-ghost">Edit</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% if item.children %}
+        {{ render_admin_tree(item.children, depth + 1) }}
+      {% endif %}
+    {% endfor %}
+  {% endmacro %}
+
+  <table class="adm-table" style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr>
+        <th style="text-align:left">Name</th>
+        <th style="text-align:left">Slug</th>
+        <th style="text-align:left">Order</th>
+        <th style="text-align:left">Visibility</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ render_admin_tree(tree, 0) }}
+    </tbody>
+  </table>
+{% else %}
+  <p style="color:var(--text-muted);margin-top:var(--space-lg)">
+    No ontology nodes yet.
+    {% if can("manage_content") %}
+      <a href="{{ url_for('admin_ontology.ontology_new') }}">Create the first one.</a>
+    {% endif %}
+  </p>
+{% endif %}
+
+{% endblock %}

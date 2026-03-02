@@ -170,6 +170,19 @@ def public_prompt_detail(slug: str):
     )
     link_suggestions = suggest_for_post(user, prompt, workspace_id=None)
 
+    from backend.services.content_ontology_service import (  # noqa: PLC0415
+        get_mappings_for_post as _get_ont_mappings,
+        get_mapping_ids_for_post as _get_ont_ids,
+    )
+    from backend.services.ontology_service import list_tree as _list_tree  # noqa: PLC0415
+
+    ontology_mappings = _get_ont_mappings(user, prompt, workspace=None)
+    ontology_all_nodes = _list_tree(public_only=True)
+    can_manage_ontology = (
+        user is not None and user.role.value in UserRole.EDITOR_SET
+    )
+    mapping_node_ids = _get_ont_ids(prompt, workspace=None)
+
     return render_template(
         "prompts/detail.html",
         prompt=prompt,
@@ -181,6 +194,10 @@ def public_prompt_detail(slug: str):
         can_manage_links=can_manage_links,
         link_suggestions=link_suggestions,
         from_post=prompt,
+        ontology_mappings=ontology_mappings,
+        ontology_all_nodes=ontology_all_nodes,
+        can_manage_ontology=can_manage_ontology,
+        mapping_node_ids=mapping_node_ids,
     )
 
 
@@ -382,10 +399,23 @@ def ws_prompt_detail(ws_slug: str, slug: str):
     from backend.services.content_link_suggestion_service import (  # noqa: PLC0415
         suggest_for_post,
     )
-
+    from backend.models.user import UserRole  # noqa: PLC0415
     links_grouped = list_links_grouped(prompt, workspace_id=ws.id)
     can_manage_links = user is not None and _can_manage(user, ws.id)
     link_suggestions = suggest_for_post(user, prompt, workspace_id=ws.id)
+
+    from backend.services.content_ontology_service import (  # noqa: PLC0415
+        get_mappings_for_post as _get_ont_mappings,
+        get_mapping_ids_for_post as _get_ont_ids,
+    )
+    from backend.services.ontology_service import list_tree as _list_tree  # noqa: PLC0415
+
+    ontology_mappings = _get_ont_mappings(user, prompt, workspace=ws)
+    ontology_all_nodes = _list_tree(public_only=True)
+    can_manage_ontology = (
+        user is not None and user.role.value in UserRole.EDITOR_SET
+    )
+    mapping_node_ids = _get_ont_ids(prompt, workspace=ws)
 
     resp = make_response(
         render_template(
@@ -399,6 +429,10 @@ def ws_prompt_detail(ws_slug: str, slug: str):
             can_manage_links=can_manage_links,
             link_suggestions=link_suggestions,
             from_post=prompt,
+            ontology_mappings=ontology_mappings,
+            ontology_all_nodes=ontology_all_nodes,
+            can_manage_ontology=can_manage_ontology,
+            mapping_node_ids=mapping_node_ids,
         )
     )
     return _ws_no_store(resp)

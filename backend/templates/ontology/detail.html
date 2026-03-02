@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ node.name }} — Concepts{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  {# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.ws_ontology_index', ws_slug=workspace.slug) }}">Concepts</a>
+    {% else %}
+      <a href="{{ url_for('ontology.public_ontology_index') }}">&larr; Concepts</a>
+    {% endif %}
+    {% if not workspace %}
+      <span class="breadcrumb-sep">/</span>
+      <span>{{ node.name }}</span>
+    {% endif %}
+  </nav>
+
+  {# ── Flash messages ──────────────────────────────────────────────────────── #}
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+      <div class="flash flash--{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {# ── Node header ─────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1>{{ node.name }}</h1>
+    {% if node.description %}
+      <p style="color:var(--text-muted);margin-top:.4rem">{{ node.description }}</p>
+    {% endif %}
+    {% if workspace %}
+      <p style="font-size:.85rem;color:var(--text-muted);margin-top:.3rem">
+        Showing public mappings + workspace overlay for <strong>{{ workspace.name }}</strong>.
+      </p>
+    {% endif %}
+  </header>
+
+  {# ── Prompts list ─────────────────────────────────────────────────────────── #}
+  {% if prompts %}
+    <section>
+      <h2 style="font-size:1rem;font-weight:600;margin-bottom:var(--space-md)">
+        Prompts tagged with this concept
+      </h2>
+      <ul class="prompt-list" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.75rem">
+        {% for prompt in prompts %}
+          <li class="prompt-list__item" style="border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-md)">
+            {% if workspace %}
+              <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}"
+                 style="font-weight:600;font-size:1rem">{{ prompt.title }}</a>
+            {% else %}
+              <a href="{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}"
+                 style="font-weight:600;font-size:1rem">{{ prompt.title }}</a>
+            {% endif %}
+            {% if prompt.author %}
+              <span style="font-size:.8rem;color:var(--text-muted);margin-left:.5rem">
+                by {{ prompt.author.display_name or prompt.author.username }}
+              </span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% else %}
+    <p style="color:var(--text-muted)">No prompts are mapped to this concept yet.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -199,6 +199,8 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.benchmarks import benchmarks_bp
     from backend.routes.ab_experiments import ab_bp
     from backend.routes.fork_recommendations import fork_rec_bp
+    from backend.routes.admin_ontology import admin_ontology_bp
+    from backend.routes.ontology import ontology_bp
     from backend.routes.prompts import prompts_bp
     from backend.routes.revisions import ssr_revisions_bp
     from backend.routes.search import ssr_search_bp
@@ -253,6 +255,8 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(ai_reviews_bp)
     app.register_blueprint(content_links_bp)
     app.register_blueprint(prompts_bp)
+    app.register_blueprint(admin_ontology_bp)
+    app.register_blueprint(ontology_bp)
     app.register_blueprint(fork_rec_bp)
     app.register_blueprint(benchmarks_bp)
     app.register_blueprint(ab_bp)

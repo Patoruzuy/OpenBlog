@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Concept Library{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  {# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Concepts</span>
+    {% else %}
+      <a href="{{ url_for('index.index') }}">&larr; Home</a>
+    {% endif %}
+  </nav>
+
+  {# ── Flash messages ──────────────────────────────────────────────────────── #}
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+      <div class="flash flash--{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <header style="margin-bottom:var(--space-xl)">
+    <h1>Concept Library</h1>
+    <p style="color:var(--text-muted);margin-top:.4rem">
+      Browse prompts by concept.
+      {% if workspace %}Workspace overlay active — you may see additional mappings not visible publicly.{% endif %}
+    </p>
+  </header>
+
+  {% if tree %}
+    {# ── Recursive tree macro ──────────────────────────────────────────── #}
+    {% macro render_tree(items, depth) %}
+      <ul class="ontology-tree {{ 'ontology-tree--nested' if depth > 0 else '' }}"
+          style="{{ 'margin-left:1.2rem' if depth > 0 else '' }}">
+        {% for item in items %}
+          <li class="ontology-tree__item">
+            {% if workspace %}
+              <a class="ontology-tree__link"
+                 href="{{ url_for('ontology.ws_node_detail', ws_slug=workspace.slug, slug=item.node.slug) }}">
+                {{ item.node.name }}
+              </a>
+            {% else %}
+              <a class="ontology-tree__link"
+                 href="{{ url_for('ontology.public_node_detail', slug=item.node.slug) }}">
+                {{ item.node.name }}
+              </a>
+            {% endif %}
+
+            {% if item.node.description %}
+              <span class="ontology-tree__desc">— {{ item.node.description }}</span>
+            {% endif %}
+
+            {% if item.children %}
+              {{ render_tree(item.children, depth + 1) }}
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endmacro %}
+
+    {{ render_tree(tree, 0) }}
+  {% else %}
+    <p style="color:var(--text-muted)">No concepts have been defined yet.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

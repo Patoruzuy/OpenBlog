@@ -1,0 +1,96 @@
+{% extends "admin/_layout.html" %}
+{% block title %}{{ 'Edit' if node else 'New' }} Ontology Node{% endblock %}
+
+{% block content %}
+<div class="adm-page-header">
+  <h1 class="adm-page-title">{{ 'Edit' if node else 'New' }} Ontology Node</h1>
+  <a href="{{ url_for('admin_ontology.ontology_list') }}" class="btn btn-sm btn-ghost">&larr; Back to list</a>
+</div>
+
+<form method="post"
+      action="{{ url_for('admin_ontology.ontology_edit', node_id=node.id) if node else url_for('admin_ontology.ontology_new') }}"
+      style="max-width:560px">
+
+  {# ── Slug (only for new nodes) ─────────────────────────────────────── #}
+  {% if not node %}
+  <div class="adm-field" style="margin-bottom:var(--space-md)">
+    <label class="adm-label" for="slug">Slug <span aria-hidden="true" style="color:var(--text-muted)">(URL-safe, unique)</span></label>
+    <input class="adm-input" type="text" id="slug" name="slug"
+           value="{{ (form_data.slug or '') | e }}"
+           required maxlength="120"
+           pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+           title="Lowercase letters, digits, and hyphens only"
+           placeholder="e.g. prompt-engineering">
+  </div>
+  {% else %}
+  <div class="adm-field" style="margin-bottom:var(--space-md)">
+    <label class="adm-label">Slug</label>
+    <p style="font-family:monospace;background:var(--surface-2);padding:.4rem .6rem;border-radius:var(--radius);font-size:.9rem">{{ node.slug }}</p>
+    <p style="font-size:.78rem;color:var(--text-muted)">Slug cannot be changed after creation.</p>
+  </div>
+  {% endif %}
+
+  {# ── Name ───────────────────────────────────────────────────────────── #}
+  <div class="adm-field" style="margin-bottom:var(--space-md)">
+    <label class="adm-label" for="name">Name</label>
+    <input class="adm-input" type="text" id="name" name="name"
+           value="{{ (form_data.name or (node.name if node else '')) | e }}"
+           required maxlength="200">
+  </div>
+
+  {# ── Description ─────────────────────────────────────────────────────── #}
+  <div class="adm-field" style="margin-bottom:var(--space-md)">
+    <label class="adm-label" for="description">Description <span style="color:var(--text-muted)">(optional)</span></label>
+    <textarea class="adm-input" id="description" name="description"
+              rows="3" maxlength="1000"
+              placeholder="Short explanation shown on browse pages.">{{ (form_data.description or (node.description if node else '')) | e }}</textarea>
+  </div>
+
+  {# ── Parent ──────────────────────────────────────────────────────────── #}
+  <div class="adm-field" style="margin-bottom:var(--space-md)">
+    <label class="adm-label" for="parent_id">Parent node <span style="color:var(--text-muted)">(optional)</span></label>
+    <select class="adm-input" id="parent_id" name="parent_id">
+      <option value="">— no parent (top-level) —</option>
+      {% for n in all_nodes %}
+        {% if node is none or n.id != node.id %}
+          <option value="{{ n.id }}"
+            {% if (form_data.parent_id | string) == n.id | string %}selected
+            {% elif not form_data and node and node.parent_id == n.id %}selected
+            {% endif %}>
+            {{ n.name }} <small>({{ n.slug }})</small>
+          </option>
+        {% endif %}
+      {% endfor %}
+    </select>
+  </div>
+
+  {# ── Sort order ──────────────────────────────────────────────────────── #}
+  <div class="adm-field" style="margin-bottom:var(--space-md)">
+    <label class="adm-label" for="sort_order">Sort order</label>
+    <input class="adm-input" type="number" id="sort_order" name="sort_order"
+           value="{{ form_data.sort_order or (node.sort_order if node else 0) }}"
+           min="0" max="9999" style="width:100px">
+    <p style="font-size:.78rem;color:var(--text-muted);margin-top:.2rem">Lower numbers appear first among siblings.</p>
+  </div>
+
+  {# ── Visibility ──────────────────────────────────────────────────────── #}
+  <div class="adm-field" style="margin-bottom:var(--space-xl)">
+    <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+      <input type="checkbox" name="is_public"
+             {% if form_data.is_public %}checked{% elif not form_data and (node is none or node.is_public) %}checked{% endif %}>
+      <span class="adm-label" style="margin:0">Public</span>
+    </label>
+    <p style="font-size:.78rem;color:var(--text-muted);margin-top:.2rem">
+      Public nodes are visible on the browse pages.  Private nodes are admin-only.
+    </p>
+  </div>
+
+  <div style="display:flex;gap:.75rem">
+    <button type="submit" class="btn btn-primary">
+      {{ 'Save changes' if node else 'Create node' }}
+    </button>
+    <a href="{{ url_for('admin_ontology.ontology_list') }}" class="btn btn-ghost">Cancel</a>
+  </div>
+
+</form>
+{% endblock %}

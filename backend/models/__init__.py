@@ -37,6 +37,7 @@ from backend.models.email_delivery_log import EmailDeliveryLog
 from backend.models.follow import Follow
 from backend.models.newsletter import NewsletterSubscription
 from backend.models.notification import Notification
+from backend.models.ontology import ContentOntology, OntologyNode
 from backend.models.notification_preference import NotificationPreference
 from backend.models.pinned_post import PinnedPost
 from backend.models.playbook import PlaybookTemplate, PlaybookTemplateVersion
@@ -87,7 +88,9 @@ __all__ = [
     "Comment",
     "CommentAttachment",
     "ContentLink",
+    "ContentOntology",
     "DigestRun",
+    "OntologyNode",
     "EmailDeliveryLog",
     "Follow",
     "IdentityMode",
