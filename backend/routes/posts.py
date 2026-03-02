@@ -180,6 +180,9 @@ def post_detail(slug: str):
     from backend.services.content_link_service import (
         list_links_grouped,  # noqa: PLC0415
     )
+    from backend.services.content_link_suggestion_service import (  # noqa: PLC0415
+        suggest_for_post,
+    )
     from backend.services.notification_service import is_subscribed  # noqa: PLC0415
 
     is_watching_post = is_subscribed(user, "post", post.id) if user else False
@@ -188,6 +191,7 @@ def post_detail(slug: str):
     can_manage_links = (
         user is not None and user.role in (UserRole.editor, UserRole.admin)
     )
+    link_suggestions = suggest_for_post(user, post, workspace_id=None)
 
     return render_template(
         "posts/detail.html",
@@ -198,6 +202,7 @@ def post_detail(slug: str):
         is_watching_post=is_watching_post,
         links_grouped=links_grouped,
         can_manage_links=can_manage_links,
+        link_suggestions=link_suggestions,
         from_post=post,
     )
 

@@ -158,11 +158,15 @@ def public_prompt_detail(slug: str):
     from backend.services.content_link_service import (
         list_links_grouped,  # noqa: PLC0415
     )
+    from backend.services.content_link_suggestion_service import (  # noqa: PLC0415
+        suggest_for_post,
+    )
 
     links_grouped = list_links_grouped(prompt, workspace_id=None)
     can_manage_links = (
         user is not None and user.role in (UserRole.editor, UserRole.admin)
     )
+    link_suggestions = suggest_for_post(user, prompt, workspace_id=None)
 
     return render_template(
         "prompts/detail.html",
@@ -173,6 +177,7 @@ def public_prompt_detail(slug: str):
         current_user=user,
         links_grouped=links_grouped,
         can_manage_links=can_manage_links,
+        link_suggestions=link_suggestions,
         from_post=prompt,
     )
 
@@ -296,9 +301,13 @@ def ws_prompt_detail(ws_slug: str, slug: str):
         _can_manage,  # noqa: PLC0415
         list_links_grouped,  # noqa: PLC0415
     )
+    from backend.services.content_link_suggestion_service import (  # noqa: PLC0415
+        suggest_for_post,
+    )
 
     links_grouped = list_links_grouped(prompt, workspace_id=ws.id)
     can_manage_links = user is not None and _can_manage(user, ws.id)
+    link_suggestions = suggest_for_post(user, prompt, workspace_id=ws.id)
 
     resp = make_response(
         render_template(
@@ -310,6 +319,7 @@ def ws_prompt_detail(ws_slug: str, slug: str):
             current_user=user,
             links_grouped=links_grouped,
             can_manage_links=can_manage_links,
+            link_suggestions=link_suggestions,
             from_post=prompt,
         )
     )
