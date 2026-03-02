@@ -11,6 +11,13 @@ models they reference.  The ordering below satisfies all FK dependencies.
 """
 
 from backend.models.admin import AuditLog, SiteSetting
+from backend.models.benchmark import (
+    BenchmarkCase,
+    BenchmarkRun,
+    BenchmarkRunResult,
+    BenchmarkRunStatus,
+    BenchmarkSuite,
+)
 from backend.models.ai_review import (
     AIProvider,
     AIReviewRequest,
@@ -62,6 +69,11 @@ from backend.models.workspace import (
 )
 
 __all__ = [
+    "BenchmarkCase",
+    "BenchmarkRun",
+    "BenchmarkRunResult",
+    "BenchmarkRunStatus",
+    "BenchmarkSuite",
     "AIProvider",
     "AIReviewRequest",
     "AIReviewResult",

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Benchmark Suites{% if workspace %} — {{ workspace.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:860px;padding-top:var(--space-xl);padding-bottom:var(--space-xl)">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-md)">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Benchmarks</span>
+    {% else %}
+      <span>Benchmarks</span>
+    {% endif %}
+  </nav>
+
+  <header style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-xl)">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0">
+      Benchmark Suites
+      {% if workspace %}<span style="font-weight:400;color:var(--text-muted)"> — {{ workspace.name }}</span>{% endif %}
+    </h1>
+  </header>
+
+  {% if suites %}
+    <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+    {% for suite in suites %}
+      <div class="post-card" style="padding:var(--space-md) var(--space-lg);border-radius:var(--radius)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-md)">
+          <div>
+            <h2 style="font-size:1rem;font-weight:600;margin:0 0 .3rem">
+              {% if workspace %}
+                <a href="{{ url_for('benchmarks.ws_suite_detail', ws_slug=workspace.slug, slug=suite.slug) }}" style="color:inherit;text-decoration:none">{{ suite.name }}</a>
+              {% else %}
+                <a href="{{ url_for('benchmarks.public_suite_detail', slug=suite.slug) }}" style="color:inherit;text-decoration:none">{{ suite.name }}</a>
+              {% endif %}
+            </h2>
+            {% if suite.description %}
+              <p style="margin:0;font-size:.88rem;color:var(--text-muted)">{{ suite.description }}</p>
+            {% endif %}
+            <div style="margin-top:.4rem;font-size:.8rem;color:var(--text-muted)">
+              {{ suite.cases | length }} case{{ 's' if suite.cases | length != 1 else '' }}
+              &middot; {{ suite.runs | length }} run{{ 's' if suite.runs | length != 1 else '' }}
+            </div>
+          </div>
+          <div style="flex-shrink:0">
+            {% if workspace %}
+              <a href="{{ url_for('benchmarks.ws_suite_detail', ws_slug=workspace.slug, slug=suite.slug) }}" class="btn" style="font-size:.8rem;padding:.3rem .75rem">View</a>
+            {% else %}
+              <a href="{{ url_for('benchmarks.public_suite_detail', slug=suite.slug) }}" class="btn" style="font-size:.8rem;padding:.3rem .75rem">View</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    </div>
+  {% else %}
+    <div class="post-card" style="padding:var(--space-xl);text-align:center;border-radius:var(--radius)">
+      <p style="color:var(--text-muted);margin:0">No benchmark suites yet.</p>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

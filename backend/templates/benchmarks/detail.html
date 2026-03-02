@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}{{ suite.name }} — Benchmark Suite{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:900px;padding-top:var(--space-xl);padding-bottom:var(--space-xl)">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-md)">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('benchmarks.ws_suite_list', ws_slug=workspace.slug) }}">Benchmarks</a>
+    {% else %}
+      <a href="{{ url_for('benchmarks.public_suite_list') }}">Benchmarks</a>
+    {% endif %}
+    <span class="breadcrumb-sep">/</span>
+    <span>{{ suite.name }}</span>
+  </nav>
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 .4rem">{{ suite.name }}</h1>
+    {% if suite.description %}
+      <p style="margin:0 0 .6rem;color:var(--text-muted)">{{ suite.description }}</p>
+    {% endif %}
+    <div style="font-size:.85rem;color:var(--text-muted)">
+      {{ suite.cases | length }} case{{ 's' if suite.cases | length != 1 else '' }}
+      &middot; {{ suite.runs | length }} run{{ 's' if suite.runs | length != 1 else '' }}
+      {% if workspace %}
+        &middot; <span class="badge" style="font-size:.7rem;padding:.1rem .4rem;background:var(--surface-2);border-radius:var(--radius-sm)">workspace</span>
+      {% endif %}
+    </div>
+  </header>
+
+  {# ════════════════════════════════════════════════════════════
+     SECTION 1 — Cases
+  ════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">
+      Test Cases ({{ suite.cases | length }})
+    </h2>
+    {% if suite.cases %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border)">
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">#</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Name</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Inputs</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Expected output</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for case in suite.cases %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">{{ loop.index }}</td>
+              <td style="padding:.5rem .75rem;font-weight:500">{{ case.name }}</td>
+              <td style="padding:.5rem .75rem;font-family:monospace;font-size:.8rem;white-space:pre-wrap;max-width:260px;overflow:hidden;text-overflow:ellipsis">{{ case.input_json | tojson }}</td>
+              <td style="padding:.5rem .75rem;color:var(--text-muted);font-size:.82rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                {{ case.expected_output or '—' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.9rem">No cases in this suite yet.</p>
+    {% endif %}
+  </section>
+
+  {# ════════════════════════════════════════════════════════════
+     SECTION 2 — Start a Run
+  ════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">
+      Run against a Prompt Version
+    </h2>
+    <div class="post-card" style="padding:var(--space-md) var(--space-lg);border-radius:var(--radius)">
+      {% if workspace %}
+      <form method="post" action="{{ url_for('benchmarks.ws_suite_run', ws_slug=workspace.slug, slug=suite.slug) }}">
+      {% else %}
+      <form method="post" action="{{ url_for('benchmarks.public_suite_run', slug=suite.slug) }}">
+      {% endif %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);align-items:flex-end">
+          <div>
+            <label style="display:block;font-size:.82rem;color:var(--text-muted);margin-bottom:.2rem">Prompt Post ID</label>
+            <input type="number" name="prompt_post_id" required placeholder="post id" style="width:140px;padding:.35rem .6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:.88rem">
+          </div>
+          <div>
+            <label style="display:block;font-size:.82rem;color:var(--text-muted);margin-bottom:.2rem">Version</label>
+            <input type="number" name="version" min="1" required placeholder="1" style="width:80px;padding:.35rem .6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:.88rem">
+          </div>
+          <div>
+            <label style="display:block;font-size:.82rem;color:var(--text-muted);margin-bottom:.2rem">Model (optional)</label>
+            <input type="text" name="model_name" placeholder="gpt-4o" style="width:140px;padding:.35rem .6rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:.88rem">
+          </div>
+          <button type="submit" class="btn" style="padding:.38rem .9rem;font-size:.88rem">▶ Run</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {# ════════════════════════════════════════════════════════════
+     SECTION 3 — Run history
+  ════════════════════════════════════════════════════════════ #}
+  <section>
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">
+      Run History
+    </h2>
+    {% set runs = suite.runs %}
+    {% if runs %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.88rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border)">
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">ID</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Prompt</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Version</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Status</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Results</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Started</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for run in runs %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem .75rem">
+                {% if workspace %}
+                  <a href="{{ url_for('benchmarks.ws_run_detail', ws_slug=workspace.slug, run_id=run.id) }}" style="color:var(--link)">{{ run.id }}</a>
+                {% else %}
+                  <a href="{{ url_for('benchmarks.public_run_detail', run_id=run.id) }}" style="color:var(--link)">{{ run.id }}</a>
+                {% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">{{ run.prompt_post_id }}</td>
+              <td style="padding:.5rem .75rem">v{{ run.prompt_version }}</td>
+              <td style="padding:.5rem .75rem">
+                <span class="badge" style="font-size:.72rem;padding:.15rem .45rem;border-radius:var(--radius-sm);background:{% if run.status == 'completed' %}var(--success-bg){% elif run.status == 'failed' %}var(--error-bg){% elif run.status == 'running' %}var(--warning-bg){% elif run.status == 'canceled' %}var(--surface-2){% else %}var(--surface-2){% endif %};color:{% if run.status == 'completed' %}var(--success){% elif run.status == 'failed' %}var(--error){% elif run.status == 'running' %}var(--warning){% else %}var(--text-muted){% endif %}">{{ run.status }}</span>
+              </td>
+              <td style="padding:.5rem .75rem">{{ run.results | length }}</td>
+              <td style="padding:.5rem .75rem;color:var(--text-muted);font-size:.82rem">
+                {{ run.created_at.strftime('%Y-%m-%d %H:%M') if run.created_at else '—' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.9rem">No runs yet for this suite.</p>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

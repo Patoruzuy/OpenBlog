@@ -227,6 +227,41 @@
     {% endif %}
   </section>
 
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 5 — Benchmark Runs by Version
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Benchmark Runs by Version</h2>
+    {% if benchmark_summary %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border)">
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Version</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Runs</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Avg Score</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Suites</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in benchmark_summary %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.6rem .75rem;font-variant-numeric:tabular-nums">v{{ entry.version }}</td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ entry.run_count }}</td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {% if entry.avg_score is not none %}{{ "%.2f"|format(entry.avg_score) }}{% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;color:var(--text-muted);font-size:.82rem">{{ entry.suite_names | join(', ') or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.875rem">No completed benchmark runs yet.</p>
+    {% endif %}
+  </section>
+
   {# ── Back link ─────────────────────────────────────────────────────────────── #}
   <div style="padding-top:var(--space-md);border-top:1px solid var(--border)">
     {% if workspace %}

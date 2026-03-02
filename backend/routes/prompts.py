@@ -214,6 +214,9 @@ def public_prompt_analytics(slug: str):
     forks = get_fork_tree(prompt, workspace_id=None)
     exec_stats = get_execution_stats(prompt, workspace_id=None)
 
+    from backend.services.benchmark_service import get_benchmark_summary_for_prompt  # noqa: PLC0415
+    benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=None)
+
     return render_template(
         "prompts/analytics.html",
         prompt=prompt,
@@ -222,6 +225,7 @@ def public_prompt_analytics(slug: str):
         rating_trend=rating_trend,
         forks=forks,
         exec_stats=exec_stats,
+        benchmark_summary=benchmark_summary,
         current_user=get_current_user(),
     )
 
@@ -269,6 +273,9 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
     forks = get_fork_tree(prompt, workspace_id=ws.id)
     exec_stats = get_execution_stats(prompt, workspace_id=ws.id)
 
+    from backend.services.benchmark_service import get_benchmark_summary_for_prompt  # noqa: PLC0415
+    benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=ws.id)
+
     resp = make_response(
         render_template(
             "prompts/analytics.html",
@@ -278,6 +285,7 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
             rating_trend=rating_trend,
             forks=forks,
             exec_stats=exec_stats,
+            benchmark_summary=benchmark_summary,
             current_user=user,
         )
     )

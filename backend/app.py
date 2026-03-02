@@ -196,6 +196,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.notifications import ssr_notifications_bp
     from backend.routes.pages import pages_bp
     from backend.routes.posts import ssr_posts_bp
+    from backend.routes.benchmarks import benchmarks_bp
     from backend.routes.prompts import prompts_bp
     from backend.routes.revisions import ssr_revisions_bp
     from backend.routes.search import ssr_search_bp
@@ -250,6 +251,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(ai_reviews_bp)
     app.register_blueprint(content_links_bp)
     app.register_blueprint(prompts_bp)
+    app.register_blueprint(benchmarks_bp)
     app.register_blueprint(watches_bp)
 
 

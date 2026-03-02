@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Run #{{ run.id }} — Benchmark Result{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:960px;padding-top:var(--space-xl);padding-bottom:var(--space-xl)">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-md)">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('benchmarks.ws_suite_list', ws_slug=workspace.slug) }}">Benchmarks</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('benchmarks.ws_suite_detail', ws_slug=workspace.slug, slug=run.suite.slug) }}">{{ run.suite.name }}</a>
+    {% else %}
+      <a href="{{ url_for('benchmarks.public_suite_list') }}">Benchmarks</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('benchmarks.public_suite_detail', slug=run.suite.slug) }}">{{ run.suite.name }}</a>
+    {% endif %}
+    <span class="breadcrumb-sep">/</span>
+    <span>Run #{{ run.id }}</span>
+  </nav>
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 .4rem">
+      Run #{{ run.id }}
+      <span style="font-weight:400;color:var(--text-muted);font-size:1rem"> — {{ run.suite.name }}</span>
+    </h1>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;font-size:.85rem;color:var(--text-muted)">
+      <span>Prompt #{{ run.prompt_post_id }} v{{ run.prompt_version }}</span>
+      <span class="post-meta-sep">&middot;</span>
+      <span class="badge" style="font-size:.72rem;padding:.15rem .45rem;border-radius:var(--radius-sm);background:{% if run.status == 'completed' %}var(--success-bg){% elif run.status == 'failed' %}var(--error-bg){% elif run.status == 'running' %}var(--warning-bg){% elif run.status == 'canceled' %}var(--surface-2){% else %}var(--surface-2){% endif %};color:{% if run.status == 'completed' %}var(--success){% elif run.status == 'failed' %}var(--error){% elif run.status == 'running' %}var(--warning){% else %}var(--text-muted){% endif %}">{{ run.status }}</span>
+      {% if run.model_name %}
+        <span class="post-meta-sep">&middot;</span>
+        <span>{{ run.model_name }}</span>
+      {% endif %}
+      {% if run.started_at %}
+        <span class="post-meta-sep">&middot;</span>
+        <span>Started {{ run.started_at.strftime('%Y-%m-%d %H:%M') }}</span>
+      {% endif %}
+      {% if run.completed_at %}
+        <span class="post-meta-sep">&middot;</span>
+        <span>Completed {{ run.completed_at.strftime('%Y-%m-%d %H:%M') }}</span>
+      {% endif %}
+    </div>
+
+    {% if run.error_message %}
+      <div style="margin-top:var(--space-md);padding:var(--space-sm) var(--space-md);background:var(--error-bg);border-radius:var(--radius-sm);font-size:.85rem;color:var(--error)">
+        <strong>Error:</strong> {{ run.error_message }}
+      </div>
+    {% endif %}
+  </header>
+
+  {# ════════════════════════════════════════════════════════════
+     SUMMARY STATS
+  ════════════════════════════════════════════════════════════ #}
+  {% set completed_results = run.results | selectattr('score_numeric', 'ne', None) | list %}
+  {% if run.results %}
+  <section style="margin-bottom:var(--space-xl)">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:var(--space-md)">
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">{{ run.results | length }}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Cases run</div>
+      </div>
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">
+          {% if completed_results %}
+            {{ "%.2f"|format(completed_results | map(attribute='score_numeric') | map('float') | sum / completed_results | length) }}
+          {% else %}—{% endif %}
+        </div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Avg score</div>
+      </div>
+      <div class="post-card" style="padding:var(--space-md);text-align:center;border-radius:var(--radius)">
+        <div style="font-size:2rem;font-weight:700;line-height:1">{{ completed_results | length }}</div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem">Scored</div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ════════════════════════════════════════════════════════════
+     RESULTS TABLE
+  ════════════════════════════════════════════════════════════ #}
+  <section>
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">
+      Results per Case ({{ run.results | length }})
+    </h2>
+    {% if run.results %}
+      <div style="display:flex;flex-direction:column;gap:var(--space-md)">
+        {% for result in run.results %}
+        <div class="post-card" style="padding:var(--space-md) var(--space-lg);border-radius:var(--radius)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem">
+            <span style="font-weight:600;font-size:.9rem">{{ result.case.name if result.case else 'Case #' ~ result.case_id }}</span>
+            {% if result.score_numeric is not none %}
+              <span class="badge" style="font-size:.78rem;padding:.2rem .5rem;background:var(--success-bg);color:var(--success);border-radius:var(--radius-sm)">Score: {{ result.score_numeric }}</span>
+            {% else %}
+              <span style="font-size:.78rem;color:var(--text-muted)">unscored</span>
+            {% endif %}
+          </div>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.35rem">
+            Inputs:
+            <code style="font-family:monospace;background:var(--surface-2);padding:.1rem .3rem;border-radius:3px">{{ result.case.input_json | tojson if result.case else '{}' }}</code>
+          </div>
+          <div style="font-size:.88rem;white-space:pre-wrap;background:var(--surface-2);padding:.6rem .8rem;border-radius:var(--radius-sm);line-height:1.5;margin-top:.4rem">{{ result.output_text }}</div>
+          {% if result.case and result.case.expected_output %}
+            <div style="margin-top:.4rem;font-size:.82rem;color:var(--text-muted)">
+              Expected: <em>{{ result.case.expected_output }}</em>
+            </div>
+          {% endif %}
+          {% if result.score_details_json %}
+            <details style="margin-top:.4rem">
+              <summary style="font-size:.8rem;cursor:pointer;color:var(--text-muted)">Score details</summary>
+              <pre style="font-size:.78rem;overflow-x:auto;margin-top:.3rem">{{ result.score_details_json | tojson(indent=2) }}</pre>
+            </details>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    {% elif run.status == 'queued' or run.status == 'running' %}
+      <div class="post-card" style="padding:var(--space-xl);text-align:center;border-radius:var(--radius)">
+        <p style="color:var(--text-muted);margin:0">Run is {{ run.status }}. Results will appear here when completed.</p>
+      </div>
+    {% else %}
+      <div class="post-card" style="padding:var(--space-xl);text-align:center;border-radius:var(--radius)">
+        <p style="color:var(--text-muted);margin:0">No results.</p>
+      </div>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}
