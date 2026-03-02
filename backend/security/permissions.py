@@ -30,7 +30,7 @@ responsibility of service-layer query builders.  This class enforces
 from __future__ import annotations
 
 from backend.models.post import Post, PostStatus
-from backend.models.workspace import Workspace, WorkspaceMemberRole
+from backend.models.workspace import Workspace
 from backend.security.roles import has_minimum_rank
 
 

@@ -27,13 +27,12 @@ Covers:
 from __future__ import annotations
 
 import itertools
-from datetime import UTC, datetime
 
 import pytest
 
 from backend.extensions import db as _db
-from backend.models.ai_review import AIReviewRequest, AIReviewResult, AIReviewStatus
-from backend.models.post import Post, PostStatus
+from backend.models.ai_review import AIReviewRequest, AIReviewStatus
+from backend.models.post import Post
 from backend.models.revision import Revision, RevisionStatus
 from backend.models.workspace import WorkspaceMemberRole
 from backend.services import ai_review_service as ai_svc
@@ -515,7 +514,7 @@ class TestApplyEditUnit:
 
         lines = result.splitlines()
         heading_idx = next(
-            i for i, l in enumerate(lines) if l.lstrip("#").strip() == MOCK_HEADING_TARGET
+            i for i, ln in enumerate(lines) if ln.lstrip("#").strip() == MOCK_HEADING_TARGET
         )
         # The inserted content should appear somewhere after the heading line.
         tail = "\n".join(lines[heading_idx + 1 :])

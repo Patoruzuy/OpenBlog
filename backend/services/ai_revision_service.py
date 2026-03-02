@@ -47,7 +47,6 @@ owns the document.  Viewers may not create revisions.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -158,7 +157,7 @@ def _apply_edit(markdown: str, edit: dict) -> str:
 # ── Permission helpers ────────────────────────────────────────────────────────
 
 
-def _require_workspace_contributor(user: "User", post: Post) -> WorkspaceMember:
+def _require_workspace_contributor(user: User, post: Post) -> WorkspaceMember:
     """Return the workspace membership row or raise :class:`AIRevisionError`.
 
     Raises
@@ -195,7 +194,7 @@ def _require_workspace_contributor(user: "User", post: Post) -> WorkspaceMember:
 def _create_workspace_revision(
     *,
     post: Post,
-    author: "User",
+    author: User,
     proposed_markdown: str,
     summary: str,
     source_metadata: dict | None = None,
@@ -252,7 +251,7 @@ def _create_workspace_revision(
 
 
 def create_revision_from_ai_suggestion(
-    user: "User",
+    user: User,
     post: Post,
     ai_review_request_id: int,
     suggestion_id: str,

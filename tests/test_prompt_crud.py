@@ -43,8 +43,8 @@ def _n() -> int:
 
 
 def _make_user(db_session, role: str = "reader"):
-    from backend.services.auth_service import AuthService
     from backend.models.user import UserRole
+    from backend.services.auth_service import AuthService
 
     n = _n()
     user = AuthService.register(f"pm{n}@example.com", f"pmuser{n}", "StrongPass123!!")

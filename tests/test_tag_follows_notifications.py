@@ -14,11 +14,9 @@ from __future__ import annotations
 import pytest
 
 from backend.extensions import db
-from backend.models.notification import Notification
 from backend.models.subscription import Subscription
 from backend.models.tag import Tag
 from backend.services.notification_service import is_subscribed, subscribe, unsubscribe
-
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 

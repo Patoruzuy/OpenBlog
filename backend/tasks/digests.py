@@ -86,7 +86,9 @@ def send_digest_for_user_task(  # type: ignore[override]
     :func:`~backend.services.digest_service.send_digest_for_user`.
     """
     try:
-        from backend.services.digest_service import send_digest_for_user  # noqa: PLC0415
+        from backend.services.digest_service import (
+            send_digest_for_user,  # noqa: PLC0415
+        )
 
         return send_digest_for_user(user_id, frequency, pkey)
     except Exception as exc:
@@ -112,7 +114,9 @@ def _enqueue_digests(frequency: str) -> None:
     from sqlalchemy import select  # noqa: PLC0415
 
     from backend.extensions import db  # noqa: PLC0415
-    from backend.models.notification_preference import NotificationPreference  # noqa: PLC0415
+    from backend.models.notification_preference import (
+        NotificationPreference,  # noqa: PLC0415
+    )
     from backend.services.digest_service import period_key  # noqa: PLC0415
 
     now = datetime.now(UTC)

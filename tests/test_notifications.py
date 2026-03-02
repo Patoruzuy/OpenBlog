@@ -27,14 +27,12 @@ from backend.services.notification_service import (
     NotificationService,
     compute_fingerprint,
     create_notification_for_user,
-    emit,
     filter_recipients_by_access,
     get_recipients,
     is_subscribed,
     subscribe,
     unsubscribe,
 )
-
 
 # ── Shared fixtures ───────────────────────────────────────────────────────────
 
@@ -237,8 +235,9 @@ class TestFanout:
         self, _setup, db_session  # noqa: ARG002
     ):
         """revision author is a direct participant → notified without subscribing."""
-        from backend.services.revision_service import RevisionService
         from sqlalchemy import select
+
+        from backend.services.revision_service import RevisionService
 
         _, contributor, editor_user, post = _setup
 
@@ -263,8 +262,9 @@ class TestFanout:
         self, _setup, make_user_token, db_session  # noqa: ARG002
     ):
         """A post watcher receives the revision.accepted notification."""
-        from backend.services.revision_service import RevisionService
         from sqlalchemy import select
+
+        from backend.services.revision_service import RevisionService
 
         _, contributor, editor_user, post = _setup
         watcher, _ = make_user_token("watcher@example.com", "watcher", role="contributor")
@@ -289,8 +289,9 @@ class TestFanout:
     def test_revision_rejected_notifies_author(
         self, _setup, db_session  # noqa: ARG002
     ):
-        from backend.services.revision_service import RevisionService
         from sqlalchemy import select
+
+        from backend.services.revision_service import RevisionService
 
         _, contributor, editor_user, post = _setup
 
@@ -315,8 +316,9 @@ class TestFanout:
         self, _setup, db_session  # noqa: ARG002
     ):
         """The reviewing editor should not receive a notification for their own action."""
-        from backend.services.revision_service import RevisionService
         from sqlalchemy import select
+
+        from backend.services.revision_service import RevisionService
 
         _, contributor, editor_user, post = _setup
 
@@ -579,8 +581,9 @@ class TestBackwardCompat:
         self, bob, editor, pub_post, db_session  # noqa: ARG002
     ):
         """notification_type must equal 'revision_accepted' for existing tests."""
-        from backend.services.revision_service import RevisionService
         from sqlalchemy import select
+
+        from backend.services.revision_service import RevisionService
 
         revision = RevisionService.submit(
             post_id=pub_post.id,
@@ -603,8 +606,9 @@ class TestBackwardCompat:
     def test_notification_type_set_to_revision_rejected(
         self, bob, editor, pub_post, db_session  # noqa: ARG002
     ):
-        from backend.services.revision_service import RevisionService
         from sqlalchemy import select
+
+        from backend.services.revision_service import RevisionService
 
         revision = RevisionService.submit(
             post_id=pub_post.id,

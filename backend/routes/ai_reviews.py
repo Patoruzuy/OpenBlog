@@ -194,7 +194,7 @@ def cancel_review(workspace_slug: str, request_id: int):
     """
     user = get_current_user()
     # Verify workspace membership first (get_workspace_for_user aborts 404).
-    workspace = ws_svc.get_workspace_for_user(workspace_slug, user)
+    ws_svc.get_workspace_for_user(workspace_slug, user)
 
     try:
         ai_req = ai_svc.cancel_review(request_id, user)

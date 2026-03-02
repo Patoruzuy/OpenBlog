@@ -24,10 +24,9 @@ import pytest
 from backend.extensions import db as _db
 from backend.models.post import Post, PostStatus
 from backend.models.user import User, UserRole
-from backend.models.workspace import WorkspaceMember, WorkspaceMemberRole
+from backend.models.workspace import WorkspaceMemberRole
 from backend.security.permissions import PermissionService
 from backend.services import workspace_service as ws_svc
-
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 

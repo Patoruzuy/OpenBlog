@@ -266,7 +266,6 @@ def metrics_client():
     ``/metrics`` route that calls ``generate_latest()`` directly — no
     ``ValueError: Duplicated timeseries`` is raised.
     """
-    import backend.utils.metrics as _m
     from backend.app import create_app
     from backend.utils.metrics import init_metrics
 

@@ -256,7 +256,10 @@ class TestAIReviewDedup:
         post = _workspace_doc(ws, owner)
 
         # Manually insert a failed request with the same fingerprint.
-        from backend.services.ai_review_service import _compute_fingerprint, _get_input_text
+        from backend.services.ai_review_service import (
+            _compute_fingerprint,
+            _get_input_text,
+        )
 
         input_text = _get_input_text(post, None)
         fp = _compute_fingerprint(

@@ -38,20 +38,18 @@ import enum
 from datetime import UTC, datetime
 
 from sqlalchemy import (
+    JSON,
     DateTime,
     ForeignKey,
     Index,
     Integer,
-    JSON,
     SmallInteger,
     String,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.extensions import db
-
 
 # ── Enums ─────────────────────────────────────────────────────────────────────
 

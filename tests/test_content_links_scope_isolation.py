@@ -34,8 +34,8 @@ def _n() -> int:
 
 
 def _make_user(role: str = "reader"):
-    from backend.services.auth_service import AuthService
     from backend.models.user import UserRole
+    from backend.services.auth_service import AuthService
 
     n = _n()
     user = AuthService.register(

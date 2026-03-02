@@ -37,7 +37,6 @@ from flask import (
     Blueprint,
     abort,
     flash,
-    make_response,
     redirect,
     render_template,
     request,
@@ -48,8 +47,8 @@ from backend.extensions import db
 from backend.models.workspace import WorkspaceMemberRole
 from backend.security.permissions import PermissionService
 from backend.services import invite_service as inv_svc
-from backend.services import workspace_service as ws_svc
 from backend.services import playbook_service as pb_svc
+from backend.services import workspace_service as ws_svc
 from backend.utils.auth import get_current_user, require_auth
 from backend.utils.diff import compute_diff, parse_diff_lines
 
@@ -587,7 +586,7 @@ def invite_created(workspace_slug: str, invite_id: int):
 def revoke_invite(workspace_slug: str, invite_id: int):
     """Revoke an invitation.  Owner/admin only."""
     user = get_current_user()
-    workspace = ws_svc.get_workspace_for_user(
+    ws_svc.get_workspace_for_user(
         workspace_slug, user, required_role=WorkspaceMemberRole.owner
     )
 

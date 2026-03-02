@@ -32,8 +32,7 @@ from backend.extensions import db
 from backend.models.post import Post, PostStatus
 from backend.models.post_release_note import PostReleaseNote
 from backend.models.post_version import PostVersion
-from backend.models.revision import Revision, RevisionStatus
-from backend.models.tag import Tag
+from backend.models.revision import Revision
 from backend.models.user import User
 from backend.models.workspace import (
     Workspace,
@@ -41,8 +40,6 @@ from backend.models.workspace import (
     WorkspaceMemberRole,
 )
 from backend.utils.markdown import invalidate_html_cache, reading_time_minutes
-from backend.utils.validation import validate_url
-
 
 # ── Slug helpers ──────────────────────────────────────────────────────────────
 

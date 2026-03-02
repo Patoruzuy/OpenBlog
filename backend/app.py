@@ -164,6 +164,8 @@ def _register_blueprints(app: Flask) -> None:
     ``create_app()`` rather than at module load time.
     """
     from backend.routes.admin import admin_bp
+    from backend.routes.admin_ops import admin_ops_bp
+    from backend.routes.ai_reviews import ai_reviews_bp
     from backend.routes.api.analytics import api_analytics_bp
     from backend.routes.api.auth import api_auth_bp
     from backend.routes.api.badges import api_badges_bp
@@ -180,6 +182,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.attachments import api_attachments_bp, attachments_bp
     from backend.routes.auth import ssr_auth_bp
     from backend.routes.bookmarks import ssr_bookmarks_bp
+    from backend.routes.content_links import content_links_bp
     from backend.routes.drafts import ssr_drafts_bp
     from backend.routes.explore import explore_bp
     from backend.routes.feed import feed_bp
@@ -187,11 +190,13 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.i18n import i18n_bp
     from backend.routes.improvements import improvements_bp
     from backend.routes.index import index_bp
+    from backend.routes.invites import invite_bp
     from backend.routes.json_feed import json_feed_bp
     from backend.routes.newsletter import newsletter_bp
     from backend.routes.notifications import ssr_notifications_bp
     from backend.routes.pages import pages_bp
     from backend.routes.posts import ssr_posts_bp
+    from backend.routes.prompts import prompts_bp
     from backend.routes.revisions import ssr_revisions_bp
     from backend.routes.search import ssr_search_bp
     from backend.routes.settings import settings_bp
@@ -199,13 +204,8 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.tags import ssr_tags_bp
     from backend.routes.threads import threads_bp
     from backend.routes.users import ssr_users_bp
-    from backend.routes.workspace import workspace_bp
-    from backend.routes.invites import invite_bp
-    from backend.routes.admin_ops import admin_ops_bp
-    from backend.routes.ai_reviews import ai_reviews_bp
-    from backend.routes.content_links import content_links_bp
-    from backend.routes.prompts import prompts_bp
     from backend.routes.watches import watches_bp
+    from backend.routes.workspace import workspace_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(i18n_bp)

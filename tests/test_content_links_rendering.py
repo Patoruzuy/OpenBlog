@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import itertools
 
-import pytest
-
 from backend.extensions import db as _db
 from backend.models.post import Post, PostStatus
 from backend.services import content_link_service as svc
@@ -31,8 +29,8 @@ def _n() -> int:
 
 
 def _make_user(role: str = "reader"):
-    from backend.services.auth_service import AuthService
     from backend.models.user import UserRole
+    from backend.services.auth_service import AuthService
 
     n = _n()
     user = AuthService.register(
@@ -216,7 +214,7 @@ class TestDetailRendering:
         editor = _make_user("editor")
         p1 = _make_post(editor)
         p2 = _make_post(editor)
-        link = svc.add_link(editor, p1, p2, "related")
+        _link = svc.add_link(editor, p1, p2, "related")
         _db.session.commit()
 
         resp = auth_client.get(f"/posts/{p1.slug}")
@@ -239,7 +237,7 @@ class TestDetailRendering:
         _db.session.commit()
 
         target_post = _make_post(editor)
-        link = svc.add_link(editor, prompt, target_post, "related")
+        _link = svc.add_link(editor, prompt, target_post, "related")
         _db.session.commit()
 
         resp = auth_client.get(f"/prompts/{prompt.slug}")

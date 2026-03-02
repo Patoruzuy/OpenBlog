@@ -59,6 +59,8 @@ def run_ai_review(self, request_id: int) -> dict:  # type: ignore[override]
     """
     from datetime import UTC, datetime  # noqa: PLC0415
 
+    from flask import current_app  # noqa: PLC0415
+
     from backend.extensions import db  # noqa: PLC0415
     from backend.models.ai_review import (  # noqa: PLC0415
         AIReviewRequest,
@@ -67,7 +69,6 @@ def run_ai_review(self, request_id: int) -> dict:  # type: ignore[override]
     )
     from backend.models.post import Post  # noqa: PLC0415
     from backend.models.revision import Revision  # noqa: PLC0415
-    from flask import current_app  # noqa: PLC0415
 
     req: AIReviewRequest | None = db.session.get(AIReviewRequest, request_id)
     if req is None:

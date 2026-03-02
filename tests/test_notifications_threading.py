@@ -18,7 +18,6 @@ from backend.extensions import db
 from backend.models.notification import Notification
 from backend.services.notification_service import NotificationService
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 
@@ -275,7 +274,7 @@ class TestNotificationsFlatView:
         _login(auth_client, alice.id)
         resp = auth_client.get("/notifications/?target_type=post&target_id=51")
         assert resp.status_code == 200
-        assert b"All groups" in resp.data or "\u2190".encode("utf-8") in resp.data
+        assert b"All groups" in resp.data or "\u2190".encode() in resp.data
 
     def test_flat_view_not_triggered_without_target_id(
         self, auth_client, alice, db_session

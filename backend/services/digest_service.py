@@ -124,7 +124,7 @@ class DigestGroup:
 class DigestData:
     """All data needed to render and send a digest email."""
 
-    user: "User"
+    user: User
     frequency: str
     since: datetime
     until: datetime
@@ -260,7 +260,7 @@ def _resolve_target(notif: Notification, base_url: str) -> tuple[str, str]:
 
 
 def build_digest_for_user(
-    user: "User",
+    user: User,
     since: datetime,
     until: datetime,
     frequency: str = "daily",

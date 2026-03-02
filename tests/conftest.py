@@ -38,7 +38,6 @@ from sqlalchemy import text as sa_text
 from backend.app import create_app
 from backend.extensions import db as _db
 
-
 # ── Integration-test gating ───────────────────────────────────────────────────
 
 

@@ -39,8 +39,8 @@ from backend.models.workspace import (
     WorkspaceMemberRole,
 )
 from backend.security.tokens import generate_invite_token, hash_token
-from backend.services import invite_service, workspace_service as ws_svc
-
+from backend.services import invite_service
+from backend.services import workspace_service as ws_svc
 
 # ── Shared helpers ────────────────────────────────────────────────────────────
 

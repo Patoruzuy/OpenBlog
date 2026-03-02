@@ -95,7 +95,6 @@ def redeem(raw_token: str):
         return render_template("invites/invalid.html", status="error"), 500
 
     # Load the workspace to redirect — safe because the user is now a member.
-    from sqlalchemy import select  # noqa: PLC0415
 
     from backend.models.workspace import Workspace  # noqa: PLC0415
 

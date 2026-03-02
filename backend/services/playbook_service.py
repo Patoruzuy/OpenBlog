@@ -22,7 +22,6 @@ Every instance query scopes to ``Post.workspace_id == workspace.id`` AND
 from __future__ import annotations
 
 import re
-from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
@@ -33,7 +32,6 @@ from backend.models.post import Post, PostStatus
 from backend.models.user import User
 from backend.models.workspace import Workspace
 from backend.utils.markdown import reading_time_minutes
-
 
 # ── Slug helpers ──────────────────────────────────────────────────────────────
 

@@ -138,7 +138,10 @@ def init_metrics(app) -> PrometheusMetrics:  # type: ignore[return]
         # raise ValueError: Duplicated timeseries.  Instead, add only the
         # /metrics scrape endpoint to this app so its test client can reach it.
         from flask import Response as _FlaskResponse  # noqa: PLC0415
-        from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # noqa: PLC0415
+        from prometheus_client import (  # noqa: PLC0415
+            CONTENT_TYPE_LATEST,
+            generate_latest,
+        )
 
         def _metrics_view() -> _FlaskResponse:
             return _FlaskResponse(

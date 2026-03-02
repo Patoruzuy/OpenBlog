@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import itertools
 
-import pytest
-
 from backend.extensions import db as _db
 from backend.models.post import PostStatus
 from backend.models.post_version import PostVersion

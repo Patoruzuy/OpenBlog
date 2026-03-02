@@ -56,7 +56,11 @@ from flask import current_app
 from sqlalchemy import select
 
 from backend.extensions import db
-from backend.models.ai_review import AIReviewRequest, AIReviewResult, AIReviewStatus, AIReviewType
+from backend.models.ai_review import (
+    AIReviewRequest,
+    AIReviewStatus,
+    AIReviewType,
+)
 from backend.models.post import Post
 from backend.models.revision import Revision
 from backend.models.workspace import WorkspaceMember
@@ -189,7 +193,7 @@ def _dedup_lookup(
     )
 
 
-def _assert_workspace_member(user: "User", post: Post) -> None:
+def _assert_workspace_member(user: User, post: Post) -> None:
     """Raise AIReviewError (403-encoded-as-404) if user is not a workspace member."""
     if post.workspace_id is None:
         raise AIReviewError(
@@ -211,7 +215,7 @@ def _assert_workspace_member(user: "User", post: Post) -> None:
 
 
 def request_review(
-    user: "User",
+    user: User,
     post: Post,
     revision: Revision | None = None,
     review_type: str = AIReviewType.full.value,
@@ -339,7 +343,7 @@ def get_latest_reviews_for_post(
     )
 
 
-def get_review(request_id: int, user: "User") -> AIReviewRequest:
+def get_review(request_id: int, user: User) -> AIReviewRequest:
     """Load a single review request, enforcing workspace membership.
 
     Returns the :class:`AIReviewRequest` on success.  Raises
@@ -358,7 +362,7 @@ def get_review(request_id: int, user: "User") -> AIReviewRequest:
     return req
 
 
-def cancel_review(request_id: int, user: "User") -> AIReviewRequest:
+def cancel_review(request_id: int, user: User) -> AIReviewRequest:
     """Cancel a queued or running review.
 
     Permission rule: requester OR workspace editor/owner OR platform admin.

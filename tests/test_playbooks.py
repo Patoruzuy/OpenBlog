@@ -20,16 +20,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import pytest
-
 from backend.extensions import db as _db
-from backend.models.playbook import PlaybookTemplate, PlaybookTemplateVersion
 from backend.models.post import Post, PostStatus
 from backend.models.user import User, UserRole
-from backend.models.workspace import WorkspaceMember, WorkspaceMemberRole
+from backend.models.workspace import WorkspaceMemberRole
 from backend.services import playbook_service as pb_svc
 from backend.services import workspace_service as ws_svc
-
 
 # ── module-level counter for unique test data ─────────────────────────────────
 
@@ -111,7 +107,7 @@ class TestPlaybookService:
 
     def test_create_and_retrieve_template(self, db_session):
         owner, _ = _create_user("editor")
-        tmpl = pb_svc.create_template(
+        _tmpl = pb_svc.create_template(
             name="Incident Response",
             slug="incident-response",
             description="For incidents",
@@ -259,7 +255,7 @@ class TestPlaybookService:
         owner, _ = _create_user("editor")
         ws = _make_workspace(owner)
 
-        doc = ws_svc.create_workspace_document(
+        _doc = ws_svc.create_workspace_document(
             workspace=ws, author=owner, title="Shared Slug", slug="shared-s"
         )
         _db.session.commit()

@@ -67,12 +67,12 @@ def fanout(  # type: ignore[override]
     duplicate rows on retry).
     """
     try:
+        from backend.extensions import db  # noqa: PLC0415
         from backend.services.notification_service import (  # noqa: PLC0415
             create_notification_for_user,
             filter_recipients_by_access,
             get_recipients,
         )
-        from backend.extensions import db  # noqa: PLC0415
 
         recipients = get_recipients(event_type, target_type, target_id, payload)
         accessible = filter_recipients_by_access(recipients, target_type, target_id)

@@ -147,7 +147,7 @@ def _require_workspace_membership(user_id: int, workspace_id: int) -> None:
 
 
 def _check_subscribe_permission(
-    user: "User", target_type: str, target_id: int
+    user: User, target_type: str, target_id: int
 ) -> None:
     """Raise :class:`NotificationError` if *user* may not subscribe.
 
@@ -178,7 +178,7 @@ def _check_subscribe_permission(
 # ── Subscription CRUD ─────────────────────────────────────────────────────────
 
 
-def subscribe(user: "User", target_type: str, target_id: int) -> Subscription:
+def subscribe(user: User, target_type: str, target_id: int) -> Subscription:
     """Subscribe *user* to events on (*target_type*, *target_id*).
 
     Idempotent: returns the existing subscription if one already exists.
@@ -218,7 +218,7 @@ def subscribe(user: "User", target_type: str, target_id: int) -> Subscription:
     return sub
 
 
-def unsubscribe(user: "User", target_type: str, target_id: int) -> bool:
+def unsubscribe(user: User, target_type: str, target_id: int) -> bool:
     """Remove a subscription.  Returns ``True`` if deleted, ``False`` if not found."""
     existing = db.session.scalar(
         select(Subscription).where(
@@ -234,7 +234,7 @@ def unsubscribe(user: "User", target_type: str, target_id: int) -> bool:
     return True
 
 
-def is_subscribed(user: "User", target_type: str, target_id: int) -> bool:
+def is_subscribed(user: User, target_type: str, target_id: int) -> bool:
     """Return ``True`` when *user* has an active subscription to the target."""
     return (
         db.session.scalar(
