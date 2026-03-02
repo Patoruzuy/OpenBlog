@@ -38,3 +38,5 @@ celerybeat.pid
 .vscode/
 *.swp
 *.swo
+
+bandit_report.txt
