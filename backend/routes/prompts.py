@@ -165,8 +165,9 @@ def public_prompt_detail(slug: str):
     )
 
     links_grouped = list_links_grouped(prompt, workspace_id=None)
-    can_manage_links = (
-        user is not None and user.role in (UserRole.editor, UserRole.admin)
+    can_manage_links = user is not None and user.role in (
+        UserRole.editor,
+        UserRole.admin,
     )
     link_suggestions = suggest_for_post(user, prompt, workspace_id=None)
 
@@ -178,9 +179,7 @@ def public_prompt_detail(slug: str):
 
     ontology_mappings = _get_ont_mappings(user, prompt, workspace=None)
     ontology_all_nodes = _list_tree(public_only=True)
-    can_manage_ontology = (
-        user is not None and user.role.value in UserRole.EDITOR_SET
-    )
+    can_manage_ontology = user is not None and user.role.value in UserRole.EDITOR_SET
     mapping_node_ids = _get_ont_ids(prompt, workspace=None)
 
     return render_template(
@@ -220,6 +219,9 @@ def public_prompt_analytics(slug: str):
         abort(404)
 
     from backend.services.prompt_analytics_service import (  # noqa: PLC0415
+        build_fork_comparison,
+        build_version_metrics,
+        compute_trend_label,
         get_execution_stats,
         get_fork_tree,
         get_rating_trend,
@@ -230,8 +232,12 @@ def public_prompt_analytics(slug: str):
     rating_trend = get_rating_trend(prompt, workspace_id=None)
     forks = get_fork_tree(prompt, workspace_id=None)
     exec_stats = get_execution_stats(prompt, workspace_id=None)
+    version_metrics = build_version_metrics(prompt, workspace=None)
+    fork_comparison = build_fork_comparison(prompt, workspace=None)
+    trend_label = compute_trend_label(version_metrics)
 
     from backend.services.benchmark_service import get_benchmark_summary_for_prompt  # noqa: PLC0415
+
     benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=None)
 
     return render_template(
@@ -243,6 +249,9 @@ def public_prompt_analytics(slug: str):
         forks=forks,
         exec_stats=exec_stats,
         benchmark_summary=benchmark_summary,
+        version_metrics=version_metrics,
+        fork_comparison=fork_comparison,
+        trend_label=trend_label,
         current_user=get_current_user(),
     )
 
@@ -279,6 +288,9 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
         abort(404)
 
     from backend.services.prompt_analytics_service import (  # noqa: PLC0415
+        build_fork_comparison,
+        build_version_metrics,
+        compute_trend_label,
         get_execution_stats,
         get_fork_tree,
         get_rating_trend,
@@ -289,8 +301,12 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
     rating_trend = get_rating_trend(prompt, workspace_id=ws.id)
     forks = get_fork_tree(prompt, workspace_id=ws.id)
     exec_stats = get_execution_stats(prompt, workspace_id=ws.id)
+    version_metrics = build_version_metrics(prompt, workspace=ws)
+    fork_comparison = build_fork_comparison(prompt, workspace=ws)
+    trend_label = compute_trend_label(version_metrics)
 
     from backend.services.benchmark_service import get_benchmark_summary_for_prompt  # noqa: PLC0415
+
     benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=ws.id)
 
     resp = make_response(
@@ -303,6 +319,9 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
             forks=forks,
             exec_stats=exec_stats,
             benchmark_summary=benchmark_summary,
+            version_metrics=version_metrics,
+            fork_comparison=fork_comparison,
+            trend_label=trend_label,
             current_user=user,
         )
     )
@@ -400,6 +419,7 @@ def ws_prompt_detail(ws_slug: str, slug: str):
         suggest_for_post,
     )
     from backend.models.user import UserRole  # noqa: PLC0415
+
     links_grouped = list_links_grouped(prompt, workspace_id=ws.id)
     can_manage_links = user is not None and _can_manage(user, ws.id)
     link_suggestions = suggest_for_post(user, prompt, workspace_id=ws.id)
@@ -412,9 +432,7 @@ def ws_prompt_detail(ws_slug: str, slug: str):
 
     ontology_mappings = _get_ont_mappings(user, prompt, workspace=ws)
     ontology_all_nodes = _list_tree(public_only=True)
-    can_manage_ontology = (
-        user is not None and user.role.value in UserRole.EDITOR_SET
-    )
+    can_manage_ontology = user is not None and user.role.value in UserRole.EDITOR_SET
     mapping_node_ids = _get_ont_ids(prompt, workspace=ws)
 
     resp = make_response(

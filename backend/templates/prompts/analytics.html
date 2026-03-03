@@ -39,6 +39,18 @@
         <span class="post-meta-sep">&middot;</span>
         <span class="badge" style="font-size:.7rem;padding:.1rem .4rem;background:var(--surface-2);border-radius:var(--radius-sm)">workspace</span>
       {% endif %}
+      {% if trend_label is defined and trend_label %}
+        <span class="post-meta-sep">&middot;</span>
+        {% if trend_label == 'improving' %}
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:#d4edda;color:#155724">&#8593; improving</span>
+        {% elif trend_label == 'regressing' %}
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:#f8d7da;color:#721c24">&#8595; regressing</span>
+        {% elif trend_label == 'stable' %}
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:#fff3cd;color:#856404">&#8596; stable</span>
+        {% else %}
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text-muted)">insufficient data</span>
+        {% endif %}
+      {% endif %}
     </div>
   </header>
 
@@ -263,6 +275,133 @@
   </section>
 
   {# ── Back link ─────────────────────────────────────────────────────────────── #}
+
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 6 — Version Metrics Table
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Version Metrics</h2>
+    {% if version_metrics %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead style="background:var(--surface-2)">
+            <tr>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Version</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Updated</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Bench Avg</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">&Delta; Bench</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Runs</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Votes</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">&Delta; Votes</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">A/B W&thinsp;/&thinsp;L</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in version_metrics %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.6rem .75rem;font-variant-numeric:tabular-nums">v{{ m.version }}</td>
+              <td style="padding:.6rem .75rem;color:var(--text-muted);font-size:.82rem">
+                {% if m.updated_at %}{{ m.updated_at.strftime('%Y-%m-%d') }}{% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {% if m.benchmark_avg is not none %}{{ "%.2f"|format(m.benchmark_avg) }}{% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {% if m.delta_benchmark is not none %}
+                  {% if m.delta_benchmark > 0 %}
+                    <span style="color:#155724">+{{ "%.2f"|format(m.delta_benchmark) }}</span>
+                  {% elif m.delta_benchmark < 0 %}
+                    <span style="color:#721c24">{{ "%.2f"|format(m.delta_benchmark) }}</span>
+                  {% else %}
+                    <span>0.00</span>
+                  {% endif %}
+                {% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ m.execution_count }}</td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ m.rating_count }}</td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {% if m.rating_delta > 0 %}<span style="color:#155724">+{{ m.rating_delta }}</span>
+                {% elif m.rating_delta < 0 %}<span style="color:#721c24">{{ m.rating_delta }}</span>
+                {% else %}<span>0</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                <span style="color:#155724">{{ m.ab_wins }}</span>&thinsp;/&thinsp;<span style="color:#721c24">{{ m.ab_losses }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.875rem">No version data available yet.</p>
+    {% endif %}
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 7 — Fork Comparison
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-xl)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:var(--space-md)">Fork Comparison</h2>
+    {% if fork_comparison and fork_comparison.entries %}
+      {% if fork_comparison.fork_count > 0 %}
+        <p style="color:var(--text-muted);font-size:.82rem;margin-bottom:var(--space-sm)">
+          {{ fork_comparison.fork_count }} fork{{ 's' if fork_comparison.fork_count != 1 else '' }} &mdash;
+          {% if fork_comparison.best_fork_score is not none %}
+            best fork bench avg: {{ "%.2f"|format(fork_comparison.best_fork_score) }}{% if fork_comparison.origin_score is not none %} vs origin {{ "%.2f"|format(fork_comparison.origin_score) }}{% endif %}
+          {% endif %}
+        </p>
+      {% endif %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead style="background:var(--surface-2)">
+            <tr>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Prompt</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600">Scope</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Bench Avg</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Votes</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">A/B Win%</th>
+              <th style="padding:.5rem .75rem;text-align:right;font-weight:600">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in fork_comparison.entries %}
+            <tr style="border-bottom:1px solid var(--border){% if e.is_origin %};background:var(--surface-2){% endif %}">
+              <td style="padding:.6rem .75rem">
+                {% if workspace %}
+                  <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=e.slug) }}" style="color:var(--link)">{{ e.title }}</a>
+                {% else %}
+                  <a href="{{ url_for('prompts.public_prompt_detail', slug=e.slug) }}" style="color:var(--link)">{{ e.title }}</a>
+                {% endif %}
+                {% if e.is_origin %}
+                  <span class="badge" style="font-size:.65rem;margin-left:.4rem;padding:.1rem .35rem;background:var(--primary);color:#fff;border-radius:var(--radius-sm)">origin</span>
+                {% endif %}
+              </td>
+              <td style="padding:.6rem .75rem">
+                {% if e.scope == 'workspace' %}
+                  <span class="badge" style="font-size:.7rem;padding:.1rem .4rem;background:var(--surface-2);border-radius:var(--radius-sm)">ws</span>
+                {% else %}
+                  <span style="color:var(--text-muted);font-size:.82rem">public</span>
+                {% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {% if e.benchmark_avg is not none %}{{ "%.2f"|format(e.benchmark_avg) }}{% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ e.vote_count }}</td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {% if e.ab_win_rate is not none %}{{ "%.0f"|format(e.ab_win_rate * 100) }}%{% else %}<span style="color:var(--text-muted)">—</span>{% endif %}
+              </td>
+              <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ "%.3f"|format(e.composite_score) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.875rem">No fork data available yet.</p>
+    {% endif %}
+  </section>
+
+  {# ── Back link (real) ─────────────────────────────────────────────────────── #}
   <div style="padding-top:var(--space-md);border-top:1px solid var(--border)">
     {% if workspace %}
       <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}"

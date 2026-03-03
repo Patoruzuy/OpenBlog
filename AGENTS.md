@@ -296,4 +296,17 @@ Before merging any feature:
 - [ ] Error messages truncated
 - [ ] No leakage across workspaces
 
+⚠️ CONTRIBUTION POLICY
+
+This repository enforces strict CI discipline.
+
+All of the following must pass before merging:
+
+- Ruff lint
+- Ruff format check
+- Bandit security scan
+- Full pytest suite
+
+Commits that break CI are not accepted.
+
 Failure to satisfy any of these blocks merge.
