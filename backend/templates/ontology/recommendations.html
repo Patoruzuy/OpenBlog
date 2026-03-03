@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Recommendations — {{ node.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  {# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.ws_ontology_index', ws_slug=workspace.slug) }}">Concepts</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.ws_node_detail', ws_slug=workspace.slug, slug=node.slug) }}">{{ node.name }}</a>
+    {% else %}
+      <a href="{{ url_for('ontology.public_ontology_index') }}">Concepts</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.public_node_detail', slug=node.slug) }}">{{ node.name }}</a>
+    {% endif %}
+    <span class="breadcrumb-sep">/</span>
+    <span>Recommendations</span>
+  </nav>
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1>Fork Recommendations — {{ node.name }}</h1>
+    <p style="color:var(--text-muted);margin-top:.4rem">
+      Ranked fork recommendations for prompts tagged with this concept
+      {% if workspace %} (workspace overlay: <strong>{{ workspace.name }}</strong>){% endif %}.
+      Only forks also mapped to this concept are shown.
+    </p>
+  </header>
+
+  {# ── Per-prompt recommendation sections ───────────────────────────────────── #}
+  {% if recs %}
+    {% for prompt, recommendations in recs.items() %}
+      <section style="margin-bottom:var(--space-2xl)">
+        <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:var(--space-sm)">
+          {% if workspace %}
+            <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=prompt.slug) }}">{{ prompt.title }}</a>
+          {% else %}
+            <a href="{{ url_for('prompts.public_prompt_detail', slug=prompt.slug) }}">{{ prompt.title }}</a>
+          {% endif %}
+        </h2>
+
+        {% if recommendations %}
+          <ol style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.6rem;counter-reset:rank">
+            {% for rec in recommendations %}
+              <li style="counter-increment:rank;display:flex;align-items:baseline;gap:.75rem;border:1px solid var(--border);border-radius:var(--radius);padding:var(--space-sm) var(--space-md)">
+                <span style="font-weight:700;color:var(--text-muted);min-width:1.5rem">{{ loop.index }}.</span>
+                <div style="flex:1;min-width:0">
+                  {% if workspace %}
+                    <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=rec.slug) }}" style="font-weight:500">{{ rec.title }}</a>
+                  {% else %}
+                    <a href="{{ url_for('prompts.public_prompt_detail', slug=rec.slug) }}" style="font-weight:500">{{ rec.title }}</a>
+                  {% endif %}
+                  <span style="font-size:.8rem;color:var(--text-muted);margin-left:.5rem">v{{ rec.version }}</span>
+                </div>
+                <span style="font-size:.875rem;font-weight:600;color:var(--accent)" title="Composite score">
+                  {{ "%.3f"|format(rec.score) }}
+                </span>
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p style="color:var(--text-muted);font-size:.9rem">
+            No mapped forks found for this prompt.
+          </p>
+        {% endif %}
+      </section>
+    {% endfor %}
+  {% else %}
+    <p style="color:var(--text-muted)">
+      No prompts with fork recommendations found for this concept.
+    </p>
+  {% endif %}
+
+</div>
+{% endblock %}

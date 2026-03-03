@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Benchmarks — {{ node.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  {# ── Breadcrumb ─────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.ws_ontology_index', ws_slug=workspace.slug) }}">Concepts</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.ws_node_detail', ws_slug=workspace.slug, slug=node.slug) }}">{{ node.name }}</a>
+    {% else %}
+      <a href="{{ url_for('ontology.public_ontology_index') }}">Concepts</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('ontology.public_node_detail', slug=node.slug) }}">{{ node.name }}</a>
+    {% endif %}
+    <span class="breadcrumb-sep">/</span>
+    <span>Benchmarks</span>
+  </nav>
+
+  {# ── Header ──────────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1>Benchmarks — {{ node.name }}</h1>
+    <p style="color:var(--text-muted);margin-top:.4rem">
+      Completed benchmark runs for prompts tagged with this concept
+      {% if workspace %} (workspace overlay: <strong>{{ workspace.name }}</strong>){% endif %}.
+    </p>
+  </header>
+
+  {# ── Runs table ───────────────────────────────────────────────────────────── #}
+  {% if runs %}
+    <section>
+      <table class="data-table" style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border)">Prompt</th>
+            <th style="text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border)">Suite</th>
+            <th style="text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border)">Version</th>
+            <th style="text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border)">Run date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in runs %}
+            <tr>
+              <td style="padding:.5rem .75rem;border-bottom:1px solid var(--border)">
+                {% if run.prompt_post %}
+                  {% if workspace %}
+                    <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=run.prompt_post.slug) }}">{{ run.prompt_post.title }}</a>
+                  {% else %}
+                    <a href="{{ url_for('prompts.public_prompt_detail', slug=run.prompt_post.slug) }}">{{ run.prompt_post.title }}</a>
+                  {% endif %}
+                {% else %}
+                  <span style="color:var(--text-muted)">—</span>
+                {% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;border-bottom:1px solid var(--border)">
+                {% if run.suite %}{{ run.suite.name }}{% else %}—{% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;border-bottom:1px solid var(--border)">
+                v{{ run.prompt_version }}
+              </td>
+              <td style="padding:.5rem .75rem;border-bottom:1px solid var(--border);color:var(--text-muted);font-size:.875rem">
+                {{ run.created_at.strftime('%Y-%m-%d') if run.created_at else '—' }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% else %}
+    <p style="color:var(--text-muted)">
+      No completed benchmark runs found for prompts in this concept.
+    </p>
+  {% endif %}
+
+</div>
+{% endblock %}

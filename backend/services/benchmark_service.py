@@ -24,7 +24,7 @@ from __future__ import annotations
 import re
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from backend.extensions import db
 from backend.models.benchmark import (
@@ -34,6 +34,7 @@ from backend.models.benchmark import (
     BenchmarkRunStatus,
     BenchmarkSuite,
 )
+from backend.models.ontology import ContentOntology, OntologyNode
 from backend.models.post import Post, PostStatus
 from backend.models.user import User
 from backend.models.workspace import Workspace, WorkspaceMember, WorkspaceMemberRole
@@ -386,6 +387,92 @@ def list_runs_for_prompt(
             .limit(50)
         )
     return list(db.session.scalars(stmt).all())
+
+
+def list_runs_for_ontology_node(
+    user: User | None,
+    node: OntologyNode,
+    workspace: Workspace | None = None,
+    *,
+    limit: int = 50,
+) -> list[BenchmarkRun]:
+    """Return completed benchmark runs whose prompt is mapped to *node* or descendants.
+
+    Scope rules (3 queries total, bounded)
+    ----------------------------------------
+    Query 1:  Descendant node ids — BFS in Python via ``get_all_descendant_ids``.
+    Query 2:  Mapped post ids from ``content_ontology`` (scoped).
+    Query 3:  BenchmarkRun rows for those posts (scoped, completed only).
+
+    Public scope (workspace=None):
+      - ``content_ontology.workspace_id IS NULL``
+      - ``benchmark_run.workspace_id IS NULL``
+
+    Workspace scope (workspace=<ws>):
+      - public + same-workspace content_ontology rows
+      - public + same-workspace runs
+      - Cross-workspace rows excluded at query level
+    """
+    if user is None:
+        return []
+
+    from backend.services.ontology_service import (
+        get_all_descendant_ids,  # noqa: PLC0415
+    )
+
+    ws_id: int | None = workspace.id if workspace is not None else None  # type: ignore[union-attr]
+
+    if workspace is not None:
+        member = _get_member(workspace, user)
+        if member is None:
+            return []
+
+    # ── Query 1: descendant node ids (BFS, Python) ────────────────────────
+    node_ids = get_all_descendant_ids(node.id, public_only=True)
+    if not node_ids:
+        return []
+
+    # ── Query 2: mapped post ids (scoped) ─────────────────────────────────
+    mapping_scope = (
+        ContentOntology.workspace_id.is_(None)
+        if ws_id is None
+        else or_(
+            ContentOntology.workspace_id.is_(None),
+            ContentOntology.workspace_id == ws_id,
+        )
+    )
+    mapped_post_ids: set[int] = set(
+        db.session.scalars(
+            select(ContentOntology.post_id).where(
+                ContentOntology.ontology_node_id.in_(node_ids),
+                mapping_scope,
+            )
+        ).all()
+    )
+    if not mapped_post_ids:
+        return []
+
+    # ── Query 3: benchmark runs (scoped, completed) ───────────────────────
+    run_scope = (
+        BenchmarkRun.workspace_id.is_(None)
+        if ws_id is None
+        else or_(
+            BenchmarkRun.workspace_id.is_(None),
+            BenchmarkRun.workspace_id == ws_id,
+        )
+    )
+    return list(
+        db.session.scalars(
+            select(BenchmarkRun)
+            .where(
+                BenchmarkRun.prompt_post_id.in_(mapped_post_ids),
+                BenchmarkRun.status == BenchmarkRunStatus.completed.value,
+                run_scope,
+            )
+            .order_by(BenchmarkRun.created_at.desc(), BenchmarkRun.id.desc())
+            .limit(limit)
+        ).all()
+    )
 
 
 def get_run_with_results(

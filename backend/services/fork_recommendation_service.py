@@ -68,6 +68,7 @@ from backend.models.benchmark import (
     BenchmarkSuite,
 )
 from backend.models.content_link import ContentLink
+from backend.models.ontology import ContentOntology
 from backend.models.post import Post, PostStatus
 from backend.models.vote import Vote
 
@@ -133,8 +134,14 @@ def recommend(
     user: object,
     base_prompt: Post,
     workspace: object | None = None,
+    *,
+    ontology_node: object | None = None,
 ) -> list[ForkRecommendation]:
     """Return a ranked list of fork recommendations for *base_prompt*.
+
+    When *ontology_node* is given only forks that are mapped to that node
+    (or any of its public descendants) via ``content_ontology`` are returned.
+    Scope of the mapping lookup mirrors the *workspace* parameter.
 
     Returns an empty list when the user is unauthenticated or no forks exist.
     Callers are responsible for workspace membership checks before passing
@@ -149,6 +156,12 @@ def recommend(
     forks = compute_family(base_prompt, workspace)
     if not forks:
         return []
+
+    # ── Optional: filter by ontology node ────────────────────────────────
+    if ontology_node is not None:
+        forks = _filter_forks_by_ontology(forks, ontology_node, ws_id)
+        if not forks:
+            return []
 
     fork_ids = [f.id for f in forks]
     forks_by_id: dict[int, Post] = {f.id: f for f in forks}
@@ -440,6 +453,49 @@ def _load_ab_win_rates(
 
     # Remove None entries so callers can distinguish "no experiments" from 0%.
     return {k: v for k, v in result.items() if v is not None}
+
+
+def _filter_forks_by_ontology(
+    forks: list[Post],
+    node: object,
+    ws_id: int | None,
+) -> list[Post]:
+    """Return only forks mapped to *node* or its public descendants.
+
+    Uses a single SQL query against ``content_ontology``.  Scope rules:
+    - Public scope (ws_id is None): ``content_ontology.workspace_id IS NULL``.
+    - Workspace scope: public rows OR ``workspace_id = ws_id``.
+    """
+    from backend.services.ontology_service import (
+        get_all_descendant_ids,  # noqa: PLC0415
+    )
+
+    node_ids = get_all_descendant_ids(node.id, public_only=True)  # type: ignore[union-attr]
+    if not node_ids:
+        return []
+
+    fork_ids = [f.id for f in forks]
+
+    mapping_scope = (
+        ContentOntology.workspace_id.is_(None)
+        if ws_id is None
+        else or_(
+            ContentOntology.workspace_id.is_(None),
+            ContentOntology.workspace_id == ws_id,
+        )
+    )
+
+    mapped_post_ids: set[int] = set(
+        db.session.scalars(
+            select(ContentOntology.post_id).where(
+                ContentOntology.post_id.in_(fork_ids),
+                ContentOntology.ontology_node_id.in_(node_ids),
+                mapping_scope,
+            )
+        ).all()
+    )
+
+    return [f for f in forks if f.id in mapped_post_ids]
 
 
 def _ensure_tz(dt: datetime) -> datetime:

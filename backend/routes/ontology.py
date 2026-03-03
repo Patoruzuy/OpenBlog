@@ -35,10 +35,12 @@ from flask import (
 from backend.extensions import db
 from backend.models.post import PostStatus
 from backend.services import workspace_service as ws_svc
+from backend.services.benchmark_service import list_runs_for_ontology_node
 from backend.services.content_ontology_service import (
     ContentOntologyError,
     set_mappings,
 )
+from backend.services.fork_recommendation_service import recommend
 from backend.services.ontology_service import (
     get_node_by_slug,
     list_prompts_for_node,
@@ -192,3 +194,104 @@ def set_ws_mapping(ws_slug: str, slug: str):
     return redirect(
         url_for("prompts.ws_prompt_detail", ws_slug=ws_slug, slug=slug)
     )
+
+
+# ── Ontology-scoped benchmark slices ──────────────────────────────────────────
+
+
+@ontology_bp.get("/ontology/<slug>/benchmarks")
+def public_node_benchmarks(slug: str):
+    """Benchmark runs for prompts mapped to this concept node (public scope)."""
+    node = get_node_by_slug(slug)
+    if node is None or not node.is_public:
+        abort(404)
+
+    user = get_current_user()
+    runs = list_runs_for_ontology_node(user, node, workspace=None)
+    return render_template(
+        "ontology/benchmarks.html",
+        node=node,
+        runs=runs,
+        workspace=None,
+        current_user=user,
+    )
+
+
+@ontology_bp.get("/ontology/<slug>/recommendations")
+def public_node_recommendations(slug: str):
+    """Fork recommendations for prompts mapped to this concept node (public scope)."""
+    user = get_current_user()
+    if user is None:
+        return redirect(url_for("auth.login", next=request.path))
+
+    node = get_node_by_slug(slug)
+    if node is None or not node.is_public:
+        abort(404)
+
+    prompts = list_prompts_for_node(user, node, workspace=None, include_descendants=True)
+    recs: dict = {
+        p: recommend(user, p, workspace=None, ontology_node=node)
+        for p in prompts[:10]
+    }
+    return render_template(
+        "ontology/recommendations.html",
+        node=node,
+        recs=recs,
+        workspace=None,
+        current_user=user,
+    )
+
+
+# ── Workspace ontology-scoped slices ──────────────────────────────────────────
+
+
+@ontology_bp.get("/w/<ws_slug>/ontology/<slug>/benchmarks")
+def ws_node_benchmarks(ws_slug: str, slug: str):
+    """Benchmark runs for prompts mapped to this concept node (workspace scope)."""
+    user = get_current_user()
+    ws = ws_svc.get_workspace_for_user(ws_slug, user)  # 404 if non-member
+
+    node = get_node_by_slug(slug)
+    if node is None or not node.is_public:
+        abort(404)
+
+    runs = list_runs_for_ontology_node(user, node, workspace=ws)
+    resp = make_response(
+        render_template(
+            "ontology/benchmarks.html",
+            node=node,
+            runs=runs,
+            workspace=ws,
+            current_user=user,
+        )
+    )
+    resp.headers["Cache-Control"] = "private, no-store"
+    return resp
+
+
+@ontology_bp.get("/w/<ws_slug>/ontology/<slug>/recommendations")
+def ws_node_recommendations(ws_slug: str, slug: str):
+    """Fork recommendations for prompts mapped to this concept node (workspace scope)."""
+    user = get_current_user()
+    ws = ws_svc.get_workspace_for_user(ws_slug, user)  # 404 if non-member
+
+    node = get_node_by_slug(slug)
+    if node is None or not node.is_public:
+        abort(404)
+
+    prompts = list_prompts_for_node(user, node, workspace=ws, include_descendants=True)
+    recs: dict = {
+        p: recommend(user, p, workspace=ws, ontology_node=node)
+        for p in prompts[:10]
+    }
+    resp = make_response(
+        render_template(
+            "ontology/recommendations.html",
+            node=node,
+            recs=recs,
+            workspace=ws,
+            current_user=user,
+        )
+    )
+    resp.headers["Cache-Control"] = "private, no-store"
+    return resp
