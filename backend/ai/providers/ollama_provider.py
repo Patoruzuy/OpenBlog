@@ -29,3 +29,13 @@ class OllamaProvider(AIReviewProvider):
             "Ollama provider is not implemented in v1. "
             "Set AI_PROVIDER=mock or implement this method."
         )
+
+    def run_explanation(
+        self,
+        input_dict: dict,
+        kind: str,
+    ) -> str:
+        raise NotImplementedError(
+            "Ollama provider is not implemented in v1. "
+            "Set AI_PROVIDER=mock or implement this method."
+        )

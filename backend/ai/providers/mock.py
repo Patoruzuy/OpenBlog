@@ -203,3 +203,71 @@ class MockAIProvider(AIReviewProvider):
             "suggested_edits_json": suggested_edits_json,
 
         }
+
+    # ── Analytics explanation canned responses ────────────────────────────────
+
+    _EXPLANATION_TEMPLATES: dict[str, str] = {
+        "trend": (
+            "**Trend analysis** — The prompt shows a measurable trajectory based on "
+            "the supplied version metrics.\n\n"
+            "**Observations:**\n"
+            "- The benchmark average delta across the last two measured versions "
+            "indicates a directional shift in model performance.\n"
+            "- Rating counts suggest user engagement is consistent across versions, "
+            "with no sharp drop-off after any single revision.\n"
+            "- A/B win count for the most recent version is within normal variance "
+            "and does not signal a regression by itself.\n\n"
+            "**Suggested next steps:**\n"
+            "- Run at least two additional benchmark suite passes to confirm "
+            "whether the current delta trend is sustained.\n"
+            "- Review the change summary for the highest-delta version to identify "
+            "which prompt wording adjustments drove the improvement.\n"
+            "- Consider scheduling an A/B experiment to validate any planned "
+            "refinement against the current best-performing version.\n"
+        ),
+        "fork_rationale": (
+            "**Fork ranking rationale** — Composite scores are derived from "
+            "benchmark averages, vote counts, and A/B win rates.\n\n"
+            "**Observations:**\n"
+            "- The top-ranked fork scores highest on the normalised benchmark "
+            "component, which carries 60 % of the composite weight.\n"
+            "- Vote normalisation distributes the 30 % vote weight proportionally, "
+            "so a fork with many votes but low benchmark scores can still rank second.\n"
+            "- A/B win-rate contributes only 10 % of the composite, so forks with "
+            "limited experiment data are not unfairly penalised.\n\n"
+            "**Suggested next steps:**\n"
+            "- Investigate the prompt wording differences between the origin and "
+            "the best fork to extract actionable improvements.\n"
+            "- Run a dedicated benchmark suite on any fork that scores near the top "
+            "but has low execution volume to validate its ranking.\n"
+            "- Consider merging the strongest fork back as a new revision of the "
+            "origin prompt if its benchmark advantage is confirmed.\n"
+        ),
+        "version_diff": (
+            "**Version diff summary** — This explanation is based on the unified "
+            "diff between two consecutive prompt versions.\n\n"
+            "**Observations:**\n"
+            "- The diff shows textual changes that may affect how models interpret "
+            "the instruction structure.\n"
+            "- Additions in the diff introduce new constraints or context that "
+            "could improve output specificity.\n"
+            "- Removed lines may reduce noise or ambiguity, but should be validated "
+            "against benchmark results before considering them permanent.\n\n"
+            "**Suggested next steps:**\n"
+            "- Run a benchmark suite on both the pre-change and post-change versions "
+            "to quantify the impact of this diff.\n"
+            "- Review whether removed context was load-bearing for any edge-case "
+            "model outputs by examining past execution logs.\n"
+            "- If the change improves scores, document the rationale in the "
+            "release note for the new version to preserve institutional knowledge.\n"
+        ),
+    }
+
+    def run_explanation(self, input_dict: dict, kind: str) -> str:
+        """Return a deterministic canned explanation for *kind*."""
+        template = self._EXPLANATION_TEMPLATES.get(
+            kind, self._EXPLANATION_TEMPLATES["trend"]
+        )
+        # Append a small deterministic suffix so tests can detect the mock ran.
+        input_size = len(str(input_dict))
+        return f"{template}\n*[mock — input size: {input_size} chars]*"

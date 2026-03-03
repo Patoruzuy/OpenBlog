@@ -12,6 +12,11 @@ models they reference.  The ordering below satisfies all FK dependencies.
 
 from backend.models.ab_experiment import ABExperiment, ABExperimentRun, ABExperimentStatus
 from backend.models.admin import AuditLog, SiteSetting
+from backend.models.analytics_explanation import (
+    AnalyticsExplanation,
+    AnalyticsExplanationKind,
+    AnalyticsExplanationStatus,
+)
 from backend.models.benchmark import (
     BenchmarkCase,
     BenchmarkRun,
@@ -71,6 +76,9 @@ from backend.models.workspace import (
 )
 
 __all__ = [
+    "AnalyticsExplanation",
+    "AnalyticsExplanationKind",
+    "AnalyticsExplanationStatus",
     "BenchmarkCase",
     "BenchmarkRun",
     "BenchmarkRunResult",

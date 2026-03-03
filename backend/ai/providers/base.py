@@ -24,6 +24,15 @@ Return schema
             "output_tokens":  int | None,
         }
     }
+
+Analytics explanation schema
+-----------------------------
+:meth:`run_explanation` returns a plain Markdown string (≤ 3 000 chars).
+The content must include:
+  - A one-sentence executive summary.
+  - Three bullet "Observations" grounded only in the supplied metrics.
+  - Three bullet "Suggested next steps" that are actionable and specific.
+  - No fabricated statistics; never claim certainty about future behaviour.
 """
 
 from __future__ import annotations
@@ -64,4 +73,28 @@ class AIReviewProvider(ABC):
         dict
             Must contain ``summary_md`` (str), ``findings_json`` (list),
             and ``metrics_json`` (dict).  See module docstring for the schema.
+        """
+    @abstractmethod
+    def run_explanation(
+        self,
+        input_dict: dict,
+        kind: str,
+    ) -> str:
+        """Generate a short analytics explanation and return it as Markdown.
+
+        Parameters
+        ----------
+        input_dict:
+            A validated, pre-truncated dict produced by
+            ``prompt_analytics_explain_service.build_input()``.  Contains
+            only the metrics and context relevant to *kind*.
+        kind:
+            One of ``trend``, ``fork_rationale``, ``version_diff``.
+
+        Returns
+        -------
+        str
+            Markdown text (≤ 3 000 chars after provider returns).  Must follow
+            the format documented in the module docstring: summary sentence,
+            three Observations bullets, three Suggested next steps bullets.
         """

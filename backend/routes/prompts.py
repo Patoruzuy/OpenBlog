@@ -240,6 +240,16 @@ def public_prompt_analytics(slug: str):
 
     benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=None)
 
+    from backend.services.prompt_analytics_explain_service import (  # noqa: PLC0415
+        get_explanation_any_status,
+        AnalyticsExplanationKind,
+    )
+    user = get_current_user()
+    explanations = {
+        k: get_explanation_any_status(prompt, workspace=None, kind=k)
+        for k in AnalyticsExplanationKind.values()
+    }
+
     return render_template(
         "prompts/analytics.html",
         prompt=prompt,
@@ -252,8 +262,34 @@ def public_prompt_analytics(slug: str):
         version_metrics=version_metrics,
         fork_comparison=fork_comparison,
         trend_label=trend_label,
-        current_user=get_current_user(),
+        current_user=user,
+        explanations=explanations,
     )
+
+
+@prompts_bp.route("/prompts/<slug>/analytics/explain/<kind>", methods=["POST"])
+@require_auth
+def public_prompt_analytics_explain(slug: str, kind: str):
+    """Request an AI analytics explanation — public scope (auth required)."""
+    prompt = get_prompt_by_slug(slug, workspace_id=None)
+    if prompt is None or prompt.status != PostStatus.published:
+        abort(404)
+
+    user = get_current_user()
+
+    from backend.services.prompt_analytics_explain_service import (  # noqa: PLC0415
+        ExplainError,
+        request_explanation,
+    )
+
+    try:
+        request_explanation(user, prompt, workspace=None, kind=kind)
+        flash("Explanation requested. It will appear on this page shortly.", "success")
+    except ExplainError as exc:
+        flash(exc.message, "error")
+
+    return redirect(url_for("prompts.public_prompt_analytics", slug=slug))
+
 
 
 @prompts_bp.get("/w/<ws_slug>/prompts/")
@@ -309,6 +345,15 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
 
     benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=ws.id)
 
+    from backend.services.prompt_analytics_explain_service import (  # noqa: PLC0415
+        get_explanation_any_status,
+        AnalyticsExplanationKind,
+    )
+    explanations = {
+        k: get_explanation_any_status(prompt, workspace=ws, kind=k)
+        for k in AnalyticsExplanationKind.values()
+    }
+
     resp = make_response(
         render_template(
             "prompts/analytics.html",
@@ -323,9 +368,49 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
             fork_comparison=fork_comparison,
             trend_label=trend_label,
             current_user=user,
+            explanations=explanations,
         )
     )
     return _ws_no_store(resp)
+
+
+@prompts_bp.route(
+    "/w/<ws_slug>/prompts/<slug>/analytics/explain/<kind>", methods=["POST"]
+)
+def ws_prompt_analytics_explain(ws_slug: str, slug: str, kind: str):
+    """Request an AI analytics explanation — workspace scope (member+)."""
+    user = get_current_user()
+    if user is None:
+        return redirect(url_for("auth.login", next=request.path))
+
+    ws = ws_svc.get_workspace_for_user(ws_slug, user)
+
+    prompt = get_prompt_by_slug(slug, workspace_id=ws.id)
+    if prompt is None:
+        abort(404)
+
+    from backend.services.prompt_analytics_explain_service import (  # noqa: PLC0415
+        ExplainError,
+        request_explanation,
+    )
+
+    try:
+        request_explanation(user, prompt, workspace=ws, kind=kind)
+        flash("Explanation requested. It will appear on this page shortly.", "success")
+    except ExplainError as exc:
+        flash(exc.message, "error")
+
+    resp = make_response(
+        redirect(
+            url_for(
+                "prompts.ws_prompt_analytics",
+                ws_slug=ws_slug,
+                slug=slug,
+            )
+        )
+    )
+    return _ws_no_store(resp)
+
 
 
 @prompts_bp.route("/w/<ws_slug>/prompts/new", methods=["GET", "POST"])

@@ -412,5 +412,71 @@
     {% endif %}
   </div>
 
+  {# ═══════════════════════════════════════════════════════════════════════════
+     SECTION 8 — AI Analytics Explanations  (human-in-the-loop)
+  ══════════════════════════════════════════════════════════════════════════════ #}
+  {% if current_user %}
+  <section style="margin-top:var(--space-xl);padding-top:var(--space-xl);border-top:1px solid var(--border)">
+    <h2 style="font-size:1rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.4rem">AI Analytics Explanations</h2>
+    <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:var(--space-lg)">
+      Explanations are generated on request and cached.  They are produced by an AI
+      model and may not be accurate — always verify against the raw metrics above.
+    </p>
+
+    {# ── Helper macro: one explanation block ──────────────────────────────── #}
+    {% macro explain_block(kind, label, expl) %}
+    <div class="post-card" style="padding:var(--space-md);margin-bottom:var(--space-md);border-radius:var(--radius)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-sm)">
+        <h3 style="font-size:.9rem;font-weight:600;margin:0">{{ label }}</h3>
+        {% if expl and expl.status in ('queued', 'running') %}
+          <span class="badge" style="font-size:.7rem;padding:.15rem .5rem;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text-muted)">
+            &#8987; generating&hellip;
+          </span>
+        {% elif expl and expl.status == 'completed' %}
+          <span class="badge" style="font-size:.7rem;padding:.15rem .5rem;border-radius:var(--radius-sm);background:#d4edda;color:#155724">&#10003; ready</span>
+        {% endif %}
+      </div>
+
+      {% if expl and expl.status == 'completed' and expl.explanation_md %}
+        <div class="prose" style="font-size:.875rem;line-height:1.6">
+          {{ expl.explanation_md | markdown | safe }}
+        </div>
+      {% elif expl and expl.status in ('queued', 'running') %}
+        <p style="font-size:.85rem;color:var(--text-muted)">
+          Explanation is being generated. Reload this page in a few seconds.
+        </p>
+      {% else %}
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:var(--space-sm)">
+          No explanation generated yet.
+        </p>
+        {% if workspace %}
+          <form method="POST"
+                action="{{ url_for('prompts.ws_prompt_analytics_explain', ws_slug=workspace.slug, slug=prompt.slug, kind=kind) }}"
+                style="display:inline">
+            <button type="submit" class="btn btn-sm btn-secondary"
+                    style="font-size:.8rem;padding:.3rem .75rem">
+              &#9999; Generate explanation
+            </button>
+          </form>
+        {% else %}
+          <form method="POST"
+                action="{{ url_for('prompts.public_prompt_analytics_explain', slug=prompt.slug, kind=kind) }}"
+                style="display:inline">
+            <button type="submit" class="btn btn-sm btn-secondary"
+                    style="font-size:.8rem;padding:.3rem .75rem">
+              &#9999; Generate explanation
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endmacro %}
+
+    {{ explain_block('trend', 'Trend Analysis', explanations.get('trend')) }}
+    {{ explain_block('fork_rationale', 'Fork Ranking Rationale', explanations.get('fork_rationale')) }}
+    {{ explain_block('version_diff', 'Version Diff Summary', explanations.get('version_diff')) }}
+  </section>
+  {% endif %}
+
 </div>
 {% endblock %}
