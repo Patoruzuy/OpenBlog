@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Intelligence Dashboard{% if workspace %} — {{ workspace.name }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:960px;padding-top:var(--space-xl);padding-bottom:var(--space-xl)">
+
+  {# ── Breadcrumb ───────────────────────────────────────────────────────────── #}
+  <nav class="breadcrumb" aria-label="Breadcrumb" style="margin-bottom:var(--space-md)">
+    {% if workspace %}
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">{{ workspace.name }}</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Intelligence</span>
+    {% else %}
+      <a href="{{ url_for('index.index') }}">Home</a>
+      <span class="breadcrumb-sep">/</span>
+      <span>Intelligence</span>
+    {% endif %}
+  </nav>
+
+  {# ── Page header ──────────────────────────────────────────────────────────── #}
+  <header style="margin-bottom:var(--space-xl)">
+    <h1 style="font-size:1.4rem;font-weight:700;margin:0 0 .3rem">
+      Intelligence Dashboard
+      {% if workspace %}
+        <span style="font-weight:400;color:var(--text-muted)"> — {{ workspace.name }}</span>
+      {% endif %}
+    </h1>
+    <p style="color:var(--text-muted);font-size:.875rem;margin:.4rem 0 0">
+      Cross-family benchmark analytics — last 30 days vs. prior 30-day window.
+    </p>
+  </header>
+
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  {# § 1  Top Prompts by Score                                                  #}
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-2xl)">
+    <h2 style="font-size:1.05rem;font-weight:600;margin:0 0 var(--space-md)">
+      Top Prompts by Benchmark Score
+      <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"> — last 30 days</span>
+    </h2>
+
+    {% if top_prompts %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);text-align:left">
+              <th style="padding:.5rem .75rem">#</th>
+              <th style="padding:.5rem .75rem">Prompt</th>
+              <th style="padding:.5rem .75rem">Ontology</th>
+              <th style="padding:.5rem .75rem;text-align:right">Avg Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in top_prompts %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">{{ loop.index }}</td>
+              <td style="padding:.5rem .75rem">
+                {% if workspace %}
+                  <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=r.slug) }}"
+                     style="color:var(--link);text-decoration:none">{{ r.title }}</a>
+                {% else %}
+                  <a href="{{ url_for('prompts.public_prompt_detail', slug=r.slug) }}"
+                     style="color:var(--link);text-decoration:none">{{ r.title }}</a>
+                {% endif %}
+                {% if r.is_fork %}
+                  <span style="margin-left:.4rem;font-size:.7rem;background:var(--badge-bg,#e8f4ff);color:var(--badge-text,#0066cc);padding:.1rem .4rem;border-radius:3px">fork</span>
+                {% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">
+                {% if r.ontology_node_name %}
+                  <span style="font-size:.8rem;background:var(--tag-bg,#f3f4f6);color:var(--tag-text,#374151);padding:.15rem .45rem;border-radius:12px">{{ r.ontology_node_name }}</span>
+                {% else %}
+                  <span style="color:var(--text-muted);font-size:.8rem">—</span>
+                {% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">
+                {{ "%.3f"|format(r.composite_score) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="post-card" style="padding:var(--space-lg);text-align:center;border-radius:var(--radius)">
+        <p style="color:var(--text-muted);margin:0;font-size:.9rem">No data found.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  {# § 2  Most Improved                                                          #}
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-2xl)">
+    <h2 style="font-size:1.05rem;font-weight:600;margin:0 0 var(--space-md)">
+      Most Improved Prompts
+      <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"> — 30-day improvement vs. prior 30 days</span>
+    </h2>
+
+    {% if most_improved %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);text-align:left">
+              <th style="padding:.5rem .75rem">#</th>
+              <th style="padding:.5rem .75rem">Prompt</th>
+              <th style="padding:.5rem .75rem;text-align:right">Current Avg</th>
+              <th style="padding:.5rem .75rem;text-align:right">Previous Avg</th>
+              <th style="padding:.5rem .75rem;text-align:right">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in most_improved %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">{{ loop.index }}</td>
+              <td style="padding:.5rem .75rem">
+                {% if workspace %}
+                  <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=r.slug) }}"
+                     style="color:var(--link);text-decoration:none">{{ r.title }}</a>
+                {% else %}
+                  <a href="{{ url_for('prompts.public_prompt_detail', slug=r.slug) }}"
+                     style="color:var(--link);text-decoration:none">{{ r.title }}</a>
+                {% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {{ "%.3f"|format(r.current_avg) }}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {{ "%.3f"|format(r.previous_avg) }}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--success-text,#16a34a)">
+                +{{ "%.3f"|format(r.delta) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="post-card" style="padding:var(--space-lg);text-align:center;border-radius:var(--radius)">
+        <p style="color:var(--text-muted);margin:0;font-size:.9rem">No data found.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  {# § 3  Performance by Ontology                                                #}
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-2xl)">
+    <h2 style="font-size:1.05rem;font-weight:600;margin:0 0 var(--space-md)">
+      Performance by Ontology Category
+    </h2>
+
+    {% if ontology_performance %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);text-align:left">
+              <th style="padding:.5rem .75rem">Category</th>
+              <th style="padding:.5rem .75rem;text-align:right">Avg Score</th>
+              <th style="padding:.5rem .75rem;text-align:right">Prompts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in ontology_performance %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem .75rem">
+                <span style="font-size:.85rem;background:var(--tag-bg,#f3f4f6);color:var(--tag-text,#374151);padding:.2rem .55rem;border-radius:12px">{{ r.node_name }}</span>
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">
+                {{ "%.3f"|format(r.avg_score) }}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;color:var(--text-muted)">
+                {{ r.prompt_count }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="post-card" style="padding:var(--space-lg);text-align:center;border-radius:var(--radius)">
+        <p style="color:var(--text-muted);margin:0;font-size:.9rem">No data found.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  {# § 4  Fork Outperformance                                                    #}
+  {# ═══════════════════════════════════════════════════════════════════════════ #}
+  <section style="margin-bottom:var(--space-2xl)">
+    <h2 style="font-size:1.05rem;font-weight:600;margin:0 0 var(--space-md)">
+      Fork Outperformance
+      <span style="font-weight:400;font-size:.8rem;color:var(--text-muted)"> — forks that outscored their origin</span>
+    </h2>
+
+    {% if fork_outperformance %}
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);text-align:left">
+              <th style="padding:.5rem .75rem">#</th>
+              <th style="padding:.5rem .75rem">Fork</th>
+              <th style="padding:.5rem .75rem">Origin</th>
+              <th style="padding:.5rem .75rem;text-align:right">Fork Score</th>
+              <th style="padding:.5rem .75rem;text-align:right">Origin Score</th>
+              <th style="padding:.5rem .75rem;text-align:right">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in fork_outperformance %}
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">{{ loop.index }}</td>
+              <td style="padding:.5rem .75rem">
+                {% if workspace %}
+                  <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=r.fork_slug) }}"
+                     style="color:var(--link);text-decoration:none">{{ r.fork_title }}</a>
+                {% else %}
+                  <a href="{{ url_for('prompts.public_prompt_detail', slug=r.fork_slug) }}"
+                     style="color:var(--link);text-decoration:none">{{ r.fork_title }}</a>
+                {% endif %}
+                <span style="margin-left:.4rem;font-size:.7rem;background:var(--badge-bg,#e8f4ff);color:var(--badge-text,#0066cc);padding:.1rem .4rem;border-radius:3px">fork</span>
+              </td>
+              <td style="padding:.5rem .75rem;color:var(--text-muted)">
+                {% if workspace %}
+                  <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=r.origin_slug) }}"
+                     style="color:var(--text-muted);text-decoration:none">{{ r.origin_title }}</a>
+                {% else %}
+                  <a href="{{ url_for('prompts.public_prompt_detail', slug=r.origin_slug) }}"
+                     style="color:var(--text-muted);text-decoration:none">{{ r.origin_title }}</a>
+                {% endif %}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums;font-weight:600">
+                {{ "%.3f"|format(r.fork_score) }}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
+                {{ "%.3f"|format(r.origin_score) }}
+              </td>
+              <td style="padding:.5rem .75rem;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--success-text,#16a34a)">
+                +{{ "%.3f"|format(r.delta) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="post-card" style="padding:var(--space-lg);text-align:center;border-radius:var(--radius)">
+        <p style="color:var(--text-muted);margin:0;font-size:.9rem">No data found.</p>
+      </div>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

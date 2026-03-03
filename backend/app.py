@@ -198,6 +198,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.posts import ssr_posts_bp
     from backend.routes.benchmarks import benchmarks_bp
     from backend.routes.ab_experiments import ab_bp
+    from backend.routes.intelligence import intelligence_bp
     from backend.routes.fork_recommendations import fork_rec_bp
     from backend.routes.admin_ontology import admin_ontology_bp
     from backend.routes.ontology import ontology_bp
@@ -260,6 +261,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(fork_rec_bp)
     app.register_blueprint(benchmarks_bp)
     app.register_blueprint(ab_bp)
+    app.register_blueprint(intelligence_bp)
     app.register_blueprint(watches_bp)
 
 
