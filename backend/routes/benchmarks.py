@@ -202,7 +202,9 @@ def ws_suite_run(ws_slug: str, slug: str):
 
     if not prompt_post_id or not version:
         flash("Prompt and version are required.", "error")
-        return redirect(url_for("benchmarks.ws_suite_detail", ws_slug=ws_slug, slug=slug))
+        return redirect(
+            url_for("benchmarks.ws_suite_detail", ws_slug=ws_slug, slug=slug)
+        )
 
     from backend.models.post import Post  # noqa: PLC0415
 
@@ -220,7 +222,9 @@ def ws_suite_run(ws_slug: str, slug: str):
     except BenchmarkError as exc:
         db.session.rollback()
         flash(str(exc), "error")
-        return redirect(url_for("benchmarks.ws_suite_detail", ws_slug=ws_slug, slug=slug))
+        return redirect(
+            url_for("benchmarks.ws_suite_detail", ws_slug=ws_slug, slug=slug)
+        )
 
 
 @benchmarks_bp.get("/w/<ws_slug>/benchmarks/runs/<int:run_id>")

@@ -253,7 +253,7 @@ class AIReviewResult(db.Model):
         default=dict,
         server_default="{}",
         comment=(
-            'Structured AI-suggested edits: '
+            "Structured AI-suggested edits: "
             '{"edits": [{id, title, kind, target_hint, proposed_markdown, rationale}]}.'
         ),
     )

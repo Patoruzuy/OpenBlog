@@ -120,7 +120,9 @@ class BenchmarkCase(db.Model):
     )
 
     # ── Relationships ─────────────────────────────────────────────────────
-    suite: Mapped[BenchmarkSuite] = relationship("BenchmarkSuite", back_populates="cases")
+    suite: Mapped[BenchmarkSuite] = relationship(
+        "BenchmarkSuite", back_populates="cases"
+    )
     results: Mapped[list[BenchmarkRunResult]] = relationship(
         "BenchmarkRunResult",
         back_populates="case",
@@ -186,7 +188,9 @@ class BenchmarkRun(db.Model):
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # ── Relationships ─────────────────────────────────────────────────────
-    suite: Mapped[BenchmarkSuite] = relationship("BenchmarkSuite", back_populates="runs")
+    suite: Mapped[BenchmarkSuite] = relationship(
+        "BenchmarkSuite", back_populates="runs"
+    )
     prompt_post: Mapped[object] = relationship("Post", foreign_keys=[prompt_post_id])
     results: Mapped[list[BenchmarkRunResult]] = relationship(
         "BenchmarkRunResult",
@@ -234,7 +238,9 @@ class BenchmarkRunResult(db.Model):
 
     # ── Relationships ─────────────────────────────────────────────────────
     run: Mapped[BenchmarkRun] = relationship("BenchmarkRun", back_populates="results")
-    case: Mapped[BenchmarkCase] = relationship("BenchmarkCase", back_populates="results")
+    case: Mapped[BenchmarkCase] = relationship(
+        "BenchmarkCase", back_populates="results"
+    )
 
     __table_args__ = (
         UniqueConstraint("run_id", "case_id", name="uq_benchmark_run_results_run_case"),

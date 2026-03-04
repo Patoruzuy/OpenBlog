@@ -214,8 +214,12 @@ class TestNotificationsGroupedView:
         assert resp.status_code == 200
         assert b"No notifications" in resp.data
 
-    def test_grouped_view_shows_notification_title(self, auth_client, alice, db_session):
-        _notif(alice.id, title="Alices first notification", target_type="post", target_id=1)
+    def test_grouped_view_shows_notification_title(
+        self, auth_client, alice, db_session
+    ):
+        _notif(
+            alice.id, title="Alices first notification", target_type="post", target_id=1
+        )
         _login(auth_client, alice.id)
         resp = auth_client.get("/notifications/")
         assert resp.status_code == 200
@@ -294,7 +298,9 @@ class TestNotificationsFlatView:
         assert b"No notifications" in resp.data
 
     def test_flat_view_unread_filter(self, auth_client, alice, db_session):
-        _notif(alice.id, title="Unread", target_type="post", target_id=55, is_read=False)
+        _notif(
+            alice.id, title="Unread", target_type="post", target_id=55, is_read=False
+        )
         _notif(alice.id, title="Read", target_type="post", target_id=55, is_read=True)
         _login(auth_client, alice.id)
         resp = auth_client.get(

@@ -119,7 +119,9 @@ def generate_analytics_explanation(
             # Truncate the diff field if present, then re-serialise.
             if "diff" in input_dict:
                 overage = len(serialised) - max_chars
-                input_dict["diff"] = input_dict["diff"][: max(0, len(input_dict["diff"]) - overage)]
+                input_dict["diff"] = input_dict["diff"][
+                    : max(0, len(input_dict["diff"]) - overage)
+                ]
             serialised = json.dumps(input_dict, sort_keys=True, default=str)
             serialised = serialised[:max_chars]
             input_dict = json.loads(serialised)
@@ -135,9 +137,7 @@ def generate_analytics_explanation(
         # support).  expire() forces SQLAlchemy to reload the row on next access.
         db.session.expire(row)
         row = db.session.get(AnalyticsExplanation, explanation_id)
-        if row is None or row.status not in (
-            AnalyticsExplanationStatus.running.value,
-        ):
+        if row is None or row.status not in (AnalyticsExplanationStatus.running.value,):
             db.session.rollback()
             status = row.status if row is not None else "deleted"
             return {"explanation_id": explanation_id, "status": status}
@@ -174,5 +174,5 @@ def generate_analytics_explanation(
                 db.session.rollback()
 
         # Exponential backoff: 10 s → 40 s → 160 s.
-        countdown = 10 * (4 ** self.request.retries)
+        countdown = 10 * (4**self.request.retries)
         raise self.retry(exc=exc, countdown=countdown)

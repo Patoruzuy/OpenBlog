@@ -139,7 +139,9 @@ def create_suite(
         if member is None:
             raise BenchmarkError("Not a workspace member.", status_code=404)
         if not member.role.meets(WorkspaceMemberRole.editor):
-            raise BenchmarkError("Editor role required to create suites.", status_code=403)
+            raise BenchmarkError(
+                "Editor role required to create suites.", status_code=403
+            )
 
     slug = _unique_suite_slug(_slugify(name))
     suite = BenchmarkSuite(
@@ -292,7 +294,9 @@ def create_run(
                 "Public suites cannot run workspace-scoped prompts.", status_code=422
             )
         if prompt_post.status != PostStatus.published:
-            raise BenchmarkError("Only published prompts can be benchmarked.", status_code=422)
+            raise BenchmarkError(
+                "Only published prompts can be benchmarked.", status_code=422
+            )
     else:
         # Workspace suite.
         if prompt_post.workspace_id is not None:
@@ -340,7 +344,10 @@ def cancel_run(user: User | None, run: BenchmarkRun) -> BenchmarkRun:
     suite: BenchmarkSuite = db.session.get(BenchmarkSuite, run.suite_id)  # type: ignore[assignment]
     _assert_suite_access(suite, user)
 
-    if run.status in (BenchmarkRunStatus.completed.value, BenchmarkRunStatus.failed.value):
+    if run.status in (
+        BenchmarkRunStatus.completed.value,
+        BenchmarkRunStatus.failed.value,
+    ):
         raise BenchmarkError(
             f"Cannot cancel a run in '{run.status}' state.", status_code=422
         )
@@ -564,8 +571,10 @@ def get_benchmark_summary_for_prompt(
         .group_by(BenchmarkRunResult.run_id)
     ).all()
 
-    avg_by_run = {r.run_id: float(r.avg_score) if r.avg_score is not None else None
-                  for r in score_rows}
+    avg_by_run = {
+        r.run_id: float(r.avg_score) if r.avg_score is not None else None
+        for r in score_rows
+    }
 
     suite_names = {}
     if suite_ids:
@@ -581,7 +590,12 @@ def get_benchmark_summary_for_prompt(
     for rrow in run_rows:
         ver = rrow.prompt_version
         if ver not in by_version:
-            by_version[ver] = {"version": ver, "run_count": 0, "avg_scores": [], "suite_names": set()}
+            by_version[ver] = {
+                "version": ver,
+                "run_count": 0,
+                "avg_scores": [],
+                "suite_names": set(),
+            }
         by_version[ver]["run_count"] += 1
         sc = avg_by_run.get(rrow.run_id)
         if sc is not None:
@@ -594,10 +608,12 @@ def get_benchmark_summary_for_prompt(
     for ver in sorted(by_version.keys()):
         entry = by_version[ver]
         scores = entry["avg_scores"]
-        result.append({
-            "version": ver,
-            "run_count": entry["run_count"],
-            "avg_score": sum(scores) / len(scores) if scores else None,
-            "suite_names": sorted(entry["suite_names"]),
-        })
+        result.append(
+            {
+                "version": ver,
+                "run_count": entry["run_count"],
+                "avg_score": sum(scores) / len(scores) if scores else None,
+                "suite_names": sorted(entry["suite_names"]),
+            }
+        )
     return result

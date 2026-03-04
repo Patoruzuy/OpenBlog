@@ -208,7 +208,7 @@ class TestABWinnerRatePositive:
 
         run_a = _make_run(suite, fork_winner, user)
         run_b = _make_run(suite, fork_loser, user)
-        _add_result(run_a, case, score=0.9)   # winner scores higher
+        _add_result(run_a, case, score=0.9)  # winner scores higher
         _add_result(run_b, case, score=0.3)
 
         exp = _make_ab_experiment(user, fork_winner, fork_loser, suite)
@@ -291,7 +291,9 @@ class TestWorkspaceExperimentExcludedFromPublic:
         _db.session.add(ws)
         _db.session.flush()
         _db.session.add(
-            WorkspaceMember(workspace_id=ws.id, user_id=user.id, role=WorkspaceMemberRole.owner)
+            WorkspaceMember(
+                workspace_id=ws.id, user_id=user.id, role=WorkspaceMemberRole.owner
+            )
         )
         _db.session.flush()
 
@@ -339,10 +341,14 @@ class TestNoScoredResults:
         run_b = _make_run(suite, fork_b, user)
         # Add results but with NULL score_numeric
         _db.session.add(
-            BenchmarkRunResult(run_id=run_a.id, case_id=case.id, output_text="a", score_numeric=None)
+            BenchmarkRunResult(
+                run_id=run_a.id, case_id=case.id, output_text="a", score_numeric=None
+            )
         )
         _db.session.add(
-            BenchmarkRunResult(run_id=run_b.id, case_id=case.id, output_text="b", score_numeric=None)
+            BenchmarkRunResult(
+                run_id=run_b.id, case_id=case.id, output_text="b", score_numeric=None
+            )
         )
         _db.session.flush()
 
@@ -400,7 +406,9 @@ class TestABBoostsRanking:
 
         user = _make_user()
         base = _make_prompt(user)
-        ts = __import__("datetime").datetime(2024, 1, 1, tzinfo=__import__("datetime").timezone.utc)
+        ts = __import__("datetime").datetime(
+            2024, 1, 1, tzinfo=__import__("datetime").timezone.utc
+        )
         fork_winner = _make_fork(base, user)
         fork_neutral = _make_fork(base, user)
         # Force same updated_at
@@ -443,8 +451,8 @@ class TestABPartialWinRate:
         """FRAB-008"""
         user = _make_user()
         base = _make_prompt(user)
-        focal = _make_fork(base, user)    # the fork we're tracking
-        opponent = _make_fork(base, user) # opponent in all experiments
+        focal = _make_fork(base, user)  # the fork we're tracking
+        opponent = _make_fork(base, user)  # opponent in all experiments
 
         suite = _make_suite(user)
         case = _make_case(suite)
@@ -457,9 +465,9 @@ class TestABPartialWinRate:
             exp = _make_ab_experiment(user, focal, opponent, suite)
             _make_exp_run(exp, r_a, r_b)
 
-        _run_exp(0.8, 0.2)   # focal wins
-        _run_exp(0.9, 0.1)   # focal wins
-        _run_exp(0.2, 0.8)   # focal loses
+        _run_exp(0.8, 0.2)  # focal wins
+        _run_exp(0.9, 0.1)  # focal wins
+        _run_exp(0.2, 0.8)  # focal loses
         _db.session.commit()
 
         recs = svc.recommend(user, base, workspace=None)

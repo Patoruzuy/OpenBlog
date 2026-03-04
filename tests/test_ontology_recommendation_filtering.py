@@ -198,7 +198,9 @@ class TestNonMappedForkExcluded:
         _db.session.commit()
 
         recs = svc.recommend(user, base, workspace=None, ontology_node=node)
-        assert not any(r.post_id == fork.id for r in recs), "Non-mapped fork must be excluded"
+        assert not any(r.post_id == fork.id for r in recs), (
+            "Non-mapped fork must be excluded"
+        )
 
 
 # ── ORF-005 ───────────────────────────────────────────────────────────────────

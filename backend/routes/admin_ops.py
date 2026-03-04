@@ -123,9 +123,7 @@ def index():
 
     notif_count_24h: int = (
         db.session.scalar(
-            select(func.count(Notification.id)).where(
-                Notification.created_at >= cutoff
-            )
+            select(func.count(Notification.id)).where(Notification.created_at >= cutoff)
         )
         or 0
     )
@@ -254,7 +252,5 @@ def digest_retry(digest_run_id: int):
 def notifications():
     """Aggregate notification statistics."""
     stats = get_notification_stats()
-    resp = make_response(
-        render_template("admin/ops/notifications.html", **stats)
-    )
+    resp = make_response(render_template("admin/ops/notifications.html", **stats))
     return _no_store(resp)

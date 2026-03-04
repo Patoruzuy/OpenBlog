@@ -14,6 +14,7 @@ Schema changes
 2. Create index ``ix_post_release_notes_post_id``
 3. Create index ``ix_post_release_notes_accepted_revision_id``
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -65,6 +66,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_post_release_notes_accepted_revision_id", table_name="post_release_notes")
+    op.drop_index(
+        "ix_post_release_notes_accepted_revision_id", table_name="post_release_notes"
+    )
     op.drop_index("ix_post_release_notes_post_id", table_name="post_release_notes")
     op.drop_table("post_release_notes")

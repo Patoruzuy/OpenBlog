@@ -124,7 +124,9 @@ def _make_digest_run(
     return run
 
 
-def _make_notification(user: User, *, event_type: str = "revision.accepted") -> Notification:
+def _make_notification(
+    user: User, *, event_type: str = "revision.accepted"
+) -> Notification:
     notif = Notification(
         user_id=user.id,
         notification_type=event_type.replace(".", "_"),
@@ -249,7 +251,9 @@ class TestAiReviewsListing:
         body = resp.data.decode()
         assert "failed" in body
         # completed rows should not appear (status badge only shown for filtered rows)
-        assert body.count("completed") == 0 or "completed" not in body.split("failed")[1]
+        assert (
+            body.count("completed") == 0 or "completed" not in body.split("failed")[1]
+        )
 
 
 # ── OPS-009/010/011: AI review retry ──────────────────────────────────────────
@@ -282,7 +286,9 @@ class TestAiReviewRetry:
         # Either way, the error message was cleared at reset time.
         # (It may be re-set if the task fails again in eager mode — that's fine.)
 
-    def test_retry_canceled_request(self, auth_client, make_user_token, db_session, app):
+    def test_retry_canceled_request(
+        self, auth_client, make_user_token, db_session, app
+    ):
         app.config["CELERY_TASK_ALWAYS_EAGER"] = True
         admin, _ = make_user_token(role="admin")
         post = _make_post(admin)
@@ -421,9 +427,7 @@ class TestDigestRuns:
 
 
 class TestErrorMessageTruncation:
-    def test_long_error_truncated_in_service(
-        self, make_user_token, db_session
-    ):
+    def test_long_error_truncated_in_service(self, make_user_token, db_session):
         from backend.services.ops_service import _truncate_error
 
         long_msg = "x" * 1000

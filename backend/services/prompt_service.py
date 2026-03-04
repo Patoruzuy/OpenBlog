@@ -46,7 +46,9 @@ from backend.models.user import User
 from backend.utils.markdown import reading_time_minutes
 
 _COMPLEXITY_VALUES: frozenset[str] = frozenset({"beginner", "intermediate", "advanced"})
-_RESERVED_SLUGS: frozenset[str] = frozenset({"new", "edit", "draft", "drafts", "preview"})
+_RESERVED_SLUGS: frozenset[str] = frozenset(
+    {"new", "edit", "draft", "drafts", "preview"}
+)
 
 
 # ── Exception ─────────────────────────────────────────────────────────────────
@@ -82,7 +84,8 @@ def _unique_prompt_slug(workspace_id: int | None, base: str) -> str:
             continue
         exists = db.session.scalar(
             select(Post.id).where(
-                Post.workspace_id == workspace_id if workspace_id is not None
+                Post.workspace_id == workspace_id
+                if workspace_id is not None
                 else Post.workspace_id.is_(None),
                 Post.kind == "prompt",
                 Post.slug == slug,

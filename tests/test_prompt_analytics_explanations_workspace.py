@@ -166,9 +166,7 @@ class TestWorkspaceExplainMemberAccess:
         assert row.scope_type == "workspace"
         assert row.workspace_id == ws.id
 
-    def test_viewer_member_can_request_explanation(
-        self, db_session, make_user_token
-    ):
+    def test_viewer_member_can_request_explanation(self, db_session, make_user_token):
         """PAE-WS-004: viewer-role member can call request_explanation."""
         ws, owner, _ = _workspace_with_owner(make_user_token)
         prompt = _ws_prompt(ws, owner)
@@ -283,9 +281,7 @@ class TestWorkspaceAnalyticsTemplateRendering:
 class TestWorkspaceVersionDiffExplanation:
     """version_diff kind generates an explanation using PostVersion diffs."""
 
-    def test_version_diff_explanation_completes(
-        self, db_session, make_user_token
-    ):
+    def test_version_diff_explanation_completes(self, db_session, make_user_token):
         """PAE-WS-009: version_diff kind completes for workspace prompt."""
         from backend.models.post_version import PostVersion
 

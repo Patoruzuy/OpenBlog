@@ -44,8 +44,7 @@ def get_provider(config: dict) -> AIReviewProvider:
         )
 
     raise ValueError(
-        f"Unknown AI_PROVIDER {provider_name!r}. "
-        "Supported values: mock, openai, ollama"
+        f"Unknown AI_PROVIDER {provider_name!r}. Supported values: mock, openai, ollama"
     )
 
 

@@ -135,7 +135,13 @@ def public_new_post():
     try:
         prompt_a, ver_a, prompt_b, ver_b = _load_form_posts(request.form)
         exp = ab_svc.create_experiment(
-            user, name, suite, prompt_a, ver_a, prompt_b, ver_b,
+            user,
+            name,
+            suite,
+            prompt_a,
+            ver_a,
+            prompt_b,
+            ver_b,
             description=description,
         )
         db.session.commit()
@@ -264,7 +270,13 @@ def ws_new_post(ws_slug: str):
     try:
         prompt_a, ver_a, prompt_b, ver_b = _load_form_posts(request.form)
         exp = ab_svc.create_experiment(
-            user, name, suite, prompt_a, ver_a, prompt_b, ver_b,
+            user,
+            name,
+            suite,
+            prompt_a,
+            ver_a,
+            prompt_b,
+            ver_b,
             description=description,
             workspace=workspace,
         )

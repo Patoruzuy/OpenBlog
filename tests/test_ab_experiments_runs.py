@@ -59,9 +59,13 @@ def _make_user(role: str = "reader"):
 def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
     n = _n()
     p = Post(
-        title=f"ABRU-Prompt {n}", slug=f"abru-prompt-{n}", kind="prompt",
-        markdown_body="Answer: {{question}}", status=status,
-        author_id=author.id, workspace_id=workspace_id,
+        title=f"ABRU-Prompt {n}",
+        slug=f"abru-prompt-{n}",
+        kind="prompt",
+        markdown_body="Answer: {{question}}",
+        status=status,
+        author_id=author.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(p)
     _db.session.flush()
@@ -71,8 +75,10 @@ def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
 def _make_suite(user, *, workspace_id=None):
     n = _n()
     s = BenchmarkSuite(
-        name=f"ABRU Suite {n}", slug=f"abru-suite-{n}",
-        created_by_user_id=user.id, workspace_id=workspace_id,
+        name=f"ABRU Suite {n}",
+        slug=f"abru-suite-{n}",
+        created_by_user_id=user.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(s)
     _db.session.flush()
@@ -82,7 +88,8 @@ def _make_suite(user, *, workspace_id=None):
 def _add_case(suite):
     n = _n()
     c = BenchmarkCase(
-        suite_id=suite.id, name=f"Case {n}",
+        suite_id=suite.id,
+        name=f"Case {n}",
         input_json={"question": "what is 2+2?"},
     )
     _db.session.add(c)

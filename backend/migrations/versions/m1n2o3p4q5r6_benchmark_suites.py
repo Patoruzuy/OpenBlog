@@ -43,7 +43,9 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
     )
-    op.create_index("ix_benchmark_suites_workspace_id", "benchmark_suites", ["workspace_id"])
+    op.create_index(
+        "ix_benchmark_suites_workspace_id", "benchmark_suites", ["workspace_id"]
+    )
     op.create_index("ix_benchmark_suites_slug", "benchmark_suites", ["slug"])
 
     # ── benchmark_cases ──────────────────────────────────────────────────────
@@ -119,8 +121,12 @@ def upgrade() -> None:
         sa.Column("error_message", sa.Text, nullable=True),
     )
     op.create_index("ix_benchmark_runs_suite_id", "benchmark_runs", ["suite_id"])
-    op.create_index("ix_benchmark_runs_prompt_post_id", "benchmark_runs", ["prompt_post_id"])
-    op.create_index("ix_benchmark_runs_workspace_id", "benchmark_runs", ["workspace_id"])
+    op.create_index(
+        "ix_benchmark_runs_prompt_post_id", "benchmark_runs", ["prompt_post_id"]
+    )
+    op.create_index(
+        "ix_benchmark_runs_workspace_id", "benchmark_runs", ["workspace_id"]
+    )
     op.create_index("ix_benchmark_runs_status", "benchmark_runs", ["status"])
 
     # ── benchmark_run_results ────────────────────────────────────────────────
@@ -148,14 +154,22 @@ def upgrade() -> None:
             nullable=False,
             server_default=sa.func.now(),
         ),
-        sa.UniqueConstraint("run_id", "case_id", name="uq_benchmark_run_results_run_case"),
+        sa.UniqueConstraint(
+            "run_id", "case_id", name="uq_benchmark_run_results_run_case"
+        ),
     )
-    op.create_index("ix_benchmark_run_results_run_id", "benchmark_run_results", ["run_id"])
-    op.create_index("ix_benchmark_run_results_case_id", "benchmark_run_results", ["case_id"])
+    op.create_index(
+        "ix_benchmark_run_results_run_id", "benchmark_run_results", ["run_id"]
+    )
+    op.create_index(
+        "ix_benchmark_run_results_case_id", "benchmark_run_results", ["case_id"]
+    )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_benchmark_run_results_case_id", table_name="benchmark_run_results")
+    op.drop_index(
+        "ix_benchmark_run_results_case_id", table_name="benchmark_run_results"
+    )
     op.drop_index("ix_benchmark_run_results_run_id", table_name="benchmark_run_results")
     op.drop_table("benchmark_run_results")
 

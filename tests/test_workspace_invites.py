@@ -24,6 +24,7 @@ INV-038  GET /invites/<valid_token> for authenticated user redeems + redirects.
 INV-039  Cache-Control: private, no-store on all /invites/ responses.
 INV-040  noindex meta tag present on invites/invalid.html.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -90,7 +91,9 @@ def _make_invite(
     max_uses: int = 1,
 ) -> tuple[WorkspaceInvitation, str]:
     invite, raw = invite_service.create_invite(
-        workspace, owner, role,
+        workspace,
+        owner,
+        role,
         expires_in_days=expires_in_days,
         max_uses=max_uses,
     )
@@ -290,10 +293,9 @@ class TestRedeemInvite:
 
         # Only one membership row exists.
         from sqlalchemy import select
+
         count = _db.session.scalar(
-            select(WorkspaceInvitation).where(
-                WorkspaceInvitation.id == invite.id
-            )
+            select(WorkspaceInvitation).where(WorkspaceInvitation.id == invite.id)
         )
         assert count is not None  # invite still in DB; no duplicate member
 
@@ -560,7 +562,9 @@ class TestOwnershipInvariants:
         second_owner, _ = _create_user()
         _add_member(ws, second_owner, WorkspaceMemberRole.owner)
 
-        ws_svc.change_member_role(ws, second_owner, owner.id, WorkspaceMemberRole.editor)
+        ws_svc.change_member_role(
+            ws, second_owner, owner.id, WorkspaceMemberRole.editor
+        )
         _db.session.commit()
 
         member = ws_svc.get_member(ws, owner)
@@ -592,7 +596,9 @@ class TestOwnershipInvariants:
         _add_member(ws, target, WorkspaceMemberRole.viewer)
 
         with pytest.raises(PermissionError):
-            ws_svc.change_member_role(ws, outsider, target.id, WorkspaceMemberRole.editor)
+            ws_svc.change_member_role(
+                ws, outsider, target.id, WorkspaceMemberRole.editor
+            )
 
     def test_editor_cannot_remove_member(self, db_session):
         owner, _ = _create_user("editor")
@@ -698,9 +704,7 @@ class TestInviteRouteNonLeakage:
 
         # Use a completely random (unknown) token
         mystery = generate_invite_token()
-        resp = auth_client.get(
-            f"/invites/{mystery}", headers=_auth(owner_tok)
-        )
+        resp = auth_client.get(f"/invites/{mystery}", headers=_auth(owner_tok))
         assert resp.status_code == 200
         body = resp.data.decode()
         # Workspace name must NOT appear anywhere in the response
@@ -770,9 +774,7 @@ class TestRedeemRoute:
         invite, raw = _make_invite(ws, owner, role="viewer")
 
         redeemer, redeemer_tok = _create_user()
-        resp = auth_client.get(
-            f"/invites/{raw}", headers=_auth(redeemer_tok)
-        )
+        resp = auth_client.get(f"/invites/{raw}", headers=_auth(redeemer_tok))
         # Should redirect (302 → workspace dashboard)
         assert resp.status_code in (301, 302)
         loc = resp.headers["Location"]
@@ -780,6 +782,7 @@ class TestRedeemRoute:
 
         # Confirm member row was created
         from sqlalchemy import select
+
         member = _db.session.scalar(
             select(WorkspaceMember).where(
                 WorkspaceMember.workspace_id == ws.id,
@@ -813,7 +816,8 @@ class TestInviteCacheControl:
         redeemer, redeemer_tok = _create_user()
 
         resp = auth_client.get(
-            f"/invites/{raw}", headers=_auth(redeemer_tok),
+            f"/invites/{raw}",
+            headers=_auth(redeemer_tok),
             follow_redirects=False,
         )
         cc = resp.headers.get("Cache-Control", "")
@@ -831,9 +835,7 @@ class TestWorkspaceMemberPageCacheControl:
         owner, owner_tok = _create_user("editor")
         ws = _make_workspace(owner)
 
-        resp = auth_client.get(
-            f"/w/{ws.slug}/members", headers=_auth(owner_tok)
-        )
+        resp = auth_client.get(f"/w/{ws.slug}/members", headers=_auth(owner_tok))
         cc = resp.headers.get("Cache-Control", "")
         assert "no-store" in cc
         assert "private" in cc
@@ -842,9 +844,7 @@ class TestWorkspaceMemberPageCacheControl:
         owner, owner_tok = _create_user("editor")
         ws = _make_workspace(owner)
 
-        resp = auth_client.get(
-            f"/w/{ws.slug}/invites", headers=_auth(owner_tok)
-        )
+        resp = auth_client.get(f"/w/{ws.slug}/invites", headers=_auth(owner_tok))
         cc = resp.headers.get("Cache-Control", "")
         assert "no-store" in cc
         assert "private" in cc

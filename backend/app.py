@@ -163,7 +163,9 @@ def _register_blueprints(app: Flask) -> None:
     cost and means blueprint-level import errors surface during
     ``create_app()`` rather than at module load time.
     """
+    from backend.routes.ab_experiments import ab_bp
     from backend.routes.admin import admin_bp
+    from backend.routes.admin_ontology import admin_ontology_bp
     from backend.routes.admin_ops import admin_ops_bp
     from backend.routes.ai_reviews import ai_reviews_bp
     from backend.routes.api.analytics import api_analytics_bp
@@ -181,28 +183,27 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.api.votes import api_votes_bp
     from backend.routes.attachments import api_attachments_bp, attachments_bp
     from backend.routes.auth import ssr_auth_bp
+    from backend.routes.benchmarks import benchmarks_bp
     from backend.routes.bookmarks import ssr_bookmarks_bp
     from backend.routes.content_links import content_links_bp
     from backend.routes.drafts import ssr_drafts_bp
     from backend.routes.explore import explore_bp
     from backend.routes.feed import feed_bp
+    from backend.routes.fork_recommendations import fork_rec_bp
     from backend.routes.health import health_bp
     from backend.routes.i18n import i18n_bp
     from backend.routes.improvements import improvements_bp
     from backend.routes.index import index_bp
+    from backend.routes.intelligence import intelligence_bp
     from backend.routes.invites import invite_bp
     from backend.routes.json_feed import json_feed_bp
     from backend.routes.newsletter import newsletter_bp
     from backend.routes.notifications import ssr_notifications_bp
+    from backend.routes.ontology import ontology_bp
     from backend.routes.pages import pages_bp
     from backend.routes.posts import ssr_posts_bp
-    from backend.routes.benchmarks import benchmarks_bp
-    from backend.routes.ab_experiments import ab_bp
-    from backend.routes.intelligence import intelligence_bp
-    from backend.routes.fork_recommendations import fork_rec_bp
-    from backend.routes.admin_ontology import admin_ontology_bp
-    from backend.routes.ontology import ontology_bp
     from backend.routes.prompts import prompts_bp
+    from backend.routes.reputation import ssr_reputation_bp
     from backend.routes.revisions import ssr_revisions_bp
     from backend.routes.search import ssr_search_bp
     from backend.routes.settings import settings_bp
@@ -229,6 +230,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(ssr_search_bp)
     app.register_blueprint(api_search_bp)
     app.register_blueprint(ssr_users_bp)
+    app.register_blueprint(ssr_reputation_bp)
     app.register_blueprint(api_users_bp)
     app.register_blueprint(ssr_tags_bp)
     app.register_blueprint(ssr_bookmarks_bp)

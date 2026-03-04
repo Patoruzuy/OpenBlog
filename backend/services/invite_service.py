@@ -25,6 +25,7 @@ Ownership invariants
 - Invitations can be redeemed idempotently: if the user is already a member,
   the invite is marked accepted and the existing membership is returned.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
@@ -129,8 +130,7 @@ def create_invite(
     role = role.lower().strip()
     if role not in _ALLOWED_INVITE_ROLES:
         raise ValueError(
-            f"Invalid invite role {role!r}. "
-            f"Allowed: {sorted(_ALLOWED_INVITE_ROLES)}"
+            f"Invalid invite role {role!r}. Allowed: {sorted(_ALLOWED_INVITE_ROLES)}"
         )
     if max_uses < 1:
         raise ValueError("max_uses must be at least 1")
@@ -168,9 +168,7 @@ def validate_invite(raw_token: str) -> str:
     """
     token_h = hash_token(raw_token)
     invite = db.session.scalar(
-        select(WorkspaceInvitation).where(
-            WorkspaceInvitation.token_hash == token_h
-        )
+        select(WorkspaceInvitation).where(WorkspaceInvitation.token_hash == token_h)
     )
     if invite is None:
         return _NOT_FOUND
@@ -190,9 +188,7 @@ def get_invite_by_token(raw_token: str) -> WorkspaceInvitation | None:
     """
     token_h = hash_token(raw_token)
     return db.session.scalar(
-        select(WorkspaceInvitation).where(
-            WorkspaceInvitation.token_hash == token_h
-        )
+        select(WorkspaceInvitation).where(WorkspaceInvitation.token_hash == token_h)
     )
 
 
@@ -228,9 +224,7 @@ def redeem_invite(raw_token: str, user: User) -> WorkspaceMember:
     """
     token_h = hash_token(raw_token)
     invite = db.session.scalar(
-        select(WorkspaceInvitation).where(
-            WorkspaceInvitation.token_hash == token_h
-        )
+        select(WorkspaceInvitation).where(WorkspaceInvitation.token_hash == token_h)
     )
 
     if invite is None:

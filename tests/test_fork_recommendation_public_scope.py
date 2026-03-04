@@ -62,7 +62,9 @@ def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
     return p
 
 
-def _make_fork(base: Post, author, *, workspace_id=None, status=PostStatus.published) -> Post:
+def _make_fork(
+    base: Post, author, *, workspace_id=None, status=PostStatus.published
+) -> Post:
     n = _n()
     fork = Post(
         title=f"FRP-Fork {n}",
@@ -125,7 +127,9 @@ class TestComputeFamilyPublicBase:
         _db.session.add(ws)
         _db.session.flush()
         _db.session.add(
-            WorkspaceMember(workspace_id=ws.id, user_id=author.id, role=WorkspaceMemberRole.owner)
+            WorkspaceMember(
+                workspace_id=ws.id, user_id=author.id, role=WorkspaceMemberRole.owner
+            )
         )
         _db.session.flush()
 

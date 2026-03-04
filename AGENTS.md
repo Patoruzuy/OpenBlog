@@ -282,6 +282,14 @@ OpenBlog aims to become:
 
 ---
 
+users.reputation_score is a cache of public reputation totals
+
+only reputation_service may write it
+
+all reputation changes must go through ledger events
+
+---
+
 # 10. Review Checklist
 
 Before merging any feature:

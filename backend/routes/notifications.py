@@ -100,9 +100,7 @@ def mark_notification_read(notification_id: int):
         NotificationService.mark_read(notification_id, user.id)
     except Exception:
         pass  # Silently ignore not-found; page refreshes cleanly.
-    return redirect(
-        request.referrer or url_for("notifications.notification_inbox")
-    )
+    return redirect(request.referrer or url_for("notifications.notification_inbox"))
 
 
 @ssr_notifications_bp.post("/read-all")

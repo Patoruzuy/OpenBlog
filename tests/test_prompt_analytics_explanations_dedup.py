@@ -88,9 +88,7 @@ def _ws_prompt(ws, author) -> Post:
 class TestExplanationDedup:
     """Fingerprint-based deduplication of analytics explanation requests."""
 
-    def test_same_post_same_kind_returns_same_row(
-        self, db_session, make_user_token
-    ):
+    def test_same_post_same_kind_returns_same_row(self, db_session, make_user_token):
         """PAE-DUP-001: two identical requests return the same AnalyticsExplanation."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)
@@ -127,9 +125,7 @@ class TestExplanationDedup:
         )
         assert count == 1
 
-    def test_different_kind_creates_new_row(
-        self, db_session, make_user_token
-    ):
+    def test_different_kind_creates_new_row(self, db_session, make_user_token):
         """PAE-DUP-002: changing kind changes fingerprint → new row."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)
@@ -143,9 +139,7 @@ class TestExplanationDedup:
 
         assert row_trend.id != row_fork.id
 
-    def test_failed_row_is_not_deduped(
-        self, db_session, make_user_token
-    ):
+    def test_failed_row_is_not_deduped(self, db_session, make_user_token):
         """PAE-DUP-003: a failed row is bypassed and a new row is created."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)
@@ -178,9 +172,7 @@ class TestExplanationDedup:
 
         assert new_row.id != failed_row.id, "Failed row must not block new requests"
 
-    def test_completed_row_is_deduped(
-        self, db_session, make_user_token
-    ):
+    def test_completed_row_is_deduped(self, db_session, make_user_token):
         """PAE-DUP-004: completed row is returned on second request."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)
@@ -233,7 +225,9 @@ class TestFingerprintStability:
         payload_a = {"a": 1, "b": 2, "c": 3}
         payload_b = {"c": 3, "a": 1, "b": 2}
 
-        assert explain_svc.compute_fingerprint(payload_a) == explain_svc.compute_fingerprint(payload_b)
+        assert explain_svc.compute_fingerprint(
+            payload_a
+        ) == explain_svc.compute_fingerprint(payload_b)
 
 
 # ==============================================================================

@@ -59,9 +59,7 @@ class WorkspaceMemberRole(str, enum.Enum):
     @property
     def rank(self) -> int:
         """Return a numeric privilege rank (higher = more power)."""
-        return {"owner": 40, "editor": 30, "contributor": 20, "viewer": 10}[
-            self.value
-        ]
+        return {"owner": 40, "editor": 30, "contributor": 20, "viewer": 10}[self.value]
 
     def meets(self, required: WorkspaceMemberRole) -> bool:
         """Return True if this role is at least as privileged as *required*."""

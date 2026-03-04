@@ -168,9 +168,7 @@ class TestListTree:
         _db.session.commit()
 
         tree = list_tree(public_only=True)
-        parent_item = next(
-            (i for i in tree if i.node.slug == f"tree-parent-{n}"), None
-        )
+        parent_item = next((i for i in tree if i.node.slug == f"tree-parent-{n}"), None)
         assert parent_item is not None
         child_slugs = {c.node.slug for c in parent_item.children}
         assert f"tree-child-{n}" in child_slugs

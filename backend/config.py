@@ -109,7 +109,9 @@ class BaseConfig:
 
     # ── AI Review Engine ────────────────────────────────────────────────────
     # Feature flag — set False to disable all AI review endpoints.
-    AI_REVIEWS_ENABLED: bool = os.environ.get("AI_REVIEWS_ENABLED", "true").lower() == "true"
+    AI_REVIEWS_ENABLED: bool = (
+        os.environ.get("AI_REVIEWS_ENABLED", "true").lower() == "true"
+    )
     # Workspace-only gate: reject any request without a workspace_id.
     AI_REVIEWS_WORKSPACE_ONLY: bool = True
     # Which provider to use: mock | openai | ollama

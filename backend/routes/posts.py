@@ -188,8 +188,9 @@ def post_detail(slug: str):
     is_watching_post = is_subscribed(user, "post", post.id) if user else False
 
     links_grouped = list_links_grouped(post, workspace_id=None)
-    can_manage_links = (
-        user is not None and user.role in (UserRole.editor, UserRole.admin)
+    can_manage_links = user is not None and user.role in (
+        UserRole.editor,
+        UserRole.admin,
     )
     link_suggestions = suggest_for_post(user, post, workspace_id=None)
 

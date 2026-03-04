@@ -159,9 +159,7 @@ def build_input(
             for m in metrics[-5:]
         ]
         deltas = [
-            m.delta_benchmark
-            for m in metrics[-2:]
-            if m.delta_benchmark is not None
+            m.delta_benchmark for m in metrics[-2:] if m.delta_benchmark is not None
         ]
 
         payload: dict = {

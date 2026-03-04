@@ -97,6 +97,7 @@ class TestRevisionAccept:
         contributor = _make_user()
         editor = _make_user()
         from backend.models.user import UserRole
+
         editor.role = UserRole.editor
         _db.session.flush()
 
@@ -149,11 +150,7 @@ class TestRevisionAccept:
         RevisionService.accept(revision_id=rev.id, reviewer_id=editor.id)
         _db.session.commit()
 
-        pv = (
-            _db.session.query(PostVersion)
-            .filter_by(post_id=post.id)
-            .first()
-        )
+        pv = _db.session.query(PostVersion).filter_by(post_id=post.id).first()
         assert pv is not None
         assert pv.post_id == post.id
 
@@ -182,6 +179,7 @@ class TestMetadataIndependentOfRevision:
         post_after = _db.session.get(type(post), post.id)
         assert post_after.version == v_before  # version unchanged
         from backend.models.prompt_metadata import PromptMetadata
+
         meta = _db.session.get(PromptMetadata, post.id)
         assert meta.category == "updated-cat"
 

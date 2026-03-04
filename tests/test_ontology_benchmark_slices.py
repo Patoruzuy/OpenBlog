@@ -166,7 +166,9 @@ class TestMappedRunAppears:
         _db.session.commit()
 
         runs = bsvc.list_runs_for_ontology_node(user, node, workspace=None)
-        assert any(r.id == run.id for r in runs), "Expected run to appear in ontology slice"
+        assert any(r.id == run.id for r in runs), (
+            "Expected run to appear in ontology slice"
+        )
 
 
 # ── OBS-002 ───────────────────────────────────────────────────────────────────
@@ -254,7 +256,9 @@ class TestWorkspaceOverlayIncluded:
         _db.session.commit()
 
         runs = bsvc.list_runs_for_ontology_node(owner, node, workspace=ws)
-        assert any(r.id == run.id for r in runs), "Workspace overlay run should appear for members"
+        assert any(r.id == run.id for r in runs), (
+            "Workspace overlay run should appear for members"
+        )
 
 
 # ── OBS-006 ───────────────────────────────────────────────────────────────────

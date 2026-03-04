@@ -36,7 +36,11 @@ from backend.security.roles import has_minimum_rank
 
 def _is_admin(user) -> bool:  # type: ignore[return]
     """Return True if the platform user is a site admin."""
-    return user is not None and getattr(user, "role", None) is not None and user.role.value == "admin"
+    return (
+        user is not None
+        and getattr(user, "role", None) is not None
+        and user.role.value == "admin"
+    )
 
 
 def _workspace_member_role(user, workspace: Workspace) -> str | None:

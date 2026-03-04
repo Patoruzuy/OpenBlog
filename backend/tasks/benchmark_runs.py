@@ -109,7 +109,11 @@ def run_benchmark(self, run_id: int) -> dict:  # type: ignore[override]  # noqa:
             # Re-check cancellation from DB before each case.
             db.session.refresh(run)
             if run.status == BenchmarkRunStatus.canceled.value:
-                return {"run_id": run_id, "status": "canceled", "results": results_stored}
+                return {
+                    "run_id": run_id,
+                    "status": "canceled",
+                    "results": results_stored,
+                }
 
             # Render prompt by simple variable substitution.
             rendered = _render_prompt(prompt_body, case.input_json)

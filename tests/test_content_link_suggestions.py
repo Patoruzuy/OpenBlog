@@ -101,9 +101,7 @@ def _make_post(
         from backend.models.tag import PostTag  # noqa: PLC0415
 
         for tag in tags:
-            _db.session.execute(
-                insert(PostTag).values(post_id=p.id, tag_id=tag.id)
-            )
+            _db.session.execute(insert(PostTag).values(post_id=p.id, tag_id=tag.id))
         _db.session.flush()
     return p
 
@@ -140,8 +138,14 @@ def _add_link(editor, from_post: Post, to_post: Post, link_type: str = "related"
     _db.session.flush()
 
 
-def _make_prompt(author, *, workspace_id: int | None = None, category: str = "general",
-                 tags: list | None = None, status: PostStatus = PostStatus.published) -> Post:
+def _make_prompt(
+    author,
+    *,
+    workspace_id: int | None = None,
+    category: str = "general",
+    tags: list | None = None,
+    status: PostStatus = PostStatus.published,
+) -> Post:
     from backend.services.prompt_service import create_prompt
 
     n = _n()
@@ -335,8 +339,8 @@ class TestWorkspaceScope:
         ws = _make_workspace(editor)
         tag = _make_tag("pub-only-tag")
 
-        source = _make_post(editor, tags=[tag])            # public source
-        pub = _make_post(editor, tags=[tag])               # public
+        source = _make_post(editor, tags=[tag])  # public source
+        pub = _make_post(editor, tags=[tag])  # public
         ws_post = _make_post(editor, workspace_id=ws.id, tags=[tag])  # workspace
         _db.session.commit()
 
@@ -451,10 +455,10 @@ class TestScoringHeuristics:
 
         shared_target = _make_post(editor, tags=[tag])
         source = _make_post(editor, tags=[tag])
-        co_linked = _make_post(editor, tags=[tag])   # also links to shared_target
-        no_colink = _make_post(editor, tags=[tag])   # no shared target
+        co_linked = _make_post(editor, tags=[tag])  # also links to shared_target
+        no_colink = _make_post(editor, tags=[tag])  # no shared target
 
-        _add_link(editor, source, shared_target)     # source → shared_target
+        _add_link(editor, source, shared_target)  # source → shared_target
         _add_link(editor, co_linked, shared_target)  # co_linked → shared_target
         _db.session.commit()
 

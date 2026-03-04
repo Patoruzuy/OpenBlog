@@ -171,7 +171,9 @@ def _validate_variant(
 ) -> None:
     """Enforce scope rules for one variant prompt against the suite."""
     if prompt.status != PostStatus.published:
-        raise BenchmarkError(f"{label}: only published prompts can be benchmarked.", status_code=422)
+        raise BenchmarkError(
+            f"{label}: only published prompts can be benchmarked.", status_code=422
+        )
 
     if suite.workspace_id is None:
         # Public suite — prompt must also be public.
@@ -181,7 +183,10 @@ def _validate_variant(
             )
     else:
         # Workspace suite — prompt must be in the SAME workspace or be public.
-        if prompt.workspace_id is not None and prompt.workspace_id != suite.workspace_id:
+        if (
+            prompt.workspace_id is not None
+            and prompt.workspace_id != suite.workspace_id
+        ):
             raise BenchmarkError(
                 f"{label}: prompt belongs to a different workspace.", status_code=422
             )
@@ -217,15 +222,21 @@ def create_experiment(
         if member is None:
             raise BenchmarkError("Not a workspace member.", status_code=404)
         if not member.role.meets(WorkspaceMemberRole.editor):
-            raise BenchmarkError("Editor role required to create experiments.", status_code=403)
+            raise BenchmarkError(
+                "Editor role required to create experiments.", status_code=403
+            )
 
     # Suite scope.
     if workspace is None:
         if suite.workspace_id is not None:
-            raise BenchmarkError("Public experiments require a public suite.", status_code=422)
+            raise BenchmarkError(
+                "Public experiments require a public suite.", status_code=422
+            )
     else:
         if suite.workspace_id != workspace.id:
-            raise BenchmarkError("Suite does not belong to this workspace.", status_code=422)
+            raise BenchmarkError(
+                "Suite does not belong to this workspace.", status_code=422
+            )
 
     # Variant scope.
     _validate_variant(variant_a_prompt, suite=suite, label="Variant A")
@@ -401,7 +412,11 @@ def _sync_completion(experiment: ABExperiment) -> None:
     run_b = er.run_b  # type: ignore[union-attr]
     if run_a is None or run_b is None:
         return
-    terminal = {BenchmarkRunStatus.completed.value, BenchmarkRunStatus.failed.value, BenchmarkRunStatus.canceled.value}
+    terminal = {
+        BenchmarkRunStatus.completed.value,
+        BenchmarkRunStatus.failed.value,
+        BenchmarkRunStatus.canceled.value,
+    }
     if run_a.status in terminal and run_b.status in terminal:  # type: ignore[union-attr]
         if experiment.status == ABExperimentStatus.running.value:
             experiment.status = ABExperimentStatus.completed.value
@@ -428,8 +443,16 @@ def compute_comparison(
     user = _require_auth(user)
     _assert_access(experiment, user)
 
+    # Track the transition so the reputation award fires only when the
+    # experiment moves from running → completed (not on every subsequent call).
+    _was_running = experiment.status == ABExperimentStatus.running.value
+
     # Lazily mark as completed if both runs finished.
     _sync_completion(experiment)
+
+    _just_completed = (
+        _was_running and experiment.status == ABExperimentStatus.completed.value
+    )
 
     comparison = ExperimentComparison(experiment=experiment)
 
@@ -489,8 +512,12 @@ def compute_comparison(
             case_name=name_map.get(cid, f"Case {cid}"),
             output_a=ra.output_text if ra else None,
             output_b=rb.output_text if rb else None,
-            score_a=Decimal(str(ra.score_numeric)) if ra and ra.score_numeric is not None else None,
-            score_b=Decimal(str(rb.score_numeric)) if rb and rb.score_numeric is not None else None,
+            score_a=Decimal(str(ra.score_numeric))
+            if ra and ra.score_numeric is not None
+            else None,
+            score_b=Decimal(str(rb.score_numeric))
+            if rb and rb.score_numeric is not None
+            else None,
         )
         case_rows.append(row)
         if row.score_a is not None:
@@ -506,4 +533,45 @@ def compute_comparison(
     comparison.count_matched = matched
     comparison.avg_score_a = (sum(scores_a) / len(scores_a)) if scores_a else None
     comparison.avg_score_b = (sum(scores_b) / len(scores_b)) if scores_b else None
+
+    # ── A/B win reputation event ───────────────────────────────────────────
+    # Fires only on the call that transitions the experiment to completed.
+    # Fingerprint makes it idempotent against concurrent calls.
+    if (
+        _just_completed
+        and comparison.avg_score_a is not None
+        and comparison.avg_score_b is not None
+        and comparison.avg_score_a != comparison.avg_score_b
+    ):
+        from backend.services.reputation_service import (
+            ReputationService,  # noqa: PLC0415
+        )
+
+        winner_label = "b" if comparison.avg_score_b > comparison.avg_score_a else "a"
+        winner_author_id = (
+            experiment.variant_b_prompt.author_id
+            if winner_label == "b"
+            else experiment.variant_a_prompt.author_id
+        )
+        try:
+            ReputationService.award_event(
+                user_id=winner_author_id,
+                workspace_id=experiment.workspace_id,
+                event_type="ab_win",
+                source_type="ab_experiment",
+                source_id=experiment.id,
+                points=ReputationService.POINTS_AB_WIN,
+                fingerprint_parts={
+                    "experiment_id": experiment.id,
+                    "winner": winner_label,
+                },
+                metadata={
+                    "delta": str(comparison.delta),
+                    "avg_score_a": str(comparison.avg_score_a),
+                    "avg_score_b": str(comparison.avg_score_b),
+                },
+            )
+        except Exception:  # noqa: BLE001  — reputation failure must not break comparison
+            pass
+
     return comparison

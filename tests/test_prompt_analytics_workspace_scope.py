@@ -128,6 +128,7 @@ def _login(client, user) -> None:
 # WAS-001  Member sees workspace + public forks
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestWorkspaceMemberForkVisibility:
     def test_member_sees_both_public_and_workspace_forks(self, db_session):
         """WAS-001: workspace context includes public forks AND same-ws forks."""
@@ -150,6 +151,7 @@ class TestWorkspaceMemberForkVisibility:
 # WAS-002  Public scope never sees workspace forks
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestPublicScopeNoWorkspaceForks:
     def test_public_scope_excludes_ws_fork(self, db_session):
         """WAS-002: public scope (workspace_id=None) never returns workspace forks."""
@@ -167,6 +169,7 @@ class TestPublicScopeNoWorkspaceForks:
 # ──────────────────────────────────────────────────────────────────────────────
 # WAS-003  Workspace scope never sees forks from a different workspace
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestWorkspaceScopeNoOtherWorkspace:
     def test_other_workspace_fork_excluded(self, db_session):
@@ -186,6 +189,7 @@ class TestWorkspaceScopeNoOtherWorkspace:
 # ──────────────────────────────────────────────────────────────────────────────
 # WAS-004  Non-member gets 404 from workspace analytics route
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestWorkspaceRouteNonMemberAccess:
     def test_non_member_404(self, auth_client, db_session):
@@ -216,6 +220,7 @@ class TestWorkspaceRouteNonMemberAccess:
 # WAS-005  Cache-Control header on workspace analytics
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestWorkspaceAnalyticsCacheControl:
     def test_cache_control_private_no_store(self, auth_client, db_session):
         """WAS-005: workspace analytics response carries Cache-Control: private, no-store."""
@@ -234,6 +239,7 @@ class TestWorkspaceAnalyticsCacheControl:
 # ──────────────────────────────────────────────────────────────────────────────
 # WAS-006  Fork scope field is correctly set
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestForkScopeField:
     def test_public_fork_scope_is_public(self, db_session):
@@ -268,6 +274,7 @@ class TestForkScopeField:
 # WAS-007  Workspace route returns 200 for member
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestWorkspaceAnalyticsRoute200:
     def test_member_gets_200(self, auth_client, db_session):
         """WAS-007: workspace owner gets 200 from workspace analytics route."""
@@ -297,6 +304,7 @@ class TestWorkspaceAnalyticsRoute200:
 # ──────────────────────────────────────────────────────────────────────────────
 # WAS-008  Workspace member sees both public + ws forks on analytics page
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestWorkspaceAnalyticsPageForkCount:
     def test_fork_titles_appear_in_workspace_analytics(self, auth_client, db_session):

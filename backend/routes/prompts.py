@@ -171,11 +171,15 @@ def public_prompt_detail(slug: str):
     )
     link_suggestions = suggest_for_post(user, prompt, workspace_id=None)
 
-    from backend.services.content_ontology_service import (  # noqa: PLC0415
-        get_mappings_for_post as _get_ont_mappings,
+    from backend.services.content_ontology_service import (
         get_mapping_ids_for_post as _get_ont_ids,
     )
-    from backend.services.ontology_service import list_tree as _list_tree  # noqa: PLC0415
+    from backend.services.content_ontology_service import (  # noqa: PLC0415
+        get_mappings_for_post as _get_ont_mappings,
+    )
+    from backend.services.ontology_service import (
+        list_tree as _list_tree,  # noqa: PLC0415
+    )
 
     ontology_mappings = _get_ont_mappings(user, prompt, workspace=None)
     ontology_all_nodes = _list_tree(public_only=True)
@@ -236,14 +240,17 @@ def public_prompt_analytics(slug: str):
     fork_comparison = build_fork_comparison(prompt, workspace=None)
     trend_label = compute_trend_label(version_metrics)
 
-    from backend.services.benchmark_service import get_benchmark_summary_for_prompt  # noqa: PLC0415
+    from backend.services.benchmark_service import (
+        get_benchmark_summary_for_prompt,  # noqa: PLC0415
+    )
 
     benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=None)
 
     from backend.services.prompt_analytics_explain_service import (  # noqa: PLC0415
-        get_explanation_any_status,
         AnalyticsExplanationKind,
+        get_explanation_any_status,
     )
+
     user = get_current_user()
     explanations = {
         k: get_explanation_any_status(prompt, workspace=None, kind=k)
@@ -289,7 +296,6 @@ def public_prompt_analytics_explain(slug: str, kind: str):
         flash(exc.message, "error")
 
     return redirect(url_for("prompts.public_prompt_analytics", slug=slug))
-
 
 
 @prompts_bp.get("/w/<ws_slug>/prompts/")
@@ -341,14 +347,17 @@ def ws_prompt_analytics(ws_slug: str, slug: str):
     fork_comparison = build_fork_comparison(prompt, workspace=ws)
     trend_label = compute_trend_label(version_metrics)
 
-    from backend.services.benchmark_service import get_benchmark_summary_for_prompt  # noqa: PLC0415
+    from backend.services.benchmark_service import (
+        get_benchmark_summary_for_prompt,  # noqa: PLC0415
+    )
 
     benchmark_summary = get_benchmark_summary_for_prompt(prompt, workspace_id=ws.id)
 
     from backend.services.prompt_analytics_explain_service import (  # noqa: PLC0415
-        get_explanation_any_status,
         AnalyticsExplanationKind,
+        get_explanation_any_status,
     )
+
     explanations = {
         k: get_explanation_any_status(prompt, workspace=ws, kind=k)
         for k in AnalyticsExplanationKind.values()
@@ -410,7 +419,6 @@ def ws_prompt_analytics_explain(ws_slug: str, slug: str, kind: str):
         )
     )
     return _ws_no_store(resp)
-
 
 
 @prompts_bp.route("/w/<ws_slug>/prompts/new", methods=["GET", "POST"])
@@ -496,6 +504,7 @@ def ws_prompt_detail(ws_slug: str, slug: str):
     meta = get_prompt_metadata(prompt.id)
     variables = parsed_variables(meta) if meta else {}
 
+    from backend.models.user import UserRole  # noqa: PLC0415
     from backend.services.content_link_service import (
         _can_manage,  # noqa: PLC0415
         list_links_grouped,  # noqa: PLC0415
@@ -503,17 +512,20 @@ def ws_prompt_detail(ws_slug: str, slug: str):
     from backend.services.content_link_suggestion_service import (  # noqa: PLC0415
         suggest_for_post,
     )
-    from backend.models.user import UserRole  # noqa: PLC0415
 
     links_grouped = list_links_grouped(prompt, workspace_id=ws.id)
     can_manage_links = user is not None and _can_manage(user, ws.id)
     link_suggestions = suggest_for_post(user, prompt, workspace_id=ws.id)
 
-    from backend.services.content_ontology_service import (  # noqa: PLC0415
-        get_mappings_for_post as _get_ont_mappings,
+    from backend.services.content_ontology_service import (
         get_mapping_ids_for_post as _get_ont_ids,
     )
-    from backend.services.ontology_service import list_tree as _list_tree  # noqa: PLC0415
+    from backend.services.content_ontology_service import (  # noqa: PLC0415
+        get_mappings_for_post as _get_ont_mappings,
+    )
+    from backend.services.ontology_service import (
+        list_tree as _list_tree,  # noqa: PLC0415
+    )
 
     ontology_mappings = _get_ont_mappings(user, prompt, workspace=ws)
     ontology_all_nodes = _list_tree(public_only=True)

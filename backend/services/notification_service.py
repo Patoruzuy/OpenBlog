@@ -146,9 +146,7 @@ def _require_workspace_membership(user_id: int, workspace_id: int) -> None:
         )
 
 
-def _check_subscribe_permission(
-    user: User, target_type: str, target_id: int
-) -> None:
+def _check_subscribe_permission(user: User, target_type: str, target_id: int) -> None:
     """Raise :class:`NotificationError` if *user* may not subscribe.
 
     Rules
@@ -331,9 +329,7 @@ def get_recipients(
         if post is not None and post.workspace_id is None:
             # Resolve tag IDs from payload first (avoids a second SQL round-
             # trip if the caller already included them), then fall back to DB.
-            tag_ids: list[int] = [
-                int(t) for t in payload.get("tag_ids", [])
-            ]
+            tag_ids: list[int] = [int(t) for t in payload.get("tag_ids", [])]
             if not tag_ids:
                 tag_ids = [tag.id for tag in post.tags]
             if tag_ids:

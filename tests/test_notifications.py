@@ -125,19 +125,27 @@ class TestSubscribe:
         assert exc_info.value.status_code == 400
 
     def test_non_member_cannot_subscribe_to_workspace(
-        self, bob, workspace_and_doc, db_session  # noqa: ARG002
+        self,
+        bob,
+        workspace_and_doc,
+        db_session,  # noqa: ARG002
     ):
         ws, _ = workspace_and_doc
         # Create an outsider user.
         from backend.services.auth_service import AuthService
 
-        outsider = AuthService.register("out@example.com", "outsider", "StrongPass123!!")
+        outsider = AuthService.register(
+            "out@example.com", "outsider", "StrongPass123!!"
+        )
         with pytest.raises(NotificationError) as exc_info:
             subscribe(outsider, "workspace", ws.id)
         assert exc_info.value.status_code == 403
 
     def test_workspace_member_can_subscribe_to_workspace(
-        self, alice, workspace_and_doc, db_session  # noqa: ARG002
+        self,
+        alice,
+        workspace_and_doc,
+        db_session,  # noqa: ARG002
     ):
         ws, _ = workspace_and_doc
         sub = subscribe(alice, "workspace", ws.id)
@@ -145,18 +153,25 @@ class TestSubscribe:
         assert sub.target_id == ws.id
 
     def test_non_member_cannot_subscribe_to_workspace_doc(
-        self, workspace_and_doc, db_session  # noqa: ARG002
+        self,
+        workspace_and_doc,
+        db_session,  # noqa: ARG002
     ):
         ws, doc = workspace_and_doc
         from backend.services.auth_service import AuthService
 
-        outsider = AuthService.register("out2@example.com", "outsider2", "StrongPass123!!")
+        outsider = AuthService.register(
+            "out2@example.com", "outsider2", "StrongPass123!!"
+        )
         with pytest.raises(NotificationError) as exc_info:
             subscribe(outsider, "post", doc.id)
         assert exc_info.value.status_code == 403
 
     def test_workspace_member_can_subscribe_to_doc(
-        self, bob, workspace_and_doc, db_session  # noqa: ARG002
+        self,
+        bob,
+        workspace_and_doc,
+        db_session,  # noqa: ARG002
     ):
         _, doc = workspace_and_doc
         sub = subscribe(bob, "post", doc.id)
@@ -173,7 +188,10 @@ class TestSubscribe:
 
 class TestUnsubscribe:
     def test_unsubscribe_returns_true_when_found(
-        self, alice, pub_post, db_session  # noqa: ARG002
+        self,
+        alice,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         subscribe(alice, "post", pub_post.id)
         result = unsubscribe(alice, "post", pub_post.id)
@@ -184,7 +202,10 @@ class TestUnsubscribe:
         assert result is False  # never subscribed
 
     def test_subscription_gone_after_unsubscribe(
-        self, alice, pub_post, db_session  # noqa: ARG002
+        self,
+        alice,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         subscribe(alice, "post", pub_post.id)
         unsubscribe(alice, "post", pub_post.id)
@@ -217,7 +238,9 @@ class TestFanout:
     def _setup(self, make_user_token, db_session):  # noqa: ARG002
         """Return (post_author, contributor, editor, pub_post) for revision tests."""
         post_author, _ = make_user_token("pa@example.com", "post_author", role="editor")
-        contributor, _ = make_user_token("contrib@example.com", "contrib", role="contributor")
+        contributor, _ = make_user_token(
+            "contrib@example.com", "contrib", role="contributor"
+        )
         editor_user, _ = make_user_token("ed@example.com", "ed", role="editor")
 
         post = Post(
@@ -232,7 +255,9 @@ class TestFanout:
         return post_author, contributor, editor_user, post
 
     def test_revision_accepted_notifies_author_even_without_subscription(
-        self, _setup, db_session  # noqa: ARG002
+        self,
+        _setup,
+        db_session,  # noqa: ARG002
     ):
         """revision author is a direct participant → notified without subscribing."""
         from sqlalchemy import select
@@ -259,7 +284,10 @@ class TestFanout:
         assert notif.is_read is False
 
     def test_revision_accepted_notifies_watcher(
-        self, _setup, make_user_token, db_session  # noqa: ARG002
+        self,
+        _setup,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         """A post watcher receives the revision.accepted notification."""
         from sqlalchemy import select
@@ -267,7 +295,9 @@ class TestFanout:
         from backend.services.revision_service import RevisionService
 
         _, contributor, editor_user, post = _setup
-        watcher, _ = make_user_token("watcher@example.com", "watcher", role="contributor")
+        watcher, _ = make_user_token(
+            "watcher@example.com", "watcher", role="contributor"
+        )
 
         subscribe(watcher, "post", post.id)
         revision = RevisionService.submit(
@@ -287,7 +317,9 @@ class TestFanout:
         assert notif is not None
 
     def test_revision_rejected_notifies_author(
-        self, _setup, db_session  # noqa: ARG002
+        self,
+        _setup,
+        db_session,  # noqa: ARG002
     ):
         from sqlalchemy import select
 
@@ -301,7 +333,9 @@ class TestFanout:
             proposed_markdown="# Fanout\n\nBad change.",
             summary="Bad change",
         )
-        RevisionService.reject(revision.id, reviewer_id=editor_user.id, note="Not good enough")
+        RevisionService.reject(
+            revision.id, reviewer_id=editor_user.id, note="Not good enough"
+        )
 
         notif = db.session.scalar(
             select(Notification).where(
@@ -313,7 +347,9 @@ class TestFanout:
         assert "Not good enough" in notif.body
 
     def test_actor_does_not_self_notify(
-        self, _setup, db_session  # noqa: ARG002
+        self,
+        _setup,
+        db_session,  # noqa: ARG002
     ):
         """The reviewing editor should not receive a notification for their own action."""
         from sqlalchemy import select
@@ -341,7 +377,10 @@ class TestFanout:
         assert notif is None
 
     def test_notification_dedup_fingerprint(
-        self, alice, pub_post, db_session  # noqa: ARG002
+        self,
+        alice,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         """Second call with the same payload must not create a duplicate row."""
         payload = {
@@ -378,7 +417,11 @@ class TestFanout:
 
 class TestAccessFilter:
     def test_non_member_filtered_from_workspace_notification(
-        self, alice, bob, workspace_and_doc, db_session  # noqa: ARG002
+        self,
+        alice,
+        bob,
+        workspace_and_doc,
+        db_session,  # noqa: ARG002
     ):
         """An outsider subscribed at the DB level is stripped by the access filter."""
         ws, doc = workspace_and_doc
@@ -386,14 +429,18 @@ class TestAccessFilter:
         # Manually add both subscription rows, bypassing permission check.
         from backend.models.subscription import Subscription
 
-        outsider_sub = Subscription(user_id=bob.id, target_type="workspace", target_id=ws.id)
+        outsider_sub = Subscription(
+            user_id=bob.id, target_type="workspace", target_id=ws.id
+        )
         db.session.add(outsider_sub)
 
         # bob is a workspace member per workspace_and_doc fixture, but let's also
         # test with a freshly created non-member.
         from backend.services.auth_service import AuthService
 
-        non_member = AuthService.register("nm@example.com", "nonmember", "StrongPass123!!")
+        non_member = AuthService.register(
+            "nm@example.com", "nonmember", "StrongPass123!!"
+        )
 
         recipients = {alice.id, non_member.id}
         accessible = filter_recipients_by_access(recipients, "workspace", ws.id)
@@ -403,13 +450,18 @@ class TestAccessFilter:
         assert non_member.id not in accessible
 
     def test_non_member_filtered_from_workspace_doc_notification(
-        self, alice, workspace_and_doc, db_session  # noqa: ARG002
+        self,
+        alice,
+        workspace_and_doc,
+        db_session,  # noqa: ARG002
     ):
         ws, doc = workspace_and_doc
 
         from backend.services.auth_service import AuthService
 
-        non_member = AuthService.register("nm2@example.com", "nonmember2", "StrongPass123!!")
+        non_member = AuthService.register(
+            "nm2@example.com", "nonmember2", "StrongPass123!!"
+        )
 
         recipients = {alice.id, non_member.id}
         accessible = filter_recipients_by_access(recipients, "post", doc.id)
@@ -438,7 +490,10 @@ class TestGetRecipients:
         assert bob.id in recipients
 
     def test_includes_revision_author_as_direct_participant(
-        self, alice, pub_post, db_session  # noqa: ARG002
+        self,
+        alice,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         payload = {
             "post_id": pub_post.id,
@@ -514,7 +569,10 @@ class TestNotificationRoutes:
         assert resp.status_code == 302
 
     def test_inbox_has_cache_control(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         user, token = make_user_token("inbox@example.com", "inbox_user")
         with auth_client.session_transaction() as sess:
@@ -525,7 +583,10 @@ class TestNotificationRoutes:
         assert "no-store" in cc
 
     def test_mark_notification_read_post(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         user, _ = make_user_token("rdr@example.com", "rdr_user")
         notif = Notification(
@@ -551,7 +612,10 @@ class TestNotificationRoutes:
         assert notif.is_read is True
 
     def test_mark_all_read_post(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         user, _ = make_user_token("rda@example.com", "rda_user")
         for _ in range(3):
@@ -578,7 +642,11 @@ class TestNotificationRoutes:
 
 class TestBackwardCompat:
     def test_notification_type_set_to_revision_accepted(
-        self, bob, editor, pub_post, db_session  # noqa: ARG002
+        self,
+        bob,
+        editor,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         """notification_type must equal 'revision_accepted' for existing tests."""
         from sqlalchemy import select
@@ -604,7 +672,11 @@ class TestBackwardCompat:
         )
 
     def test_notification_type_set_to_revision_rejected(
-        self, bob, editor, pub_post, db_session  # noqa: ARG002
+        self,
+        bob,
+        editor,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         from sqlalchemy import select
 
@@ -632,8 +704,12 @@ class TestBackwardCompat:
 
 class TestComputeFingerprint:
     def test_same_inputs_same_fingerprint(self):
-        fp1 = compute_fingerprint("revision.accepted", "revision", 1, {"revision_id": 5})
-        fp2 = compute_fingerprint("revision.accepted", "revision", 1, {"revision_id": 5})
+        fp1 = compute_fingerprint(
+            "revision.accepted", "revision", 1, {"revision_id": 5}
+        )
+        fp2 = compute_fingerprint(
+            "revision.accepted", "revision", 1, {"revision_id": 5}
+        )
         assert fp1 == fp2
 
     def test_different_version_different_fingerprint(self):

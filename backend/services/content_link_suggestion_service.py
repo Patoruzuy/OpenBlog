@@ -69,7 +69,7 @@ _RECENCY_WINDOW: timedelta = timedelta(days=90)
 # Scoring weights
 _W_CATEGORY: float = 0.20
 _W_COLINK: float = 0.10
-_W_QUALITY: float = 0.10   # max vote-based boost
+_W_QUALITY: float = 0.10  # max vote-based boost
 _W_RECENCY: float = 0.05
 
 
@@ -84,7 +84,7 @@ class Suggestion:
     title: str
     slug: str
     kind: str
-    scope: str   # 'public' | 'workspace'
+    scope: str  # 'public' | 'workspace'
     reason: str  # Human-readable explanation shown in UI
     score: float
 
@@ -178,7 +178,6 @@ def suggest_for_post(
 
     candidate_ids: list[int] = [p.id for p in candidates]
 
-
     # ── 4. Existing links for exclusion + co-link base ────────────────────
     existing_link_rows = db.session.execute(
         select(ContentLink.from_post_id, ContentLink.to_post_id).where(
@@ -253,12 +252,16 @@ def suggest_for_post(
     # ── 9. Co-link expansion ──────────────────────────────────────────────
     co_linked_ids: set[int] = set()
     if source_outgoing_targets:
-        co_link_rows = db.session.execute(
-            select(ContentLink.from_post_id).where(
-                ContentLink.to_post_id.in_(source_outgoing_targets),
-                ContentLink.from_post_id != source_id,
+        co_link_rows = (
+            db.session.execute(
+                select(ContentLink.from_post_id).where(
+                    ContentLink.to_post_id.in_(source_outgoing_targets),
+                    ContentLink.from_post_id != source_id,
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         co_linked_ids = set(co_link_rows)
 
     # ── Score each candidate ─────────────────────────────────────────────

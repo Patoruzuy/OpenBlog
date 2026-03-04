@@ -138,9 +138,7 @@ def upgrade() -> None:
     op.create_index("ix_posts_workspace_kind", "posts", ["workspace_id", "kind"])
 
     # 8. Index on playbook_templates.is_public
-    op.create_index(
-        "ix_playbook_templates_public", "playbook_templates", ["is_public"]
-    )
+    op.create_index("ix_playbook_templates_public", "playbook_templates", ["is_public"])
 
     # 9. Index for fast latest-version lookups
     op.create_index(
@@ -154,7 +152,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_playbook_template_versions_template", "playbook_template_versions")
+    op.drop_index(
+        "ix_playbook_template_versions_template", "playbook_template_versions"
+    )
     op.drop_index("ix_playbook_templates_public", "playbook_templates")
     op.drop_index("ix_posts_workspace_kind", "posts")
     op.drop_index("ix_posts_kind", "posts")

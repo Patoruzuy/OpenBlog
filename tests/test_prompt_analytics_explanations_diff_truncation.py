@@ -96,9 +96,7 @@ def _ws_prompt(ws, author, body: str | None = None) -> Post:
 class TestVersionDiffTruncation:
     """build_input truncates version diffs to _MAX_DIFF_CHARS."""
 
-    def test_long_diff_is_capped_at_4000_chars(
-        self, db_session, make_user_token
-    ):
+    def test_long_diff_is_capped_at_4000_chars(self, db_session, make_user_token):
         """PAE-TRUNC-001: diff string in build_input result is ≤ 4 000 chars."""
         author, _ = _new_user(make_user_token, role="editor")
         # Create a prompt with a minimal body.
@@ -132,9 +130,7 @@ class TestVersionDiffTruncation:
             f"Diff length {len(result['diff'])} exceeds {_MAX_DIFF_CHARS}"
         )
 
-    def test_no_post_versions_produces_empty_diff(
-        self, db_session, make_user_token
-    ):
+    def test_no_post_versions_produces_empty_diff(self, db_session, make_user_token):
         """PAE-TRUNC-008: no PostVersion rows → diff is empty string."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)
@@ -154,9 +150,7 @@ class TestVersionDiffTruncation:
 class TestInputJsonSizeCaps:
     """build_input JSON payloads respect size limits."""
 
-    def test_trend_input_json_within_2000_chars(
-        self, db_session, make_user_token
-    ):
+    def test_trend_input_json_within_2000_chars(self, db_session, make_user_token):
         """PAE-TRUNC-002: serialised trend payload never exceeds 2 000 chars."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)
@@ -218,9 +212,7 @@ class TestOutputTruncation:
 class TestTaskInputCap:
     """Celery task must not send more than AI_MAX_INPUT_CHARS to the provider."""
 
-    def test_task_runs_with_large_version_diff(
-        self, db_session, make_user_token, app
-    ):
+    def test_task_runs_with_large_version_diff(self, db_session, make_user_token, app):
         """PAE-TRUNC-005: task completes even when raw diff exceeds AI_MAX_INPUT_CHARS."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)

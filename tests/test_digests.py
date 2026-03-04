@@ -363,7 +363,9 @@ class TestSendDigestForUser:
         # Verify email arguments
         call_kwargs = mock_send.call_args
         assert alice.email in (
-            call_kwargs.args[0] if call_kwargs.args else call_kwargs.kwargs.get("to", "")
+            call_kwargs.args[0]
+            if call_kwargs.args
+            else call_kwargs.kwargs.get("to", "")
         )
 
         run = db.session.scalar(
@@ -444,9 +446,7 @@ class TestDigestTasks:
         """send_daily_digests should trigger send_digest_for_user_task for each eligible user."""
         from backend.tasks.digests import send_daily_digests, send_digest_for_user_task
 
-        with patch.object(
-            send_digest_for_user_task, "delay", wraps=None
-        ) as mock_delay:
+        with patch.object(send_digest_for_user_task, "delay", wraps=None) as mock_delay:
             mock_delay.return_value = MagicMock()
             send_daily_digests.apply()
 
@@ -463,9 +463,7 @@ class TestDigestTasks:
         from backend.tasks.digests import send_digest_for_user_task, send_weekly_digests
 
         # alice is 'daily' — should NOT be picked up by weekly task
-        with patch.object(
-            send_digest_for_user_task, "delay", wraps=None
-        ) as mock_delay:
+        with patch.object(send_digest_for_user_task, "delay", wraps=None) as mock_delay:
             mock_delay.return_value = MagicMock()
             send_weekly_digests.apply()
 
@@ -482,9 +480,7 @@ class TestDigestTasks:
         alice_pref.email_digest_frequency = "weekly"
         db.session.commit()
 
-        with patch.object(
-            send_digest_for_user_task, "delay", wraps=None
-        ) as mock_delay:
+        with patch.object(send_digest_for_user_task, "delay", wraps=None) as mock_delay:
             mock_delay.return_value = MagicMock()
             send_weekly_digests.apply()
 
@@ -492,18 +488,14 @@ class TestDigestTasks:
         user_ids_dispatched = [c.args[0] for c in mock_delay.call_args_list]
         assert alice.id in user_ids_dispatched
 
-    def test_no_dispatch_when_email_disabled(
-        self, alice, alice_pref, db_session
-    ):
+    def test_no_dispatch_when_email_disabled(self, alice, alice_pref, db_session):
         """Users with email_enabled=False must not receive digests."""
         from backend.tasks.digests import send_daily_digests, send_digest_for_user_task
 
         alice_pref.email_enabled = False
         db.session.commit()
 
-        with patch.object(
-            send_digest_for_user_task, "delay", wraps=None
-        ) as mock_delay:
+        with patch.object(send_digest_for_user_task, "delay", wraps=None) as mock_delay:
             mock_delay.return_value = MagicMock()
             send_daily_digests.apply()
 

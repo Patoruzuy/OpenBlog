@@ -163,7 +163,11 @@ class TestPublicExplainRouteHTTP:
         assert resp.status_code == 200
         body = resp.data.decode()
         # The flash message should contain error text indicating invalid kind.
-        assert "invalid" in body.lower() or "error" in body.lower() or "kind" in body.lower()
+        assert (
+            "invalid" in body.lower()
+            or "error" in body.lower()
+            or "kind" in body.lower()
+        )
 
 
 # ==============================================================================
@@ -189,9 +193,7 @@ class TestPublicExplainServiceLayer:
 
         assert exc_info.value.status_code == 401
 
-    def test_fork_rationale_explanation_completes(
-        self, db_session, make_user_token
-    ):
+    def test_fork_rationale_explanation_completes(self, db_session, make_user_token):
         """PAE-PUB-006: fork_rationale kind completes with mock provider."""
         author, _ = _new_user(make_user_token, role="editor")
         prompt = _public_prompt(author)

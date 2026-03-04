@@ -39,9 +39,7 @@ def _make_user(role: str = "reader"):
     from backend.services.auth_service import AuthService
 
     n = _n()
-    user = AuthService.register(
-        f"cl{n}@example.com", f"cluser{n}", "StrongPass123!!"
-    )
+    user = AuthService.register(f"cl{n}@example.com", f"cluser{n}", "StrongPass123!!")
     if role != "reader":
         user.role = UserRole(role)
         _db.session.flush()
@@ -173,7 +171,7 @@ class TestListLinks:
         spoke2 = _make_post(editor)
         _db.session.commit()
 
-        svc.add_link(editor, hub, spoke1, "related")   # hub → spoke1
+        svc.add_link(editor, hub, spoke1, "related")  # hub → spoke1
         svc.add_link(editor, spoke2, hub, "derived_from")  # spoke2 → hub
         _db.session.commit()
         return hub, spoke1, spoke2

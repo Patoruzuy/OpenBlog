@@ -57,7 +57,9 @@ def _make_workspace(owner: User, name: str = "Test WS"):
     return ws
 
 
-def _make_published_article(author: User, slug: str = "public-article", workspace_id=None) -> Post:
+def _make_published_article(
+    author: User, slug: str = "public-article", workspace_id=None
+) -> Post:
     """Create a published article (kind='article') for feed/explore isolation tests."""
     post = Post(
         title="Public Article",
@@ -122,9 +124,7 @@ class TestPlaybookService:
 
     def test_create_template_version_auto_increments(self, db_session):
         owner, _ = _create_user("editor")
-        tmpl = pb_svc.create_template(
-            name="Deploy", slug="deploy", created_by=owner
-        )
+        tmpl = pb_svc.create_template(name="Deploy", slug="deploy", created_by=owner)
         _db.session.commit()
 
         v1 = pb_svc.create_template_version(
@@ -204,9 +204,7 @@ class TestPlaybookService:
         owner, _ = _create_user("editor")
         ws = _make_workspace(owner)
 
-        tmpl = pb_svc.create_template(
-            name="Seeded", slug="seeded", created_by=owner
-        )
+        tmpl = pb_svc.create_template(name="Seeded", slug="seeded", created_by=owner)
         _db.session.commit()
         tv = pb_svc.create_template_version(
             template_id=tmpl.id,
@@ -341,15 +339,16 @@ class TestPlaybookRouteAccess:
         resp = auth_client.get(f"/w/{ws.slug}/playbooks", headers=_auth(viewer_tok))
         assert resp.status_code == 200
 
-    def test_viewer_detail_returns_200_when_playbook_exists(self, auth_client, db_session):
+    def test_viewer_detail_returns_200_when_playbook_exists(
+        self, auth_client, db_session
+    ):
         ws, owner_tok, viewer_tok, editor_tok, outsider_tok = self._setup(db_session)
 
         # Create playbook as owner
         with auth_client.application.app_context():
             from sqlalchemy import select as _select  # noqa: PLC0415
-            owner_obj = _db.session.scalar(
-                _select(User).where(User.id == ws.owner_id)
-            )
+
+            owner_obj = _db.session.scalar(_select(User).where(User.id == ws.owner_id))
             pb = pb_svc.create_workspace_playbook(
                 workspace=ws, creator=owner_obj, title="Viewer Read Test"
             )
@@ -365,9 +364,7 @@ class TestPlaybookRouteAccess:
 
     def test_viewer_new_form_returns_404(self, auth_client, db_session):
         ws, owner_tok, viewer_tok, editor_tok, outsider_tok = self._setup(db_session)
-        resp = auth_client.get(
-            f"/w/{ws.slug}/playbooks/new", headers=_auth(viewer_tok)
-        )
+        resp = auth_client.get(f"/w/{ws.slug}/playbooks/new", headers=_auth(viewer_tok))
         assert resp.status_code == 404
 
     def test_viewer_post_new_returns_404(self, auth_client, db_session):
@@ -383,9 +380,7 @@ class TestPlaybookRouteAccess:
 
     def test_editor_new_form_returns_200(self, auth_client, db_session):
         ws, owner_tok, viewer_tok, editor_tok, outsider_tok = self._setup(db_session)
-        resp = auth_client.get(
-            f"/w/{ws.slug}/playbooks/new", headers=_auth(editor_tok)
-        )
+        resp = auth_client.get(f"/w/{ws.slug}/playbooks/new", headers=_auth(editor_tok))
         assert resp.status_code == 200
 
     def test_editor_can_create_playbook(self, auth_client, db_session):
@@ -400,7 +395,9 @@ class TestPlaybookRouteAccess:
         assert resp.status_code in (302, 301), resp.data.decode()[:400]
         assert "playbooks" in resp.headers["Location"]
 
-    def test_create_playbook_no_title_returns_200_with_error(self, auth_client, db_session):
+    def test_create_playbook_no_title_returns_200_with_error(
+        self, auth_client, db_session
+    ):
         """Empty title flashes error and re-renders the form (200)."""
         ws, owner_tok, viewer_tok, editor_tok, outsider_tok = self._setup(db_session)
         resp = auth_client.post(
@@ -426,9 +423,8 @@ class TestPlaybookRouteAccess:
 
         with auth_client.application.app_context():
             from sqlalchemy import select as _select  # noqa: PLC0415
-            owner_obj = _db.session.scalar(
-                _select(User).where(User.id == ws.owner_id)
-            )
+
+            owner_obj = _db.session.scalar(_select(User).where(User.id == ws.owner_id))
             tmpl = pb_svc.create_template(
                 name="RT Template", slug="rt-tmpl", created_by=owner_obj
             )
@@ -451,6 +447,7 @@ class TestPlaybookRouteAccess:
         # Verify playbook was created with template data via service
         with auth_client.application.app_context():
             from sqlalchemy import select as _select  # noqa: PLC0415
+
             post = _db.session.scalar(
                 _select(Post).where(
                     Post.workspace_id == ws.id,
@@ -478,13 +475,13 @@ class TestPlaybookPublicIsolation:
 
         # published article (should appear in public feeds)
         _counter["n"] += 1
-        article = _make_published_article(
-            owner, slug=f"public-art-{_counter['n']}"
-        )
+        article = _make_published_article(owner, slug=f"public-art-{_counter['n']}")
 
         # published playbook (must NOT appear in public feeds)
         _counter["n"] += 1
-        playbook = _make_published_playbook(ws=ws, author=owner, slug=f"ws-pb-{_counter['n']}")
+        playbook = _make_published_playbook(
+            ws=ws, author=owner, slug=f"ws-pb-{_counter['n']}"
+        )
 
         _db.session.commit()
         return ws, article, playbook
@@ -582,7 +579,9 @@ class TestPlaybookPublicIsolation:
             post_slugs = [p.slug for p in result.posts]
             assert "pb-search-abc" not in post_slugs
 
-    def test_article_still_appears_in_explore_after_filter(self, auth_client, db_session):
+    def test_article_still_appears_in_explore_after_filter(
+        self, auth_client, db_session
+    ):
         """Sanity check: filtering playbooks does not break regular article visibility."""
         from backend.services.explore_service import ExploreService  # noqa: PLC0415
 

@@ -153,6 +153,7 @@ def _login(client, user) -> None:
 # PAS-001  Empty timeline when no PostVersion rows exist
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestVersionTimelineEmpty:
     def test_no_versions_returns_empty(self, db_session):
         """PAS-001: timeline is empty when no PostVersion rows have been committed."""
@@ -167,6 +168,7 @@ class TestVersionTimelineEmpty:
 # ──────────────────────────────────────────────────────────────────────────────
 # PAS-002  Fork tree excludes draft forks
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestForkTreePublicDraftExclusion:
     def test_draft_fork_excluded(self, db_session):
@@ -195,6 +197,7 @@ class TestForkTreePublicDraftExclusion:
 # ──────────────────────────────────────────────────────────────────────────────
 # PAS-003  Fork tree excludes workspace forks in public scope
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestForkTreePublicWorkspaceExclusion:
     def test_workspace_fork_excluded_in_public_scope(self, db_session):
@@ -225,6 +228,7 @@ class TestForkTreePublicWorkspaceExclusion:
 # PAS-004  Fork tree excludes forks from other workspaces in public scope
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestForkTreeOtherWorkspaceExclusion:
     def test_other_workspace_fork_not_in_public_scope(self, db_session):
         """PAS-004: fork from a completely different workspace never appears in public scope."""
@@ -243,6 +247,7 @@ class TestForkTreeOtherWorkspaceExclusion:
 # ──────────────────────────────────────────────────────────────────────────────
 # PAS-005 / PAS-006  Route returns 404 for draft, 200 for published
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestPublicAnalyticsRoute:
     def test_draft_returns_404(self, auth_client, db_session):
@@ -278,6 +283,7 @@ class TestPublicAnalyticsRoute:
 # PAS-007 / PAS-008  Execution stats
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestExecutionStatsPublic:
     def test_total_views_matches_view_count(self, db_session):
         """PAS-007: total_views comes from Post.view_count."""
@@ -292,7 +298,7 @@ class TestExecutionStatsPublic:
         """PAS-008: views_last_30_days only counts events within the last 30 days."""
         author = _make_user()
         prompt = _make_prompt(author)
-        _add_analytics_event(prompt, days_ago=5)   # recent — counts
+        _add_analytics_event(prompt, days_ago=5)  # recent — counts
         _add_analytics_event(prompt, days_ago=15)  # recent — counts
         _add_analytics_event(prompt, days_ago=40)  # old — excluded
         _db.session.commit()
@@ -316,6 +322,7 @@ class TestExecutionStatsPublic:
 # PAS-009  Only 'derived_from' links appear as forks
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestForkTreeLinkTypeFilter:
     def test_related_link_not_a_fork(self, db_session):
         """PAS-009: 'related' link_type does not create a fork entry."""
@@ -337,6 +344,7 @@ class TestForkTreeLinkTypeFilter:
 # ──────────────────────────────────────────────────────────────────────────────
 # PAS-010  Route doesn't leak workspace forks in HTML
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestPublicRouteNoWorkspaceLeak:
     def test_ws_fork_title_not_in_public_analytics_html(self, auth_client, db_session):

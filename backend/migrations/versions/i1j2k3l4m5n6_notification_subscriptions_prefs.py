@@ -37,12 +37,33 @@ def upgrade() -> None:
     # ── 1. notification_preferences ───────────────────────────────────────
     op.create_table(
         "notification_preferences",
-        sa.Column("user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("in_app_enabled", sa.Boolean, nullable=False, server_default=sa.true()),
-        sa.Column("email_enabled", sa.Boolean, nullable=False, server_default=sa.false()),
-        sa.Column("email_digest_frequency", sa.Text, nullable=False, server_default="none"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "user_id",
+            sa.BigInteger,
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
+        sa.Column(
+            "in_app_enabled", sa.Boolean, nullable=False, server_default=sa.true()
+        ),
+        sa.Column(
+            "email_enabled", sa.Boolean, nullable=False, server_default=sa.false()
+        ),
+        sa.Column(
+            "email_digest_frequency", sa.Text, nullable=False, server_default="none"
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
         sa.CheckConstraint(
             f"email_digest_frequency IN {_VALID_DIGEST_FREQS}",
             name="ck_notif_prefs_digest_freq",
@@ -53,23 +74,46 @@ def upgrade() -> None:
     op.create_table(
         "subscriptions",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
-        sa.Column("user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "user_id",
+            sa.BigInteger,
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("target_type", sa.Text, nullable=False),
         sa.Column("target_id", sa.BigInteger, nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.func.now(),
+        ),
         sa.CheckConstraint(
             f"target_type IN {_VALID_TARGET_TYPES}",
             name="ck_subscriptions_target_type",
         ),
-        sa.UniqueConstraint("user_id", "target_type", "target_id", name="uq_subscriptions_user_target"),
+        sa.UniqueConstraint(
+            "user_id", "target_type", "target_id", name="uq_subscriptions_user_target"
+        ),
     )
-    op.create_index("idx_subscriptions_target", "subscriptions", ["target_type", "target_id"])
-    op.create_index("idx_subscriptions_user", "subscriptions", ["user_id", sa.text("created_at DESC")])
+    op.create_index(
+        "idx_subscriptions_target", "subscriptions", ["target_type", "target_id"]
+    )
+    op.create_index(
+        "idx_subscriptions_user",
+        "subscriptions",
+        ["user_id", sa.text("created_at DESC")],
+    )
 
     # ── 3. Extend notifications ────────────────────────────────────────────
     op.add_column(
         "notifications",
-        sa.Column("actor_user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "actor_user_id",
+            sa.BigInteger,
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
     )
     op.add_column("notifications", sa.Column("event_type", sa.Text, nullable=True))
     op.add_column("notifications", sa.Column("target_type", sa.Text, nullable=True))

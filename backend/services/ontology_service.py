@@ -123,9 +123,7 @@ def create_node(
     slug = slug.strip() or _slugify(name)
     slug = _slugify(slug)
 
-    existing = db.session.scalar(
-        select(OntologyNode).where(OntologyNode.slug == slug)
-    )
+    existing = db.session.scalar(select(OntologyNode).where(OntologyNode.slug == slug))
     if existing is not None:
         raise OntologyError(f"Slug '{slug}' is already in use.", 409)
 
@@ -223,14 +221,10 @@ def list_tree(*, public_only: bool = True) -> list[NodeTreeItem]:
 
 def get_node_by_slug(slug: str) -> OntologyNode | None:
     """Return a node by slug or None."""
-    return db.session.scalar(
-        select(OntologyNode).where(OntologyNode.slug == slug)
-    )
+    return db.session.scalar(select(OntologyNode).where(OntologyNode.slug == slug))
 
 
-def get_all_descendant_ids(
-    node_id: int, *, public_only: bool = True
-) -> list[int]:
+def get_all_descendant_ids(node_id: int, *, public_only: bool = True) -> list[int]:
     """Return *node_id* plus all descendant node IDs (BFS, bounded to tree).
 
     Uses a single query to load all nodes then traverses in Python.

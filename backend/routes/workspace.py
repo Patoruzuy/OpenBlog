@@ -436,9 +436,7 @@ def change_role(workspace_slug: str, user_id: int):
         new_role = WorkspaceMemberRole(new_role_str)
     except ValueError:
         flash(f"Invalid role: {new_role_str!r}.", "error")
-        return redirect(
-            url_for("workspace.members", workspace_slug=workspace_slug)
-        )
+        return redirect(url_for("workspace.members", workspace_slug=workspace_slug))
 
     try:
         ws_svc.change_member_role(workspace, user, user_id, new_role)

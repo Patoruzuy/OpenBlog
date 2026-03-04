@@ -95,11 +95,11 @@ class ForkScoreBreakdown:
     """Signal values and per-dimension weighted contributions for one fork."""
 
     # Raw inputs
-    benchmark_raw: float | None    # avg numeric score; None when no qualifying runs
-    rating_raw: int                # total vote count
-    execution_raw: int             # Post.view_count (execution proxy)
-    recency_factor: float          # continuous 0–1 derived from updated_at age
-    ab_win_rate: float | None      # fraction of completed A/B experiments won; None if none
+    benchmark_raw: float | None  # avg numeric score; None when no qualifying runs
+    rating_raw: int  # total vote count
+    execution_raw: int  # Post.view_count (execution proxy)
+    recency_factor: float  # continuous 0–1 derived from updated_at age
+    ab_win_rate: float | None  # fraction of completed A/B experiments won; None if none
 
     # Weighted contributions (weight × normalised value)
     benchmark_contrib: float
@@ -120,7 +120,7 @@ class ForkRecommendation:
     title: str
     slug: str
     kind: str
-    scope: str                     # 'public' | 'workspace'
+    scope: str  # 'public' | 'workspace'
     version: int
     workspace_id: int | None
     breakdown: ForkScoreBreakdown
@@ -196,7 +196,11 @@ def recommend(
         recency = max(0.0, 1.0 - age_days / _RECENCY_DECAY_DAYS)
 
         # Normalised dimensions (max-anchored, floor = 0).
-        norm_bench = (bench_raw / max_bench) if (bench_raw is not None and max_bench > 0) else 0.0
+        norm_bench = (
+            (bench_raw / max_bench)
+            if (bench_raw is not None and max_bench > 0)
+            else 0.0
+        )
         norm_votes = (vote_raw / max_votes) if max_votes > 0 else 0.0
         norm_exec = (exec_raw / max_exec) if max_exec > 0 else 0.0
         norm_ab = (ab_raw / max_ab) if (ab_raw is not None and max_ab > 0) else 0.0
@@ -276,7 +280,7 @@ def compute_family(
             ContentLink.to_post_id == base_prompt.id,
             ContentLink.link_type == "derived_from",
             Post.status == PostStatus.published,
-            Post.id != base_prompt.id,          # exclude base prompt
+            Post.id != base_prompt.id,  # exclude base prompt
             scope_clause,
         )
         .order_by(Post.id)
@@ -322,7 +326,9 @@ def _load_benchmark_avgs(
     suite_scope = (
         BenchmarkSuite.workspace_id.is_(None)
         if ws_id is None
-        else or_(BenchmarkSuite.workspace_id.is_(None), BenchmarkSuite.workspace_id == ws_id)
+        else or_(
+            BenchmarkSuite.workspace_id.is_(None), BenchmarkSuite.workspace_id == ws_id
+        )
     )
 
     rows = db.session.execute(
@@ -341,7 +347,11 @@ def _load_benchmark_avgs(
         .group_by(BenchmarkRun.prompt_post_id)
     ).all()
 
-    return {row.prompt_post_id: float(row.avg_score) for row in rows if row.avg_score is not None}
+    return {
+        row.prompt_post_id: float(row.avg_score)
+        for row in rows
+        if row.avg_score is not None
+    }
 
 
 def _load_ab_win_rates(
@@ -362,7 +372,9 @@ def _load_ab_win_rates(
     exp_scope = (
         ABExperiment.workspace_id.is_(None)
         if ws_id is None
-        else or_(ABExperiment.workspace_id.is_(None), ABExperiment.workspace_id == ws_id)
+        else or_(
+            ABExperiment.workspace_id.is_(None), ABExperiment.workspace_id == ws_id
+        )
     )
 
     # ── Query 4: completed experiments involving our forks ────────────────
@@ -407,7 +419,9 @@ def _load_ab_win_rates(
     ).all()
 
     run_avg: dict[int, float] = {
-        row.run_id: float(row.avg_score) for row in run_avg_rows if row.avg_score is not None
+        row.run_id: float(row.avg_score)
+        for row in run_avg_rows
+        if row.avg_score is not None
     }
 
     # ── Tally wins per fork ───────────────────────────────────────────────

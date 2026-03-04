@@ -76,9 +76,7 @@ def _admin_context() -> dict:
 
 def _flat_nodes() -> list[OntologyNode]:
     """All nodes ordered by name, used for the 'parent' select list."""
-    return list(
-        db.session.scalars(select(OntologyNode).order_by(OntologyNode.name))
-    )
+    return list(db.session.scalars(select(OntologyNode).order_by(OntologyNode.name)))
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────

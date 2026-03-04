@@ -51,9 +51,7 @@ class Post(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # ── Content ────────────────────────────────────────────────────────────
-    slug: Mapped[str] = mapped_column(
-        String(255), nullable=False
-    )
+    slug: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     markdown_body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # rendered_html is NOT persisted; it is cached in Redis and re-derived on update.

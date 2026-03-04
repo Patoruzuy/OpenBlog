@@ -246,12 +246,19 @@ class TestAccept:
         assert snapshot.accepted_by_id == editor.id
 
     def test_contributor_gains_reputation(self, pending_revision, contributor, editor):
+        from backend.services.reputation_service import ReputationService
+
         before = contributor.reputation_score or 0
         RevisionService.accept(pending_revision.id, reviewer_id=editor.id)
         db.session.expire(contributor)
-        assert (
-            contributor.reputation_score == before + RevisionService.ACCEPT_REPUTATION
+        # pub_post is a public (workspace_id IS NULL) post, so the award is
+        # POINTS_REVISION_ACCEPTED + POINTS_PUBLIC_BONUS.
+        expected = (
+            before
+            + ReputationService.POINTS_REVISION_ACCEPTED
+            + ReputationService.POINTS_PUBLIC_BONUS
         )
+        assert contributor.reputation_score == expected
 
     def test_notification_sent_to_contributor(
         self, pending_revision, contributor, editor

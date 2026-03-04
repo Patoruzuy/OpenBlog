@@ -33,9 +33,7 @@ def _make_user(role: str = "reader"):
     from backend.services.auth_service import AuthService
 
     n = _n()
-    user = AuthService.register(
-        f"clr{n}@example.com", f"clruser{n}", "StrongPass123!!"
-    )
+    user = AuthService.register(f"clr{n}@example.com", f"clruser{n}", "StrongPass123!!")
     if role != "reader":
         user.role = UserRole(role)
         _db.session.commit()
@@ -89,6 +87,7 @@ class TestAddLinkRoute:
 
         _db.session.expire_all()
         from sqlalchemy import select
+
         link = _db.session.execute(
             select(svc.ContentLink).where(
                 svc.ContentLink.from_post_id == p1.id,
@@ -202,6 +201,7 @@ class TestDeleteLinkRoute:
 
         _db.session.expire_all()
         from backend.models.content_link import ContentLink
+
         assert _db.session.get(ContentLink, link_id) is None
 
 

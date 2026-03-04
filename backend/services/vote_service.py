@@ -9,13 +9,12 @@ Rules
 
 from __future__ import annotations
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from backend.extensions import db
 from backend.models.comment import Comment
 from backend.models.post import Post
-from backend.models.user import User
 from backend.models.vote import Vote
 
 
@@ -71,15 +70,29 @@ class VoteService:
             db.session.rollback()
             raise VoteError("Already voted.", 409)
 
-        # Reputation fan-out: +1 to post author only (comment votes don't affect rep).
-        # Use a SQL-level atomic increment to avoid a read-modify-write race condition
-        # when two upvotes arrive concurrently.
+        # Reputation fan-out: +1 to post author only via the auditable ledger.
+        # award_event is idempotent and commits atomically with the vote row.
         if target_type == "post":
-            db.session.execute(
-                update(User)
-                .where(User.id == author_id)
-                .values(reputation_score=User.reputation_score + 1)
+            from backend.services.reputation_service import (
+                ReputationService,  # noqa: PLC0415
             )
+
+            ReputationService.award_event(
+                user_id=author_id,
+                workspace_id=target.workspace_id,
+                event_type="vote_received",
+                source_type="post",
+                source_id=target_id,
+                points=ReputationService.POINTS_VOTE_RECEIVED,
+                fingerprint_parts={
+                    "voter_user_id": user_id,
+                    "target_post_id": target_id,
+                    "action": "upvote",
+                },
+                metadata={"voter_id": user_id},
+            )
+            # award_event committed the transaction (vote + reputation event).
+            return vote
 
         db.session.commit()
         return vote
@@ -102,15 +115,33 @@ class VoteService:
         if vote is None:
             raise VoteError("Vote not found.", 404)
 
-        # Undo reputation
+        db.session.delete(vote)
+
+        # Undo reputation via the auditable ledger (negative points event).
         if target_type == "post":
             post = db.session.get(Post, target_id)
             if post is not None:
-                author = db.session.get(User, post.author_id)
-                if author is not None:
-                    author.reputation_score = max(0, (author.reputation_score or 0) - 1)
+                from backend.services.reputation_service import (
+                    ReputationService,  # noqa: PLC0415
+                )
 
-        db.session.delete(vote)
+                ReputationService.award_event(
+                    user_id=post.author_id,
+                    workspace_id=post.workspace_id,
+                    event_type="vote_received",
+                    source_type="post",
+                    source_id=target_id,
+                    points=-ReputationService.POINTS_VOTE_RECEIVED,
+                    fingerprint_parts={
+                        "voter_user_id": user_id,
+                        "target_post_id": target_id,
+                        "action": "unvote",
+                    },
+                    metadata={"voter_id": user_id},
+                )
+                # award_event committed (vote deletion + reputation event).
+                return
+
         db.session.commit()
 
     # ── Queries ───────────────────────────────────────────────────────────────

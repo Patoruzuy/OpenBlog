@@ -77,9 +77,7 @@ class PlaybookTemplate(db.Model):
     )
 
     # ── Indexes ────────────────────────────────────────────────────────────
-    __table_args__ = (
-        Index("ix_playbook_templates_public", "is_public"),
-    )
+    __table_args__ = (Index("ix_playbook_templates_public", "is_public"),)
 
     def __repr__(self) -> str:
         return f"<PlaybookTemplate id={self.id} slug={self.slug!r}>"
@@ -131,13 +129,10 @@ class PlaybookTemplateVersion(db.Model):
     # ── Constraints & indexes ─────────────────────────────────────────────
     __table_args__ = (
         UniqueConstraint("template_id", "version", name="uq_ptv_template_version"),
-        Index(
-            "ix_playbook_template_versions_template", "template_id", "version"
-        ),
+        Index("ix_playbook_template_versions_template", "template_id", "version"),
     )
 
     def __repr__(self) -> str:
         return (
-            f"<PlaybookTemplateVersion"
-            f" template_id={self.template_id} v{self.version}>"
+            f"<PlaybookTemplateVersion template_id={self.template_id} v{self.version}>"
         )

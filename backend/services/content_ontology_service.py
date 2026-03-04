@@ -99,9 +99,7 @@ def set_mappings(
             raise ContentOntologyError("Editor or admin role required.", 403)
     else:
         if not _can_manage_workspace(user, ws_id):
-            raise ContentOntologyError(
-                "Workspace editor or owner role required.", 403
-            )
+            raise ContentOntologyError("Workspace editor or owner role required.", 403)
 
     # ── Validate node IDs (all must exist and be public) ─────────────────
     if node_ids:

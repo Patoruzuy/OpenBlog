@@ -168,12 +168,8 @@ class ABExperimentRun(db.Model):
     experiment: Mapped[ABExperiment] = relationship(
         "ABExperiment", back_populates="experiment_run"
     )
-    run_a: Mapped[object] = relationship(
-        "BenchmarkRun", foreign_keys=[run_a_id]
-    )
-    run_b: Mapped[object] = relationship(
-        "BenchmarkRun", foreign_keys=[run_b_id]
-    )
+    run_a: Mapped[object] = relationship("BenchmarkRun", foreign_keys=[run_a_id])
+    run_b: Mapped[object] = relationship("BenchmarkRun", foreign_keys=[run_b_id])
 
     __table_args__ = (
         UniqueConstraint("experiment_id", name="uq_ab_experiment_runs_experiment"),

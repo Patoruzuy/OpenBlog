@@ -99,7 +99,9 @@ def period_window(frequency: str, key: str) -> tuple[datetime, datetime]:
         year_str, week_str = key.split("-W")
         year, week = int(year_str), int(week_str)
         # ISO 8601: week 1 contains the first Thursday; use %G-%V-%u parsing
-        start = datetime.strptime(f"{year}-{week:02d}-1", "%G-%V-%u").replace(tzinfo=UTC)
+        start = datetime.strptime(f"{year}-{week:02d}-1", "%G-%V-%u").replace(
+            tzinfo=UTC
+        )
         end = start + timedelta(weeks=1)
         return start, end
     raise ValueError(f"Unknown frequency {frequency!r}")
@@ -112,12 +114,12 @@ def period_window(frequency: str, key: str) -> tuple[datetime, datetime]:
 class DigestGroup:
     """A group of related notifications for the digest email."""
 
-    event_label: str       # Human-readable, e.g. 'Revision accepted'
+    event_label: str  # Human-readable, e.g. 'Revision accepted'
     target_type: str
     target_id: int
-    target_title: str      # Post title or workspace name
-    target_url: str        # Absolute URL to view the target
-    count: int             # Number of notifications in this group
+    target_title: str  # Post title or workspace name
+    target_url: str  # Absolute URL to view the target
+    count: int  # Number of notifications in this group
 
 
 @dataclass
@@ -241,7 +243,11 @@ def _resolve_target(notif: Notification, base_url: str) -> tuple[str, str]:
 
             post = db.session.get(Post, rev.post_id)
             title = post.title if post else "Untitled post"
-            url = f"{base_url}/posts/{post.slug}" if post and not post.workspace_id else ""
+            url = (
+                f"{base_url}/posts/{post.slug}"
+                if post and not post.workspace_id
+                else ""
+            )
             return title, url
 
     if notif.target_type == "workspace":

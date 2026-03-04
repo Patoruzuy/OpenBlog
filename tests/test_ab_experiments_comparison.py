@@ -72,9 +72,13 @@ def _make_user(role: str = "reader"):
 def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
     n = _n()
     p = Post(
-        title=f"ABCO-Prompt {n}", slug=f"abco-prompt-{n}", kind="prompt",
-        markdown_body="Q: {{q}}", status=status,
-        author_id=author.id, workspace_id=workspace_id,
+        title=f"ABCO-Prompt {n}",
+        slug=f"abco-prompt-{n}",
+        kind="prompt",
+        markdown_body="Q: {{q}}",
+        status=status,
+        author_id=author.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(p)
     _db.session.flush()
@@ -84,8 +88,10 @@ def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
 def _make_suite(user, *, workspace_id=None):
     n = _n()
     s = BenchmarkSuite(
-        name=f"ABCO Suite {n}", slug=f"abco-suite-{n}",
-        created_by_user_id=user.id, workspace_id=workspace_id,
+        name=f"ABCO Suite {n}",
+        slug=f"abco-suite-{n}",
+        created_by_user_id=user.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(s)
     _db.session.flush()
@@ -94,7 +100,8 @@ def _make_suite(user, *, workspace_id=None):
 
 def _make_case(suite, name="Case X"):
     c = BenchmarkCase(
-        suite_id=suite.id, name=name,
+        suite_id=suite.id,
+        name=name,
         input_json={"q": "test"},
     )
     _db.session.add(c)
@@ -275,8 +282,8 @@ class TestCounts:
 
         cmp = ab_svc.compute_comparison(user, exp)
 
-        assert cmp.count_total == 3     # c1, c2, c3
-        assert cmp.count_matched == 1   # only c2 in both
+        assert cmp.count_total == 3  # c1, c2, c3
+        assert cmp.count_matched == 1  # only c2 in both
         assert cmp.count_scored_a == 2  # c1, c2 have scores in A
         assert cmp.count_scored_b == 1  # only c2 has score in B (c3 score=None)
 
@@ -514,7 +521,6 @@ class TestAccessControl:
             ab_svc.compute_comparison(None, exp)
 
     def test_non_member_cannot_access_workspace_comparison(self, db_session):
-
         owner = _make_user()
         outsider = _make_user()
         n = _n()
@@ -522,7 +528,9 @@ class TestAccessControl:
         _db.session.add(ws)
         _db.session.flush()
         _db.session.add(
-            WorkspaceMember(workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner)
+            WorkspaceMember(
+                workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner
+            )
         )
         _db.session.flush()
         suite = _make_suite(owner, workspace_id=ws.id)

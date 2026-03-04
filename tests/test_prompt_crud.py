@@ -278,7 +278,9 @@ class TestGetAndList:
         )
         _db.session.commit()
 
-        results = svc.list_prompts(workspace_id=None, category="Code-Review")  # case-insensitive
+        results = svc.list_prompts(
+            workspace_id=None, category="Code-Review"
+        )  # case-insensitive
         assert len(results) == 1
         assert results[0].prompt_metadata.category == "code-review"
 

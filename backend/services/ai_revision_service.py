@@ -304,9 +304,7 @@ def create_revision_from_ai_suggestion(
     # 2. Load & validate the review request.
     req: AIReviewRequest | None = db.session.get(AIReviewRequest, ai_review_request_id)
     if req is None or req.post_id != post.id:
-        raise AIRevisionError(
-            "AI review not found for this document.", status_code=404
-        )
+        raise AIRevisionError("AI review not found for this document.", status_code=404)
     if req.workspace_id != post.workspace_id:
         raise AIRevisionError("AI review not found.", status_code=404)
     if req.status != AIReviewStatus.completed.value:
@@ -347,8 +345,8 @@ def create_revision_from_ai_suggestion(
     # 5. Build a human-readable summary and source metadata.
     edit_title: str = edit.get("title", suggestion_id)
     summary = (
-        f'[AI suggestion] {edit_title} '
-        f'(review #{ai_review_request_id}, suggestion {suggestion_id!r})'
+        f"[AI suggestion] {edit_title} "
+        f"(review #{ai_review_request_id}, suggestion {suggestion_id!r})"
     )
     source_metadata = {
         "source": "ai_suggestion",

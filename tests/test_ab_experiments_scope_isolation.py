@@ -56,7 +56,9 @@ def _make_workspace(owner) -> Workspace:
     _db.session.add(ws)
     _db.session.flush()
     _db.session.add(
-        WorkspaceMember(workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner)
+        WorkspaceMember(
+            workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner
+        )
     )
     _db.session.flush()
     return ws
@@ -70,9 +72,13 @@ def _add_member(ws, user, role=WorkspaceMemberRole.viewer):
 def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
     n = _n()
     p = Post(
-        title=f"ABSI-Prompt {n}", slug=f"absi-prompt-{n}", kind="prompt",
-        markdown_body="hello {{name}}", status=status,
-        author_id=author.id, workspace_id=workspace_id,
+        title=f"ABSI-Prompt {n}",
+        slug=f"absi-prompt-{n}",
+        kind="prompt",
+        markdown_body="hello {{name}}",
+        status=status,
+        author_id=author.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(p)
     _db.session.flush()
@@ -82,8 +88,10 @@ def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
 def _make_suite(user, *, workspace_id=None):
     n = _n()
     s = BenchmarkSuite(
-        name=f"ABSI Suite {n}", slug=f"absi-suite-{n}",
-        created_by_user_id=user.id, workspace_id=workspace_id,
+        name=f"ABSI Suite {n}",
+        slug=f"absi-suite-{n}",
+        created_by_user_id=user.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(s)
     _db.session.flush()
@@ -234,8 +242,8 @@ class TestPublicPromptAllowedInWsExperiment:
         owner = _make_user()
         ws = _make_workspace(owner)
         suite = _make_suite(owner, workspace_id=ws.id)
-        pub_a = _make_prompt(owner)          # public prompt
-        pub_b = _make_prompt(owner)          # public prompt
+        pub_a = _make_prompt(owner)  # public prompt
+        pub_b = _make_prompt(owner)  # public prompt
         _db.session.commit()
 
         exp = ab_svc.create_experiment(
@@ -276,7 +284,9 @@ class TestMemberRolePermissions:
         _db.session.commit()
 
         with pytest.raises(BenchmarkError, match="Editor role required"):
-            ab_svc.create_experiment(viewer, "Viewer Exp", suite, pa, 1, pb, 2, workspace=ws)
+            ab_svc.create_experiment(
+                viewer, "Viewer Exp", suite, pa, 1, pb, 2, workspace=ws
+            )
 
     def test_editor_can_create_experiment(self, db_session):
         owner = _make_user()
@@ -299,7 +309,9 @@ class TestMemberRolePermissions:
 
 
 class TestPublicListRouteIsolation:
-    def test_public_list_route_only_shows_public_experiments(self, auth_client, db_session):
+    def test_public_list_route_only_shows_public_experiments(
+        self, auth_client, db_session
+    ):
         owner = _make_user()
         ws = _make_workspace(owner)
         suite_pub = _make_suite(owner)
@@ -310,7 +322,9 @@ class TestPublicListRouteIsolation:
         pb_ws = _make_prompt(owner, workspace_id=ws.id)
         _db.session.commit()
 
-        _pub_exp = ab_svc.create_experiment(owner, "Pub Route Exp", suite_pub, pa_pub, 1, pb_pub, 2)
+        _pub_exp = ab_svc.create_experiment(
+            owner, "Pub Route Exp", suite_pub, pa_pub, 1, pb_pub, 2
+        )
         _ws_exp = ab_svc.create_experiment(
             owner, "WS Route Exp", suite_ws, pa_ws, 1, pb_ws, 2, workspace=ws
         )

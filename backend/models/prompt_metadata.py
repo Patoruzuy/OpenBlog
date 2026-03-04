@@ -40,7 +40,10 @@ class PromptMetadata(db.Model):
     category: Mapped[str] = mapped_column(String(120), nullable=False)
     intended_model: Mapped[str | None] = mapped_column(String(120), nullable=True)
     complexity_level: Mapped[str] = mapped_column(
-        String(20), nullable=False, default="intermediate", server_default="intermediate"
+        String(20),
+        nullable=False,
+        default="intermediate",
+        server_default="intermediate",
     )
 
     # ── Content fields ────────────────────────────────────────────────────

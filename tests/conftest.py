@@ -82,6 +82,7 @@ def pytest_collection_modifyitems(
         if item.get_closest_marker("integration"):
             item.add_marker(skip)
 
+
 # ── Global Celery task stubs ──────────────────────────────────────────────────
 
 

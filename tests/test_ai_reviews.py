@@ -502,9 +502,7 @@ class TestAIReviewRevision:
         )
         _db.session.commit()
 
-        req = ai_svc.request_review(
-            owner, post, revision=revision, review_type="full"
-        )
+        req = ai_svc.request_review(owner, post, revision=revision, review_type="full")
 
         result = _db.session.get(AIReviewResult, req.id)
         assert result is not None

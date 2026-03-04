@@ -24,6 +24,7 @@ At redemption::
 
 Token URL format: ``/invites/<raw_token>``
 """
+
 from __future__ import annotations
 
 import hashlib

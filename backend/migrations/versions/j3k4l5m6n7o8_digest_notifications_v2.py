@@ -108,9 +108,15 @@ def upgrade() -> None:
         ),
         sa.Column("sent_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("error_message", sa.Text, nullable=True),
-        sa.CheckConstraint(f"frequency IN {_FREQUENCIES}", name="ck_digest_runs_frequency"),
-        sa.CheckConstraint(f"status IN {_DIGEST_STATUSES}", name="ck_digest_runs_status"),
-        sa.UniqueConstraint("user_id", "frequency", "period_key", name="uq_digest_runs_period"),
+        sa.CheckConstraint(
+            f"frequency IN {_FREQUENCIES}", name="ck_digest_runs_frequency"
+        ),
+        sa.CheckConstraint(
+            f"status IN {_DIGEST_STATUSES}", name="ck_digest_runs_status"
+        ),
+        sa.UniqueConstraint(
+            "user_id", "frequency", "period_key", name="uq_digest_runs_period"
+        ),
     )
     op.create_index(
         "idx_digest_runs_user_freq",

@@ -66,7 +66,9 @@ def _make_celery(app: Flask) -> Celery:
             "result_backend": app.config["CELERY_RESULT_BACKEND"],
             # Honour TASK_ALWAYS_EAGER for synchronous test execution.
             "task_always_eager": app.config.get("CELERY_TASK_ALWAYS_EAGER", False),
-            "task_eager_propagates": app.config.get("CELERY_TASK_EAGER_PROPAGATES", False),
+            "task_eager_propagates": app.config.get(
+                "CELERY_TASK_EAGER_PROPAGATES", False
+            ),
         }
     )
     # Make this instance the Celery "current app" so @celery.task shortcuts

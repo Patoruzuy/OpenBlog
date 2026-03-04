@@ -127,9 +127,7 @@ class TestAIRevisionServiceBasics:
 
         assert MOCK_REPLACE_PROPOSED in revision.proposed_markdown
 
-    def test_owner_creates_revision_from_suggestion(
-        self, db_session, make_user_token
-    ):
+    def test_owner_creates_revision_from_suggestion(self, db_session, make_user_token):
         """AIR-002: owner (post author) is not blocked from AI-sourced revisions."""
         ws, owner, _ = _workspace_with_owner(make_user_token)
         post = _workspace_doc(ws, owner)
@@ -220,9 +218,7 @@ class TestAIRevisionServiceBasics:
         assert exc_info.value.status_code == 400
         assert "not found" in exc_info.value.message.lower()
 
-    def test_created_revision_has_source_metadata(
-        self, db_session, make_user_token
-    ):
+    def test_created_revision_has_source_metadata(self, db_session, make_user_token):
         """AIR-007: source_metadata_json attributes the AI origin correctly."""
         ws, owner, _ = _workspace_with_owner(make_user_token)
         post = _workspace_doc(ws, owner)
@@ -261,7 +257,9 @@ class TestAIRevisionServiceBasics:
         assert loaded.post_id == post.id
         assert loaded.author_id == owner.id
 
-    def test_incomplete_review_raises_400(self, db_session, make_user_token, stub_ai_review_task):
+    def test_incomplete_review_raises_400(
+        self, db_session, make_user_token, stub_ai_review_task
+    ):
         """AIR-009: a queued (not completed) review cannot spawn a revision."""
         ws, owner, _ = _workspace_with_owner(make_user_token)
         post = _workspace_doc(ws, owner)
@@ -514,7 +512,9 @@ class TestApplyEditUnit:
 
         lines = result.splitlines()
         heading_idx = next(
-            i for i, ln in enumerate(lines) if ln.lstrip("#").strip() == MOCK_HEADING_TARGET
+            i
+            for i, ln in enumerate(lines)
+            if ln.lstrip("#").strip() == MOCK_HEADING_TARGET
         )
         # The inserted content should appear somewhere after the heading line.
         tail = "\n".join(lines[heading_idx + 1 :])
@@ -563,7 +563,7 @@ class TestApplyEditUnit:
         """Empty target_hint.match for replace_block raises 400 immediately."""
         edit = {
             "kind": "replace_block",
-            "target_hint": {},          # no "match" key
+            "target_hint": {},  # no "match" key
             "proposed_markdown": "x",
         }
         with pytest.raises(ai_rev_svc.AIRevisionError) as exc_info:
@@ -575,7 +575,7 @@ class TestApplyEditUnit:
         """Empty target_hint.heading for insert_after_heading raises 400."""
         edit = {
             "kind": "insert_after_heading",
-            "target_hint": {},          # no "heading" key
+            "target_hint": {},  # no "heading" key
             "proposed_markdown": "x",
         }
         with pytest.raises(ai_rev_svc.AIRevisionError) as exc_info:
@@ -618,9 +618,7 @@ class TestApplyEditUnit:
 class TestAIRevisionCrossWorkspaceSafety:
     """Service must not let a review from workspace A be used for a post in workspace B."""
 
-    def test_review_for_different_post_raises_404(
-        self, db_session, make_user_token
-    ):
+    def test_review_for_different_post_raises_404(self, db_session, make_user_token):
         """Using a review_id that belongs to a different post raises AIRevisionError 404."""
         ws, owner, _ = _workspace_with_owner(make_user_token)
         post_a = _workspace_doc(ws, owner)

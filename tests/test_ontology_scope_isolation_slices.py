@@ -203,7 +203,9 @@ class TestWsSliceShowsPublicAndOverlay:
         runs = bsvc.list_runs_for_ontology_node(owner, node, workspace=ws)
         run_ids = {r.id for r in runs}
         assert pub_run.id in run_ids, "Public run should appear in workspace slice"
-        assert ws_run.id in run_ids, "Workspace overlay run should appear in workspace slice"
+        assert ws_run.id in run_ids, (
+            "Workspace overlay run should appear in workspace slice"
+        )
 
 
 # ── OSI-003 ───────────────────────────────────────────────────────────────────
@@ -253,6 +255,7 @@ class TestBenchmarkRoutesCacheHeaders:
 
 
 # ── OSI-005 ───────────────────────────────────────────────────────────────────
+
 
 class TestRecommendationsRouteCacheHeaders:
     def test_ws_recommendations_cache_control(self, db_session, auth_client):

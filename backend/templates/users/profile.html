@@ -128,8 +128,11 @@
         </button>
       </div>
       <div class="profile-stat">
-        <span class="profile-stat__value">{{ profile_user.reputation_score }}</span>
-        <span class="profile-stat__label">Reputation</span>
+        <a href="{{ url_for('reputation.reputation_page', username=profile_user.username) }}"
+           class="profile-stat__link" aria-label="View reputation history">
+          <span class="profile-stat__value">{{ profile_user.reputation_score }}</span>
+          <span class="profile-stat__label">Reputation</span>
+        </a>
       </div>
     </div>
 

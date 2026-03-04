@@ -210,9 +210,7 @@ def cancel_review(workspace_slug: str, request_id: int):
 
     post = db.session.get(Post, ai_req.post_id)
     if post is None:
-        return redirect(
-            url_for("workspace.dashboard", workspace_slug=workspace_slug)
-        )
+        return redirect(url_for("workspace.dashboard", workspace_slug=workspace_slug))
 
     flash("AI review canceled.", "info")
     return redirect(

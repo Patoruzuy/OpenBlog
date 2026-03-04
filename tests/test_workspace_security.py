@@ -73,10 +73,14 @@ class TestPermissionServicePublicPost:
     def test_anonymous_cannot_view_public_draft(self, db_session):
         user, _ = _create_user("contributor")
         draft = Post(
-            title="Draft", slug="draft-1",
-            markdown_body="", status=PostStatus.draft,
-            author_id=user.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="Draft",
+            slug="draft-1",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=user.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(draft)
         _db.session.flush()
@@ -85,10 +89,14 @@ class TestPermissionServicePublicPost:
     def test_author_can_view_own_draft(self, db_session):
         user, _ = _create_user("contributor")
         draft = Post(
-            title="Draft", slug="draft-2",
-            markdown_body="", status=PostStatus.draft,
-            author_id=user.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="Draft",
+            slug="draft-2",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=user.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(draft)
         _db.session.flush()
@@ -98,10 +106,14 @@ class TestPermissionServicePublicPost:
         author, _ = _create_user("contributor")
         admin, _ = _create_user("admin", email="admin2@example.com")
         draft = Post(
-            title="Draft", slug="draft-3",
-            markdown_body="", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="Draft",
+            slug="draft-3",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(draft)
         _db.session.flush()
@@ -111,10 +123,14 @@ class TestPermissionServicePublicPost:
         author, _ = _create_user("contributor")
         other, _ = _create_user("contributor", email="other@example.com")
         draft = Post(
-            title="Draft", slug="draft-4",
-            markdown_body="", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="Draft",
+            slug="draft-4",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(draft)
         _db.session.flush()
@@ -133,10 +149,14 @@ class TestPermissionServiceWorkspacePost:
     def test_member_can_view_workspace_post(self, db_session):
         ws, owner, _ = self._setup_workspace()
         post = Post(
-            title="WS Doc", slug="ws-doc-1",
-            markdown_body="", status=PostStatus.draft,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-1",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -147,10 +167,14 @@ class TestPermissionServiceWorkspacePost:
         ws, owner, _ = self._setup_workspace()
         outsider, _ = _create_user("contributor", email="out@example.com")
         post = Post(
-            title="WS Doc", slug="ws-doc-2",
-            markdown_body="", status=PostStatus.published,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-2",
+            markdown_body="",
+            status=PostStatus.published,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -161,10 +185,14 @@ class TestPermissionServiceWorkspacePost:
         ws, owner, _ = self._setup_workspace()
         admin, _ = _create_user("admin", email="admin3@example.com")
         post = Post(
-            title="WS Doc", slug="ws-doc-3",
-            markdown_body="", status=PostStatus.draft,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-3",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -177,10 +205,14 @@ class TestPermissionServiceWorkspacePost:
         ws_svc.add_member(ws, viewer, WorkspaceMemberRole.viewer)
         _db.session.commit()
         post = Post(
-            title="WS Doc", slug="ws-doc-4",
-            markdown_body="", status=PostStatus.draft,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-4",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -193,10 +225,14 @@ class TestPermissionServiceWorkspacePost:
         ws_svc.add_member(ws, editor, WorkspaceMemberRole.editor)
         _db.session.commit()
         post = Post(
-            title="WS Doc", slug="ws-doc-5",
-            markdown_body="", status=PostStatus.draft,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-5",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -209,10 +245,14 @@ class TestPermissionServiceWorkspacePost:
         ws_svc.add_member(ws, contrib, WorkspaceMemberRole.contributor)
         _db.session.commit()
         post = Post(
-            title="WS Doc", slug="ws-doc-6",
-            markdown_body="", status=PostStatus.draft,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-6",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -230,10 +270,14 @@ class TestPermissionServiceWorkspacePost:
         ws_svc.add_member(ws, editor, WorkspaceMemberRole.editor)
         _db.session.commit()
         post = Post(
-            title="WS Doc", slug="ws-doc-7",
-            markdown_body="", status=PostStatus.draft,
-            author_id=owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="WS Doc",
+            slug="ws-doc-7",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(post)
         _db.session.flush()
@@ -265,8 +309,10 @@ class TestWorkspaceRouteAccess:
         _db.session.commit()
 
         doc = ws_svc.create_workspace_document(
-            workspace=ws, author=owner,
-            title="Route Doc", markdown_body="body text",
+            workspace=ws,
+            author=owner,
+            title="Route Doc",
+            markdown_body="body text",
         )
         _db.session.commit()
         return ws, doc, owner_tok, viewer_tok, outsider_tok
@@ -283,7 +329,9 @@ class TestWorkspaceRouteAccess:
         )
         assert resp.status_code == 404
 
-    def test_unauthenticated_dashboard_redirects_to_login(self, auth_client, db_session):
+    def test_unauthenticated_dashboard_redirects_to_login(
+        self, auth_client, db_session
+    ):
         ws, *_ = self._setup(db_session)
         resp = auth_client.get(f"/w/{ws.slug}")
         # require_auth redirects to login for unauthenticated users.
@@ -305,17 +353,13 @@ class TestWorkspaceRouteAccess:
     def test_viewer_cannot_access_new_doc_form(self, auth_client, db_session):
         """Viewer (< editor) is rejected with 404 on GET /docs/new."""
         ws, doc, owner_tok, viewer_tok, outsider_tok = self._setup(db_session)
-        resp = auth_client.get(
-            f"/w/{ws.slug}/docs/new", headers=_auth(viewer_tok)
-        )
+        resp = auth_client.get(f"/w/{ws.slug}/docs/new", headers=_auth(viewer_tok))
         # get_workspace_for_user(required_role=editor) → abort(404) for viewer.
         assert resp.status_code == 404
 
     def test_owner_can_access_new_doc_form(self, auth_client, db_session):
         ws, doc, owner_tok, viewer_tok, outsider_tok = self._setup(db_session)
-        resp = auth_client.get(
-            f"/w/{ws.slug}/docs/new", headers=_auth(owner_tok)
-        )
+        resp = auth_client.get(f"/w/{ws.slug}/docs/new", headers=_auth(owner_tok))
         assert resp.status_code == 200
 
     def test_nonexistent_workspace_returns_404(self, auth_client, db_session):
@@ -333,7 +377,9 @@ class TestCloneToPublic:
     def _setup(self, db_session):
         owner, owner_tok = _create_user("editor", email="owner_c@example.com")
         viewer, viewer_tok = _create_user("reader", email="viewer_c@example.com")
-        contrib, contrib_tok = _create_user("contributor", email="contrib_c@example.com")
+        contrib, contrib_tok = _create_user(
+            "contributor", email="contrib_c@example.com"
+        )
         editor, editor_tok = _create_user("contributor", email="editor_c@example.com")
 
         ws = ws_svc.create_workspace(name="Clone WS", owner=owner)
@@ -343,8 +389,10 @@ class TestCloneToPublic:
         _db.session.commit()
 
         doc = ws_svc.create_workspace_document(
-            workspace=ws, author=owner,
-            title="My Secret Doc", markdown_body="content here",
+            workspace=ws,
+            author=owner,
+            title="My Secret Doc",
+            markdown_body="content here",
         )
         _db.session.commit()
         return ws, doc, owner, owner_tok, viewer_tok, contrib_tok, editor_tok
@@ -446,20 +494,28 @@ class TestFeedIsolation:
 
         # Public draft — must NOT appear in feed.
         draft = Post(
-            title="Draft Post", slug="feed-draft",
-            markdown_body="draft", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="Draft Post",
+            slug="feed-draft",
+            markdown_body="draft",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(draft)
 
         # Workspace post (even if "published") — must NOT appear in feed.
         ws_post = Post(
-            title="Workspace Secret", slug="ws-secret",
-            markdown_body="secret", status=PostStatus.published,
-            author_id=ws_owner.id, workspace_id=ws.id,
+            title="Workspace Secret",
+            slug="ws-secret",
+            markdown_body="secret",
+            status=PostStatus.published,
+            author_id=ws_owner.id,
+            workspace_id=ws.id,
             published_at=datetime.now(UTC),
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(ws_post)
         _db.session.commit()
@@ -498,11 +554,15 @@ class TestFeedIsolation:
         ws = ws_svc.create_workspace(name="ETag WS", owner=ws_owner)
         _db.session.commit()
         extra = Post(
-            title="Extra WS Post", slug="ws-extra",
-            markdown_body="extra", status=PostStatus.published,
-            author_id=ws_owner.id, workspace_id=ws.id,
+            title="Extra WS Post",
+            slug="ws-extra",
+            markdown_body="extra",
+            status=PostStatus.published,
+            author_id=ws_owner.id,
+            workspace_id=ws.id,
             published_at=datetime.now(UTC),
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(extra)
         _db.session.commit()
@@ -530,11 +590,15 @@ class TestSitemapIsolation:
 
         pub = _make_published_post(author, slug="sitemap-pub", title="Sitemap Public")
         ws_post = Post(
-            title="Sitemap Secret", slug="sitemap-secret",
-            markdown_body="secret", status=PostStatus.published,
-            author_id=ws_owner.id, workspace_id=ws.id,
+            title="Sitemap Secret",
+            slug="sitemap-secret",
+            markdown_body="secret",
+            status=PostStatus.published,
+            author_id=ws_owner.id,
+            workspace_id=ws.id,
             published_at=datetime.now(UTC),
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(ws_post)
         _db.session.commit()
@@ -548,10 +612,14 @@ class TestSitemapIsolation:
     def test_sitemap_excludes_drafts(self, auth_client, db_session):
         author, _ = _create_user("editor", email="sitemap_d@example.com")
         draft = Post(
-            title="Sitemap Draft", slug="sitemap-draft",
-            markdown_body="", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="Sitemap Draft",
+            slug="sitemap-draft",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(draft)
         _db.session.commit()
@@ -588,8 +656,10 @@ class TestCacheControlHeaders:
             select(User).where(User.email == "cc_owner@example.com")
         )
         doc = ws_svc.create_workspace_document(
-            workspace=ws, author=owner_user,
-            title="Cache Doc", markdown_body="body",
+            workspace=ws,
+            author=owner_user,
+            title="Cache Doc",
+            markdown_body="body",
         )
         _db.session.commit()
         resp = auth_client.get(
@@ -607,7 +677,9 @@ class TestCacheControlHeaders:
     def test_sitemap_has_public_cache_control(self, auth_client, db_session):
         resp = auth_client.get("/sitemap.xml")
         cc = resp.headers.get("Cache-Control", "")
-        assert "public" in cc, f"Expected 'public' in sitemap Cache-Control, got: {cc!r}"
+        assert "public" in cc, (
+            f"Expected 'public' in sitemap Cache-Control, got: {cc!r}"
+        )
 
 
 # ── Workspace slug isolation ──────────────────────────────────────────────────
@@ -627,20 +699,28 @@ class TestSlugNamespaceIsolation:
 
         # Create public post with slug "my-article".
         pub = Post(
-            title="My Article", slug="my-article",
-            markdown_body="", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="My Article",
+            slug="my-article",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(pub)
         _db.session.flush()
 
         # Create workspace post with the SAME slug — must succeed.
         ws_doc = Post(
-            title="My Article", slug="my-article",
-            markdown_body="", status=PostStatus.draft,
-            author_id=ws_owner.id, workspace_id=ws.id,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="My Article",
+            slug="my-article",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=ws_owner.id,
+            workspace_id=ws.id,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add(ws_doc)
         try:
@@ -657,16 +737,24 @@ class TestSlugNamespaceIsolation:
 
         author, _ = _create_user("editor", email="dup_slug@example.com")
         p1 = Post(
-            title="A", slug="dup-slug",
-            markdown_body="", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="A",
+            slug="dup-slug",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         p2 = Post(
-            title="B", slug="dup-slug",
-            markdown_body="", status=PostStatus.draft,
-            author_id=author.id, workspace_id=None,
-            created_at=datetime.now(UTC), updated_at=datetime.now(UTC),
+            title="B",
+            slug="dup-slug",
+            markdown_body="",
+            status=PostStatus.draft,
+            author_id=author.id,
+            workspace_id=None,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         _db.session.add_all([p1, p2])
         with pytest.raises(IntegrityError):

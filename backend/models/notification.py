@@ -49,7 +49,9 @@ class Notification(db.Model):
 
     # ── Legacy fields (kept for backward compatibility) ────────────────────
     # Free-form type key, e.g. 'revision_accepted', 'comment_reply'.
-    notification_type: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    notification_type: Mapped[str] = mapped_column(
+        String(64), nullable=False, default=""
+    )
     title: Mapped[str] = mapped_column(String(256), nullable=False, default="")
     body: Mapped[str | None] = mapped_column(Text, nullable=True)
     # JSON string carrying type-specific context (e.g. {"post_slug": "my-post"})

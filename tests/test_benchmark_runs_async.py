@@ -99,7 +99,9 @@ def _login(client, user):
 def _make_suite_with_cases(user, n_cases: int = 2):
     suite = bsvc.create_suite(user, f"RA Suite {_n()}")
     for i in range(n_cases):
-        bsvc.add_case(user, suite, {"name": f"Alice{i}", "question": "life?"}, name=f"Case {i}")
+        bsvc.add_case(
+            user, suite, {"name": f"Alice{i}", "question": "life?"}, name=f"Case {i}"
+        )
     return suite
 
 
@@ -117,7 +119,10 @@ class TestRunCompletesSuccessfully:
         _db.session.commit()
 
         _db.session.refresh(run)
-        assert run.status == BenchmarkRunStatus.completed.value or run.status == "completed"
+        assert (
+            run.status == BenchmarkRunStatus.completed.value
+            or run.status == "completed"
+        )
 
     def test_all_cases_get_results(self, db_session):
         user = _make_user()
@@ -128,11 +133,7 @@ class TestRunCompletesSuccessfully:
         run = bsvc.create_run(user, suite, prompt, 1)
         _db.session.commit()
 
-        results = (
-            _db.session.query(BenchmarkRunResult)
-            .filter_by(run_id=run.id)
-            .all()
-        )
+        results = _db.session.query(BenchmarkRunResult).filter_by(run_id=run.id).all()
         assert len(results) == 3
 
     def test_mock_provider_output_prefix(self, db_session):
@@ -144,11 +145,7 @@ class TestRunCompletesSuccessfully:
         run = bsvc.create_run(user, suite, prompt, 1)
         _db.session.commit()
 
-        result = (
-            _db.session.query(BenchmarkRunResult)
-            .filter_by(run_id=run.id)
-            .first()
-        )
+        result = _db.session.query(BenchmarkRunResult).filter_by(run_id=run.id).first()
         assert result is not None
         assert result.output_text.startswith("[mock output for:")
 
@@ -174,7 +171,9 @@ class TestVariableSubstitution:
         """Mock provider receives rendered prompt; verify via output_text content."""
         user = _make_user()
         suite = bsvc.create_suite(user, f"Var Suite {_n()}")
-        bsvc.add_case(user, suite, {"name": "ZAPPYBIRD", "question": "42"}, name="VarCase")
+        bsvc.add_case(
+            user, suite, {"name": "ZAPPYBIRD", "question": "42"}, name="VarCase"
+        )
         n = _n()
         prompt = Post(
             title=f"Var Prompt {n}",
@@ -190,13 +189,12 @@ class TestVariableSubstitution:
         run = bsvc.create_run(user, suite, prompt, 1)
         _db.session.commit()
 
-        result = (
-            _db.session.query(BenchmarkRunResult)
-            .filter_by(run_id=run.id)
-            .first()
-        )
+        result = _db.session.query(BenchmarkRunResult).filter_by(run_id=run.id).first()
         # The rendered prompt passed to mock provider should contain substituted variables
-        assert "ZAPPYBIRD" in result.output_text or "[mock output for:" in result.output_text
+        assert (
+            "ZAPPYBIRD" in result.output_text
+            or "[mock output for:" in result.output_text
+        )
 
 
 # ── RA-006 ─────────────────────────────────────────────────────────────────────

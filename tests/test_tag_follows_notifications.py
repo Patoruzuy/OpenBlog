@@ -58,19 +58,29 @@ def _login(client, user_id: int) -> None:
 
 
 class TestTagFollowEndpoints:
-    def test_follow_unauthenticated_redirects(self, auth_client, python_tag, db_session):
-        resp = auth_client.post(f"/tags/{python_tag.slug}/follow", follow_redirects=False)
+    def test_follow_unauthenticated_redirects(
+        self, auth_client, python_tag, db_session
+    ):
+        resp = auth_client.post(
+            f"/tags/{python_tag.slug}/follow", follow_redirects=False
+        )
         assert resp.status_code in (302, 401)
         if resp.status_code == 302:
             assert "login" in resp.headers["Location"]
 
-    def test_unfollow_unauthenticated_redirects(self, auth_client, python_tag, db_session):
-        resp = auth_client.post(f"/tags/{python_tag.slug}/unfollow", follow_redirects=False)
+    def test_unfollow_unauthenticated_redirects(
+        self, auth_client, python_tag, db_session
+    ):
+        resp = auth_client.post(
+            f"/tags/{python_tag.slug}/unfollow", follow_redirects=False
+        )
         assert resp.status_code in (302, 401)
         if resp.status_code == 302:
             assert "login" in resp.headers["Location"]
 
-    def test_follow_creates_subscription(self, auth_client, alice, python_tag, db_session):
+    def test_follow_creates_subscription(
+        self, auth_client, alice, python_tag, db_session
+    ):
         _login(auth_client, alice.id)
         resp = auth_client.post(
             f"/tags/{python_tag.slug}/follow", follow_redirects=True
@@ -106,7 +116,9 @@ class TestTagFollowEndpoints:
         )
         assert count == 1
 
-    def test_unfollow_removes_subscription(self, auth_client, alice, python_tag, db_session):
+    def test_unfollow_removes_subscription(
+        self, auth_client, alice, python_tag, db_session
+    ):
         # Set up: follow first via service
         subscribe(alice, "tag", python_tag.id)
 
@@ -159,7 +171,9 @@ class TestTagSubscriptionService:
         result = unsubscribe(alice, "tag", python_tag.id)
         assert result is False
 
-    def test_is_subscribed_returns_true_after_follow(self, alice, python_tag, db_session):
+    def test_is_subscribed_returns_true_after_follow(
+        self, alice, python_tag, db_session
+    ):
         subscribe(alice, "tag", python_tag.id)
         assert is_subscribed(alice, "tag", python_tag.id) is True
 
@@ -192,7 +206,7 @@ class TestTagFollowNotificationFanout:
         post = Post(
             title="Python tips",
             slug="python-tips-fanout",
-            markdown_body='',
+            markdown_body="",
             author_id=bob.id,
             status=PostStatus.published,
             workspace_id=None,  # public
@@ -229,7 +243,7 @@ class TestTagFollowNotificationFanout:
         post = Post(
             title="Internal Python guide",
             slug="internal-python-guide",
-            markdown_body='',
+            markdown_body="",
             author_id=bob.id,
             status=PostStatus.published,
             workspace_id=ws.id,  # private workspace
@@ -259,7 +273,7 @@ class TestTagFollowNotificationFanout:
         post = Post(
             title="Python 3.13",
             slug="python-313-nofollow",
-            markdown_body='',
+            markdown_body="",
             author_id=bob.id,
             status=PostStatus.published,
             workspace_id=None,
@@ -293,7 +307,7 @@ class TestTagFollowNotificationFanout:
         post = Post(
             title="Advanced Python",
             slug="advanced-python-multi",
-            markdown_body='',
+            markdown_body="",
             author_id=bob.id,
             status=PostStatus.published,
             workspace_id=None,
@@ -324,7 +338,7 @@ class TestTagFollowNotificationFanout:
         post = Post(
             title="Pure Python",
             slug="pure-python-tag-filter",
-            markdown_body='',
+            markdown_body="",
             author_id=bob.id,
             status=PostStatus.published,
             workspace_id=None,
@@ -352,7 +366,7 @@ class TestTagFollowNotificationFanout:
         post = Post(
             title="DB fallback test",
             slug="db-fallback-tag",
-            markdown_body='',
+            markdown_body="",
             author_id=bob.id,
             status=PostStatus.published,
             workspace_id=None,

@@ -36,6 +36,7 @@ depends_on = None
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _is_postgresql() -> bool:
     conn = op.get_bind()
     return conn.dialect.name == "postgresql"
@@ -45,12 +46,11 @@ def _index_exists(index_name: str, table_name: str = "posts") -> bool:
     """Return True when the named index exists on *table_name* (introspection)."""
     conn = op.get_bind()
     insp = sa.inspect(conn)
-    return any(
-        idx["name"] == index_name for idx in insp.get_indexes(table_name)
-    )
+    return any(idx["name"] == index_name for idx in insp.get_indexes(table_name))
 
 
 # ── upgrade ───────────────────────────────────────────────────────────────────
+
 
 def upgrade() -> None:
     # 1-2. Enums are created automatically by SQLAlchemy's _on_table_create
@@ -75,9 +75,9 @@ def upgrade() -> None:
         ),
         sa.Column(
             "visibility",
-            sa.String(20) if not _is_postgresql() else sa.Enum(
-                "private", name="workspace_visibility"
-            ),
+            sa.String(20)
+            if not _is_postgresql()
+            else sa.Enum("private", name="workspace_visibility"),
             nullable=False,
             server_default="private",
         ),
@@ -107,8 +107,13 @@ def upgrade() -> None:
         ),
         sa.Column(
             "role",
-            sa.String(20) if not _is_postgresql() else sa.Enum(
-                "owner", "editor", "contributor", "viewer",
+            sa.String(20)
+            if not _is_postgresql()
+            else sa.Enum(
+                "owner",
+                "editor",
+                "contributor",
+                "viewer",
                 name="workspace_member_role",
             ),
             nullable=False,
@@ -120,7 +125,8 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.UniqueConstraint(
-            "workspace_id", "user_id",
+            "workspace_id",
+            "user_id",
             name="uq_workspace_members_workspace_user",
         ),
     )
@@ -176,6 +182,7 @@ def upgrade() -> None:
 
 
 # ── downgrade ─────────────────────────────────────────────────────────────────
+
 
 def downgrade() -> None:
     # Reverse posts changes first.

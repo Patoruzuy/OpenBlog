@@ -22,6 +22,7 @@ Non-leakage contract
 status code string — no workspace name or slug.  The templates in this
 blueprint MUST NOT include workspace details when the token is invalid.
 """
+
 from __future__ import annotations
 
 from flask import (
@@ -100,6 +101,4 @@ def redeem(raw_token: str):
 
     workspace = db.session.get(Workspace, member.workspace_id)
     flash("You have successfully joined the workspace.", "success")
-    return redirect(
-        url_for("workspace.dashboard", workspace_slug=workspace.slug)
-    )
+    return redirect(url_for("workspace.dashboard", workspace_slug=workspace.slug))

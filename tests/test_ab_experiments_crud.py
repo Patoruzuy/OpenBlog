@@ -64,7 +64,9 @@ def _make_workspace(owner) -> Workspace:
     _db.session.add(ws)
     _db.session.flush()
     _db.session.add(
-        WorkspaceMember(workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner)
+        WorkspaceMember(
+            workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner
+        )
     )
     _db.session.flush()
     return ws
@@ -78,9 +80,13 @@ def _add_member(ws, user, role=WorkspaceMemberRole.viewer):
 def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
     n = _n()
     p = Post(
-        title=f"ABCR-Prompt {n}", slug=f"abcr-prompt-{n}", kind="prompt",
-        markdown_body="hello {{name}}", status=status,
-        author_id=author.id, workspace_id=workspace_id,
+        title=f"ABCR-Prompt {n}",
+        slug=f"abcr-prompt-{n}",
+        kind="prompt",
+        markdown_body="hello {{name}}",
+        status=status,
+        author_id=author.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(p)
     _db.session.flush()
@@ -90,8 +96,10 @@ def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
 def _make_suite(user, *, workspace_id=None):
     n = _n()
     s = BenchmarkSuite(
-        name=f"ABCR Suite {n}", slug=f"abcr-suite-{n}",
-        created_by_user_id=user.id, workspace_id=workspace_id,
+        name=f"ABCR Suite {n}",
+        slug=f"abcr-suite-{n}",
+        created_by_user_id=user.id,
+        workspace_id=workspace_id,
     )
     _db.session.add(s)
     _db.session.flush()

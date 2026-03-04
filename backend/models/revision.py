@@ -130,7 +130,7 @@ class Revision(db.Model):
         JSON,
         nullable=True,
         comment=(
-            'Source attribution for AI-generated revisions: '
+            "Source attribution for AI-generated revisions: "
             '{"source": "ai_suggestion", "ai_review_request_id": int, "suggestion_id": str}.'
         ),
     )

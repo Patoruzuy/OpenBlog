@@ -50,7 +50,9 @@ def _make_workspace(owner) -> Workspace:
     _db.session.add(ws)
     _db.session.flush()
     _db.session.add(
-        WorkspaceMember(workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner)
+        WorkspaceMember(
+            workspace_id=ws.id, user_id=owner.id, role=WorkspaceMemberRole.owner
+        )
     )
     _db.session.flush()
     return ws
@@ -77,7 +79,9 @@ def _make_prompt(author, *, workspace_id=None, status=PostStatus.published):
     return p
 
 
-def _make_fork(base: Post, author, *, workspace_id=None, status=PostStatus.published) -> Post:
+def _make_fork(
+    base: Post, author, *, workspace_id=None, status=PostStatus.published
+) -> Post:
     n = _n()
     fork = Post(
         title=f"FRWS-Fork {n}",
@@ -118,7 +122,7 @@ class TestComputeFamilyWorkspaceScope:
         owner = _make_user()
         ws = _make_workspace(owner)
         base = _make_prompt(owner, workspace_id=ws.id)
-        pub_fork = _make_fork(base, owner)             # public fork
+        pub_fork = _make_fork(base, owner)  # public fork
         ws_fork = _make_fork(base, owner, workspace_id=ws.id)  # same-ws fork
         _db.session.commit()
 
@@ -164,7 +168,7 @@ class TestWorkspaceScopeBadge:
         owner = _make_user()
         ws = _make_workspace(owner)
         base = _make_prompt(owner, workspace_id=ws.id)
-        _make_fork(base, owner)   # public fork
+        _make_fork(base, owner)  # public fork
         _db.session.commit()
 
         recs = svc.recommend(owner, base, workspace=ws)

@@ -52,7 +52,9 @@ def _get_post_or_404(post_id: int) -> Post:
 
 
 def _get_post_by_slug_or_404(slug: str) -> Post:
-    post = db.session.execute(select(Post).where(Post.slug == slug)).scalar_one_or_none()
+    post = db.session.execute(
+        select(Post).where(Post.slug == slug)
+    ).scalar_one_or_none()
     if post is None:
         raise ContentLinkError("Post not found.", 404)
     return post
@@ -92,9 +94,7 @@ def _enforce_scope(from_post: Post, to_post: Post) -> None:
 
     # Rule 5: workspace A cannot point to workspace B.
     if from_ws is not None and to_ws is not None and from_ws != to_ws:
-        raise ContentLinkError(
-            "Cannot link across different workspaces.", 400
-        )
+        raise ContentLinkError("Cannot link across different workspaces.", 400)
 
     # Rules 1, 2, 3 pass.
 
@@ -215,17 +215,24 @@ def list_links_for_post(
     if not conditions:
         return []
 
-    combined = conditions[0] if len(conditions) == 1 else (conditions[0] | conditions[1])
+    combined = (
+        conditions[0] if len(conditions) == 1 else (conditions[0] | conditions[1])
+    )
 
-    rows = db.session.execute(
-        select(ContentLink)
-        .where(and_(base_filter, combined))
-        .options(
-            joinedload(ContentLink.from_post),
-            joinedload(ContentLink.to_post),
+    rows = (
+        db.session.execute(
+            select(ContentLink)
+            .where(and_(base_filter, combined))
+            .options(
+                joinedload(ContentLink.from_post),
+                joinedload(ContentLink.to_post),
+            )
+            .order_by(ContentLink.created_at)
         )
-        .order_by(ContentLink.created_at)
-    ).scalars().unique().all()
+        .scalars()
+        .unique()
+        .all()
+    )
 
     return list(rows)
 

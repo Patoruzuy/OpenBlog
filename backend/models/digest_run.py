@@ -87,9 +87,15 @@ class DigestRun(db.Model):
     user: Mapped[User] = relationship("User")  # type: ignore[name-defined]  # noqa: F821
 
     __table_args__ = (
-        UniqueConstraint("user_id", "frequency", "period_key", name="uq_digest_runs_period"),
-        CheckConstraint("frequency IN ('daily','weekly')", name="ck_digest_runs_frequency"),
-        CheckConstraint("status IN ('sent','skipped','failed')", name="ck_digest_runs_status"),
+        UniqueConstraint(
+            "user_id", "frequency", "period_key", name="uq_digest_runs_period"
+        ),
+        CheckConstraint(
+            "frequency IN ('daily','weekly')", name="ck_digest_runs_frequency"
+        ),
+        CheckConstraint(
+            "status IN ('sent','skipped','failed')", name="ck_digest_runs_status"
+        ),
         Index("idx_digest_runs_user_freq", "user_id", "frequency"),
     )
 

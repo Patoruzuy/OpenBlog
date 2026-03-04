@@ -258,15 +258,31 @@ class RevisionService:
         revision.reviewed_by_id = reviewer_id
         revision.reviewed_at = datetime.now(UTC)
 
-        # Reputation fan-out: contributor earns +ACCEPT_REPUTATION.
+        # Promote reader → contributor on first accepted revision.
         contributor = db.session.get(User, revision.author_id)
-        if contributor is not None:
-            contributor.reputation_score = (
-                contributor.reputation_score or 0
-            ) + RevisionService.ACCEPT_REPUTATION
-            # Promote reader to contributor on first accepted revision
-            if contributor.role == UserRole.reader:
-                contributor.role = UserRole.contributor
+        if contributor is not None and contributor.role == UserRole.reader:
+            contributor.role = UserRole.contributor
+
+        # Reputation fan-out via the auditable ledger.
+        # award_event is idempotent (fingerprint guard) and commits atomically
+        # together with all pending session state above.
+        from backend.services.reputation_service import (
+            ReputationService,  # noqa: PLC0415
+        )
+
+        _pts = ReputationService.POINTS_REVISION_ACCEPTED + (
+            ReputationService.POINTS_PUBLIC_BONUS if post.workspace_id is None else 0
+        )
+        ReputationService.award_event(
+            user_id=revision.author_id,
+            workspace_id=post.workspace_id,
+            event_type="revision_accepted",
+            source_type="revision",
+            source_id=revision.id,
+            points=_pts,
+            fingerprint_parts={"revision_id": revision.id},
+            metadata={"post_id": post.id, "reviewer_id": reviewer_id},
+        )
 
         # Award first-contribution badge if this is their first accepted revision.
         # Wrapped in try/except so a badge failure never aborts the acceptance.
@@ -322,6 +338,25 @@ class RevisionService:
         revision.reviewed_by_id = reviewer_id
         revision.reviewed_at = datetime.now(UTC)
         revision.rejection_note = note.strip() or None
+
+        # Reputation penalty via the auditable ledger.
+        from backend.services.reputation_service import (
+            ReputationService,  # noqa: PLC0415
+        )
+
+        ReputationService.award_event(
+            user_id=revision.author_id,
+            workspace_id=post.workspace_id if post is not None else None,
+            event_type="revision_rejected",
+            source_type="revision",
+            source_id=revision.id,
+            points=ReputationService.POINTS_REVISION_REJECTED,
+            fingerprint_parts={"revision_id": revision.id},
+            metadata={
+                "reviewer_id": reviewer_id,
+                "rejection_note": note.strip(),
+            },
+        )
 
         db.session.commit()
 

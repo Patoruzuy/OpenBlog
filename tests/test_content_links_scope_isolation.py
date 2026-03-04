@@ -38,9 +38,7 @@ def _make_user(role: str = "reader"):
     from backend.services.auth_service import AuthService
 
     n = _n()
-    user = AuthService.register(
-        f"si{n}@example.com", f"siuser{n}", "StrongPass123!!"
-    )
+    user = AuthService.register(f"si{n}@example.com", f"siuser{n}", "StrongPass123!!")
     if role != "reader":
         user.role = UserRole(role)
         _db.session.flush()
@@ -244,6 +242,8 @@ class TestWorkspaceMemberPermissions:
         _db.session.commit()
 
         # Querying p2_pub's incoming links in PUBLIC scope.
-        pub_incoming = svc.list_links_for_post(p2_pub, workspace_id=None, direction="incoming")
+        pub_incoming = svc.list_links_for_post(
+            p2_pub, workspace_id=None, direction="incoming"
+        )
         # These are all workspace-scoped, so should not appear with workspace_id=None.
         assert all(lnk.workspace_id is None for lnk in pub_incoming)

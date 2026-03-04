@@ -74,6 +74,7 @@ class AIReviewProvider(ABC):
             Must contain ``summary_md`` (str), ``findings_json`` (list),
             and ``metrics_json`` (dict).  See module docstring for the schema.
         """
+
     @abstractmethod
     def run_explanation(
         self,

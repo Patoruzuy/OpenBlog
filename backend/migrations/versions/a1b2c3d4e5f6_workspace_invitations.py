@@ -13,6 +13,7 @@ Schema changes
 2. Create index ``idx_workspace_invites_workspace_id``
 3. Create index ``idx_workspace_invites_token_hash``
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -90,6 +91,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("idx_workspace_invites_token_hash", table_name="workspace_invitations")
-    op.drop_index("idx_workspace_invites_workspace_id", table_name="workspace_invitations")
+    op.drop_index(
+        "idx_workspace_invites_token_hash", table_name="workspace_invitations"
+    )
+    op.drop_index(
+        "idx_workspace_invites_workspace_id", table_name="workspace_invitations"
+    )
     op.drop_table("workspace_invitations")

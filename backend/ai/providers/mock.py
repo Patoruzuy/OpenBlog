@@ -201,7 +201,6 @@ class MockAIProvider(AIReviewProvider):
                 "input_chars": len(input_text),
             },
             "suggested_edits_json": suggested_edits_json,
-
         }
 
     # ── Analytics explanation canned responses ────────────────────────────────

@@ -77,7 +77,9 @@ def upgrade() -> None:
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
     )
-    op.create_index("ix_ab_experiments_workspace_id", "ab_experiments", ["workspace_id"])
+    op.create_index(
+        "ix_ab_experiments_workspace_id", "ab_experiments", ["workspace_id"]
+    )
     op.create_index("ix_ab_experiments_suite_id", "ab_experiments", ["suite_id"])
     op.create_index("ix_ab_experiments_status", "ab_experiments", ["status"])
 
@@ -110,9 +112,13 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.UniqueConstraint("experiment_id", name="uq_ab_experiment_runs_experiment"),
-        sa.CheckConstraint("run_a_id <> run_b_id", name="ck_ab_experiment_runs_distinct"),
+        sa.CheckConstraint(
+            "run_a_id <> run_b_id", name="ck_ab_experiment_runs_distinct"
+        ),
     )
-    op.create_index("ix_ab_experiment_runs_experiment_id", "ab_experiment_runs", ["experiment_id"])
+    op.create_index(
+        "ix_ab_experiment_runs_experiment_id", "ab_experiment_runs", ["experiment_id"]
+    )
 
 
 def downgrade() -> None:

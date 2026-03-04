@@ -188,5 +188,5 @@ def run_ai_review(self, request_id: int) -> dict:  # type: ignore[override]
                 db.session.rollback()
 
         # Exponential backoff: 10 s → 40 s → 160 s.
-        countdown = 10 * (4 ** self.request.retries)
+        countdown = 10 * (4**self.request.retries)
         raise self.retry(exc=exc, countdown=countdown)

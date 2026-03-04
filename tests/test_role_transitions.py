@@ -45,7 +45,9 @@ def _make_published_post(author) -> Post:
 
 class TestReaderPromotedOnPublish:
     def test_reader_promoted_to_contributor_on_first_publish(
-        self, make_user_token, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.post_service import PostService
 
@@ -59,7 +61,9 @@ class TestReaderPromotedOnPublish:
         assert user.role == UserRole.contributor
 
     def test_reader_role_unchanged_when_saving_draft(
-        self, make_user_token, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.post_service import PostService
 
@@ -70,7 +74,9 @@ class TestReaderPromotedOnPublish:
         assert user.role == UserRole.reader
 
     def test_contributor_role_unchanged_on_subsequent_publish(
-        self, make_user_token, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.post_service import PostService
 
@@ -84,7 +90,9 @@ class TestReaderPromotedOnPublish:
         assert user.role == UserRole.contributor
 
     def test_editor_role_unchanged_on_publish(
-        self, make_user_token, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.post_service import PostService
 
@@ -96,7 +104,9 @@ class TestReaderPromotedOnPublish:
         assert user.role == UserRole.editor
 
     def test_second_publish_does_not_double_promote(
-        self, make_user_token, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         """After first publish promotes reader → contributor, second publish leaves them as contributor."""
         from backend.services.post_service import PostService
@@ -128,7 +138,11 @@ class TestReaderPromotedOnAcceptedRevision:
         return _make_published_post(author)
 
     def test_reader_promoted_when_revision_accepted(
-        self, make_user_token, author, pub_post, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        author,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.revision_service import RevisionService
 
@@ -147,7 +161,11 @@ class TestReaderPromotedOnAcceptedRevision:
         assert reader.role == UserRole.contributor
 
     def test_contributor_not_demoted_when_revision_accepted(
-        self, make_user_token, author, pub_post, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        author,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.revision_service import RevisionService
 
@@ -167,13 +185,15 @@ class TestReaderPromotedOnAcceptedRevision:
         assert contrib.role == UserRole.contributor
 
     def test_reputation_still_awarded_alongside_promotion(
-        self, make_user_token, author, pub_post, db_session  # noqa: ARG002
+        self,
+        make_user_token,
+        author,
+        pub_post,
+        db_session,  # noqa: ARG002
     ):
         from backend.services.revision_service import RevisionService
 
-        reader, _ = make_user_token(
-            "rep_reader@test.com", "rep_reader", role="reader"
-        )
+        reader, _ = make_user_token("rep_reader@test.com", "rep_reader", role="reader")
         before = reader.reputation_score or 0
 
         revision = RevisionService.submit(
@@ -199,7 +219,10 @@ class TestNewPostRouteAccess:
         assert "/auth/login" in resp.headers["Location"]
 
     def test_authenticated_reader_can_access(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         user, _ = make_user_token("reader_new@test.com", "reader_new", role="reader")
         _login(auth_client, user.id)
@@ -207,9 +230,14 @@ class TestNewPostRouteAccess:
         assert resp.status_code == 200
 
     def test_contributor_can_access(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
-        user, _ = make_user_token("contrib_new@test.com", "contrib_new", role="contributor")
+        user, _ = make_user_token(
+            "contrib_new@test.com", "contrib_new", role="contributor"
+        )
         _login(auth_client, user.id)
         resp = auth_client.get("/posts/new")
         assert resp.status_code == 200
@@ -220,7 +248,10 @@ class TestNewPostRouteAccess:
 
 class TestDraftsCTAGating:
     def test_verified_user_sees_new_post_link(
-        self, auth_client, make_user_token, db_session  # noqa: ARG002
+        self,
+        auth_client,
+        make_user_token,
+        db_session,  # noqa: ARG002
     ):
         """Email-verified user should see the active 'New post' anchor."""
         user, _ = make_user_token("verified@test.com", "verified_user", role="reader")
@@ -232,7 +263,9 @@ class TestDraftsCTAGating:
         assert resp.status_code == 200
         assert b"/posts/new" in resp.data
 
-    def test_unverified_user_sees_disabled_button(self, auth_client, make_user_token, db_session):  # noqa: ARG002
+    def test_unverified_user_sees_disabled_button(
+        self, auth_client, make_user_token, db_session
+    ):  # noqa: ARG002
         """Unverified user should see a disabled button and a resend-verification link."""
         user, _ = make_user_token("unverified@test.com", "unverified_u", role="reader")
         user.is_email_verified = False

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}{{ profile_user.display_name or profile_user.username }}'s Reputation{% endblock %}
+
+{% block content %}
+<div class="reputation-page">
+
+  {# ── Header ─────────────────────────────────────────────────────────────── #}
+  <div class="reputation-header">
+    <div class="reputation-header__meta">
+      <a href="{{ url_for('users.profile', username=profile_user.username) }}" class="reputation-header__back">
+        ← {{ profile_user.display_name or profile_user.username }}
+      </a>
+      <h1 class="reputation-header__title">Public Reputation</h1>
+    </div>
+
+    <div class="reputation-hero">
+      <span class="reputation-hero__score" aria-label="Total public reputation score">{{ public_total }}</span>
+      <span class="reputation-hero__label">points</span>
+    </div>
+
+    <p class="reputation-header__caption">
+      Public reputation earned through accepted revisions, upvotes, and A/B experiment wins.
+    </p>
+  </div>
+
+  {# ── Event ledger ────────────────────────────────────────────────────────── #}
+  {% if events %}
+  <section class="reputation-events" aria-label="Reputation history">
+    <h2 class="reputation-events__heading">Recent events</h2>
+    <table class="reputation-table">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Event</th>
+          <th scope="col">Source</th>
+          <th scope="col" class="reputation-table__points-col">Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+        <tr class="reputation-table__row reputation-table__row--{{ 'positive' if event.points > 0 else 'negative' }}">
+          <td class="reputation-table__date">
+            <time datetime="{{ event.created_at.isoformat() }}">
+              {{ event.created_at.strftime('%b %d, %Y') }}
+            </time>
+          </td>
+          <td class="reputation-table__event">
+            <span class="reputation-badge reputation-badge--{{ event.event_type | replace('_', '-') }}">
+              {% if event.event_type == 'revision_accepted' %}Revision accepted
+              {% elif event.event_type == 'revision_rejected' %}Revision rejected
+              {% elif event.event_type == 'vote_received' %}Upvote received
+              {% elif event.event_type == 'ab_win' %}A/B experiment win
+              {% elif event.event_type == 'admin_adjustment' %}Admin adjustment
+              {% else %}{{ event.event_type | replace('_', ' ') | title }}
+              {% endif %}
+            </span>
+          </td>
+          <td class="reputation-table__source">
+            {% if event.source_type == 'revision' %}
+              <a href="{{ url_for('ssr_revisions.revision_detail', revision_id=event.source_id) }}"
+                 class="reputation-table__link">Revision #{{ event.source_id }}</a>
+            {% elif event.source_type == 'post' %}
+              <span class="reputation-table__source-label">Post #{{ event.source_id }}</span>
+            {% elif event.source_type == 'ab_experiment' %}
+              <a href="{{ url_for('ab.detail', experiment_id=event.source_id) }}"
+                 class="reputation-table__link">Experiment #{{ event.source_id }}</a>
+            {% else %}
+              <span class="reputation-table__source-label">{{ event.source_type | title }} #{{ event.source_id }}</span>
+            {% endif %}
+          </td>
+          <td class="reputation-table__points">
+            <span class="reputation-points reputation-points--{{ 'gain' if event.points > 0 else 'loss' }}">
+              {{ '%+d' | format(event.points) }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% else %}
+  <section class="reputation-empty" aria-label="No reputation events">
+    <p class="reputation-empty__text">No public reputation events yet.</p>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

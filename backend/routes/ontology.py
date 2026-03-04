@@ -129,9 +129,7 @@ def ws_node_detail(ws_slug: str, slug: str):
     if node is None or not node.is_public:
         abort(404)
 
-    prompts = list_prompts_for_node(
-        user, node, workspace=ws, include_descendants=True
-    )
+    prompts = list_prompts_for_node(user, node, workspace=ws, include_descendants=True)
     resp = make_response(
         render_template(
             "ontology/detail.html",
@@ -191,9 +189,7 @@ def set_ws_mapping(ws_slug: str, slug: str):
         db.session.rollback()
         flash(str(exc), "error")
 
-    return redirect(
-        url_for("prompts.ws_prompt_detail", ws_slug=ws_slug, slug=slug)
-    )
+    return redirect(url_for("prompts.ws_prompt_detail", ws_slug=ws_slug, slug=slug))
 
 
 # ── Ontology-scoped benchmark slices ──────────────────────────────────────────
@@ -228,10 +224,11 @@ def public_node_recommendations(slug: str):
     if node is None or not node.is_public:
         abort(404)
 
-    prompts = list_prompts_for_node(user, node, workspace=None, include_descendants=True)
+    prompts = list_prompts_for_node(
+        user, node, workspace=None, include_descendants=True
+    )
     recs: dict = {
-        p: recommend(user, p, workspace=None, ontology_node=node)
-        for p in prompts[:10]
+        p: recommend(user, p, workspace=None, ontology_node=node) for p in prompts[:10]
     }
     return render_template(
         "ontology/recommendations.html",
@@ -281,8 +278,7 @@ def ws_node_recommendations(ws_slug: str, slug: str):
 
     prompts = list_prompts_for_node(user, node, workspace=ws, include_descendants=True)
     recs: dict = {
-        p: recommend(user, p, workspace=ws, ontology_node=node)
-        for p in prompts[:10]
+        p: recommend(user, p, workspace=ws, ontology_node=node) for p in prompts[:10]
     }
     resp = make_response(
         render_template(

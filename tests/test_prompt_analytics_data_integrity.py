@@ -219,6 +219,7 @@ def _count_queries(db) -> Generator[dict, None, None]:
 # DAI-001  Version timeline order
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestVersionTimelineOrder:
     def test_entries_ordered_ascending(self, db_session):
         """DAI-001: timeline entries are sorted ascending by version_number."""
@@ -236,6 +237,7 @@ class TestVersionTimelineOrder:
 # ──────────────────────────────────────────────────────────────────────────────
 # DAI-002  Release note summary preferred over revision summary
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestVersionTimelineSummarySource:
     def test_release_note_preferred(self, db_session):
@@ -278,6 +280,7 @@ class TestVersionTimelineSummarySource:
 # DAI-004 / DAI-005  AI attribution flag
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestAIGeneratedFlag:
     def test_ai_source_sets_flag(self, db_session):
         """DAI-004: revision with source=ai_suggestion sets is_ai_generated=True."""
@@ -313,6 +316,7 @@ class TestAIGeneratedFlag:
 # ──────────────────────────────────────────────────────────────────────────────
 # DAI-006 / DAI-007  Rating trend deltas
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestRatingTrend:
     def test_trend_empty_when_no_timeline(self, db_session):
@@ -413,6 +417,7 @@ class TestRatingTrend:
 # DAI-008  Fork vote counts
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 class TestForkVoteCounts:
     def test_fork_vote_count_correct(self, db_session):
         """DAI-008: each fork entry's vote_count reflects actual vote rows."""
@@ -449,6 +454,7 @@ class TestForkVoteCounts:
 # ──────────────────────────────────────────────────────────────────────────────
 # DAI-009  Unique readers count
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestUniqueReadersCount:
     def test_unique_readers_count_correct(self, db_session):
@@ -531,6 +537,7 @@ class TestBoundedQueryCount:
     def test_get_execution_stats_bounded_queries(self, db_session):
         """get_execution_stats uses at most _BOUNDED_QUERY_LIMIT queries."""
         from datetime import UTC  # noqa: PLC0415
+
         author = _make_user()
         reader = _make_user()
         prompt = _make_prompt(author, view_count=10)
@@ -558,6 +565,7 @@ class TestBoundedQueryCount:
 # ──────────────────────────────────────────────────────────────────────────────
 # DAI-011  Fork tree ordering
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class TestForkOrdering:
     def test_forks_ordered_newest_first(self, db_session):

@@ -204,11 +204,7 @@ def list_digest_runs(
 ) -> list[DigestRun]:
     """Return latest *limit* digest_runs, newest first."""
     limit = min(limit, 200)
-    q = (
-        select(DigestRun)
-        .order_by(DigestRun.period_start.desc())
-        .limit(limit)
-    )
+    q = select(DigestRun).order_by(DigestRun.period_start.desc()).limit(limit)
     if status:
         q = q.where(DigestRun.status == status)
     return list(db.session.scalars(q).all())

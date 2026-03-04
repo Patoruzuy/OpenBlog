@@ -41,7 +41,7 @@ def upgrade() -> None:
             nullable=False,
             server_default="{}",
             comment=(
-                'Structured AI-suggested edits: '
+                "Structured AI-suggested edits: "
                 '{"edits": [{id, title, kind, target_hint, proposed_markdown, rationale}]}'
             ),
         ),
@@ -55,7 +55,7 @@ def upgrade() -> None:
             sa.JSON,
             nullable=True,
             comment=(
-                'AI source attribution: '
+                "AI source attribution: "
                 '{"source": "ai_suggestion", "ai_review_request_id": int, "suggestion_id": str}'
             ),
         ),
