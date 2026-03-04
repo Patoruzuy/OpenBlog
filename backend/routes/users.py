@@ -10,9 +10,14 @@ from __future__ import annotations
 from flask import Blueprint, abort, render_template
 
 from backend.services.badge_service import BadgeService
-from backend.services.contribution_graph_service import ContributionGraphService
 from backend.services.pinned_post_service import PinnedPostService
 from backend.services.privacy_service import PrivacyService
+from backend.services.user_analytics_service import (
+    build_contribution_heatmap,
+    build_ontology_contributions,
+    build_user_contribution_summary,
+    compute_contribution_streak,
+)
 from backend.services.user_service import UserService
 from backend.utils.auth import get_current_user
 
@@ -64,14 +69,33 @@ def profile(username: str):
         PinnedPostService.get_pinned(user.id) if privacy_view.get("visible") else []
     )
 
-    # Contribution graph (self-view includes anonymous contributions)
-    contrib_data = (
-        ContributionGraphService.get_contributions(
-            user.id, viewer_is_self=viewer_is_self
+    # Contribution analytics — heatmap, summary, ontology, streak.
+    # Owner (viewer_is_self) sees all contributions; public view sees only
+    # public (workspace_id IS NULL) contributions.
+    _show_contrib = privacy_view.get("show_contributions", False)
+    _public_only = not viewer_is_self
+
+    if _show_contrib:
+        contrib_data = build_contribution_heatmap(user.id, public_only=_public_only)
+        contrib_summary = build_user_contribution_summary(
+            user.id, public_only=_public_only
         )
-        if privacy_view.get("show_contributions")
-        else {"weeks": [], "total": 0}
-    )
+        contrib_ontology = build_ontology_contributions(
+            user.id, public_only=_public_only
+        )
+        contrib_streak = compute_contribution_streak(user.id, public_only=_public_only)
+    else:
+        contrib_data = {"weeks": [], "total": 0}
+        contrib_summary = {
+            "posts_published": 0,
+            "revisions_submitted": 0,
+            "revisions_accepted": 0,
+            "ai_reviews_requested": 0,
+            "benchmarks_run": 0,
+            "ab_experiments_created": 0,
+        }
+        contrib_ontology = []
+        contrib_streak = {"current_streak": 0, "longest_streak": 0}
 
     # Badges
     user_badges = BadgeService.list_for_user(user.id)
@@ -121,6 +145,9 @@ def profile(username: str):
         viewer_is_self=viewer_is_self,
         pinned_posts=pinned_posts,
         contrib_data=contrib_data,
+        contrib_summary=contrib_summary,
+        contrib_ontology=contrib_ontology,
+        contrib_streak=contrib_streak,
         user_badges=user_badges,
         recent_activity=recent_activity,
     )

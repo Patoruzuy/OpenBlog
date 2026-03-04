@@ -184,7 +184,7 @@
     {% if contrib_data.weeks %}
       <section class="contrib-graph" aria-label="Contribution graph">
         <h2 class="profile-section-heading">
-          {{ contrib_data.total }} post{{ '' if contrib_data.total == 1 else 's' }} in the last year
+          {{ contrib_data.total }} contribution{{ '' if contrib_data.total == 1 else 's' }} in the last year
         </h2>
         <div class="contrib-graph__grid" role="grid" aria-label="Contribution calendar">
           {% for week in contrib_data.weeks %}
@@ -193,7 +193,7 @@
                 <div
                   class="contrib-graph__cell level-{{ cell.level }}"
                   role="gridcell"
-                  aria-label="{{ cell.count }} publication{{ '' if cell.count == 1 else 's' }} on {{ cell.date }}"
+                  aria-label="{{ cell.count }} contribution{{ '' if cell.count == 1 else 's' }} on {{ cell.date }}"
                   title="{{ cell.count }} on {{ cell.date }}"
                 ></div>
               {% endfor %}
@@ -209,6 +209,72 @@
           <div class="contrib-graph__cell level-4"></div>
           <span>More</span>
         </div>
+      </section>
+    {% endif %}
+
+    {# ── Contribution summary cards ───────────────────────────────────────── #}
+    {% set _cs = contrib_summary %}
+    {% if _cs and (_cs.posts_published or _cs.revisions_submitted or _cs.benchmarks_run or _cs.ab_experiments_created) %}
+      <section class="contrib-summary" aria-label="Contribution summary">
+        <h2 class="profile-section-heading">Contributions</h2>
+        <div class="contrib-summary__grid">
+          <div class="contrib-summary__card">
+            <span class="contrib-summary__value">{{ _cs.posts_published }}</span>
+            <span class="contrib-summary__label">Post{{ '' if _cs.posts_published == 1 else 's' }}</span>
+          </div>
+          <div class="contrib-summary__card">
+            <span class="contrib-summary__value">{{ _cs.revisions_submitted }}</span>
+            <span class="contrib-summary__label">Revision{{ '' if _cs.revisions_submitted == 1 else 's' }}</span>
+          </div>
+          <div class="contrib-summary__card">
+            <span class="contrib-summary__value">{{ _cs.revisions_accepted }}</span>
+            <span class="contrib-summary__label">Accepted Improvement{{ '' if _cs.revisions_accepted == 1 else 's' }}</span>
+          </div>
+          <div class="contrib-summary__card">
+            <span class="contrib-summary__value">{{ _cs.benchmarks_run }}</span>
+            <span class="contrib-summary__label">Benchmark{{ '' if _cs.benchmarks_run == 1 else 's' }}</span>
+          </div>
+          <div class="contrib-summary__card">
+            <span class="contrib-summary__value">{{ _cs.ab_experiments_created }}</span>
+            <span class="contrib-summary__label">Experiment{{ '' if _cs.ab_experiments_created == 1 else 's' }}</span>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {# ── Contribution streak ──────────────────────────────────────────────── #}
+    {% if contrib_streak and (contrib_streak.current_streak or contrib_streak.longest_streak) %}
+      <section class="contrib-streak" aria-label="Contribution streak">
+        <h2 class="profile-section-heading">Streaks</h2>
+        <div class="contrib-streak__grid">
+          <div class="contrib-streak__item">
+            <span class="contrib-streak__icon" aria-hidden="true">🔥</span>
+            <span class="contrib-streak__value">{{ contrib_streak.current_streak }}</span>
+            <span class="contrib-streak__label">day{{ '' if contrib_streak.current_streak == 1 else 's' }} current streak</span>
+          </div>
+          <div class="contrib-streak__item">
+            <span class="contrib-streak__icon" aria-hidden="true">🏆</span>
+            <span class="contrib-streak__value">{{ contrib_streak.longest_streak }}</span>
+            <span class="contrib-streak__label">day{{ '' if contrib_streak.longest_streak == 1 else 's' }} longest streak</span>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {# ── Top knowledge areas ─────────────────────────────────────────────── #}
+    {% if contrib_ontology %}
+      <section class="contrib-ontology" aria-label="Top knowledge areas">
+        <h2 class="profile-section-heading">Top Knowledge Areas</h2>
+        <ol class="contrib-ontology__list">
+          {% for item in contrib_ontology %}
+            <li class="contrib-ontology__item">
+              <span class="contrib-ontology__name">{{ item.node.name }}</span>
+              <span class="contrib-ontology__count">
+                {{ item.count }} post{{ '' if item.count == 1 else 's' }}
+              </span>
+            </li>
+          {% endfor %}
+        </ol>
       </section>
     {% endif %}
 
