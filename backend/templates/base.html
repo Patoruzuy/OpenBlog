@@ -104,6 +104,34 @@
           <a href="{{ url_for('explore.explore_index') }}"
              {% if request.endpoint and request.endpoint.startswith('explore.') %}aria-current="page"{% endif %}>{{ _('Explore') }}</a>
 
+          {# ── Labs dropdown (Prompts / Benchmarks / A/B / Ontology / Intelligence) #}
+          {% set _labs_endpoints = ('prompts.', 'benchmarks.', 'ab.', 'ontology.', 'intelligence.') %}
+          {% set _in_labs = request.endpoint and request.endpoint.startswith(_labs_endpoints) %}
+          <details class="nav-dropdown">
+            <summary class="nav-dropdown__trigger"
+                     aria-haspopup="true"
+                     {% if _in_labs %}aria-current="page"{% endif %}>
+              {{ _('Labs') }}
+            </summary>
+            <ul class="nav-dropdown__menu" role="menu">
+              <li role="menuitem">
+                <a class="nav-dropdown__link" href="{{ url_for('prompts.public_prompt_list') }}">{{ _('Prompt Library') }}</a>
+              </li>
+              <li role="menuitem">
+                <a class="nav-dropdown__link" href="{{ url_for('benchmarks.public_suite_list') }}">{{ _('Benchmarks') }}</a>
+              </li>
+              <li role="menuitem">
+                <a class="nav-dropdown__link" href="{{ url_for('ab.public_list') }}">{{ _('A/B Experiments') }}</a>
+              </li>
+              <li role="menuitem">
+                <a class="nav-dropdown__link" href="{{ url_for('ontology.public_ontology_index') }}">{{ _('Ontology') }}</a>
+              </li>
+              <li role="menuitem">
+                <a class="nav-dropdown__link" href="{{ url_for('intelligence.public_intelligence') }}">{{ _('Intelligence') }}</a>
+              </li>
+            </ul>
+          </details>
+
           {# ── New post (contributor / editor / admin) ───────────────── #}
           {% if current_user and current_user.role.value in ['contributor', 'editor', 'admin'] %}
             <a href="{{ url_for('posts.new_post') }}" class="btn btn-sm btn-primary">{{ _('New post') }}</a>
@@ -236,6 +264,15 @@
           <a href="{{ url_for('tags.tag_index') }}">{{ _('Topics') }}</a>
           <a href="{{ url_for('revisions.revision_list') }}">{{ _('Revisions') }}</a>
           <a href="{{ url_for('search.search_results') }}">{{ _('Search') }}</a>
+        </nav>
+
+        <nav class="footer-nav" aria-label="{{ _('Labs') }}">
+          <h3 class="footer-nav-heading">{{ _('Labs') }}</h3>
+          <a href="{{ url_for('prompts.public_prompt_list') }}">{{ _('Prompt Library') }}</a>
+          <a href="{{ url_for('benchmarks.public_suite_list') }}">{{ _('Benchmarks') }}</a>
+          <a href="{{ url_for('ab.public_list') }}">{{ _('A/B Experiments') }}</a>
+          <a href="{{ url_for('ontology.public_ontology_index') }}">{{ _('Ontology') }}</a>
+          <a href="{{ url_for('intelligence.public_intelligence') }}">{{ _('Intelligence') }}</a>
         </nav>
 
         <nav class="footer-nav" aria-label="{{ _('About') }}">

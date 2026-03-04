@@ -12,6 +12,38 @@
     </p>
   </header>
 
+  {# ── Labs feature cards ──────────────────────────────────────────────────── #}
+  <section class="explore-labs" aria-label="{{ _('Labs features') }}">
+    <h2 class="explore-labs__heading">{{ _('Labs') }}</h2>
+    <div class="explore-labs__grid">
+      <a class="explore-labs__card" href="{{ url_for('prompts.public_prompt_list') }}">
+        <span class="explore-labs__icon" aria-hidden="true">✦</span>
+        <span class="explore-labs__name">{{ _('Prompt Library') }}</span>
+        <span class="explore-labs__desc">{{ _('Browse and improve versioned prompts') }}</span>
+      </a>
+      <a class="explore-labs__card" href="{{ url_for('benchmarks.public_suite_list') }}">
+        <span class="explore-labs__icon" aria-hidden="true">⊞</span>
+        <span class="explore-labs__name">{{ _('Benchmarks') }}</span>
+        <span class="explore-labs__desc">{{ _('Run suites to score prompt quality') }}</span>
+      </a>
+      <a class="explore-labs__card" href="{{ url_for('ab.public_list') }}">
+        <span class="explore-labs__icon" aria-hidden="true">⇄</span>
+        <span class="explore-labs__name">{{ _('A/B Experiments') }}</span>
+        <span class="explore-labs__desc">{{ _('Compare prompt variants head-to-head') }}</span>
+      </a>
+      <a class="explore-labs__card" href="{{ url_for('ontology.public_ontology_index') }}">
+        <span class="explore-labs__icon" aria-hidden="true">◈</span>
+        <span class="explore-labs__name">{{ _('Ontology') }}</span>
+        <span class="explore-labs__desc">{{ _('Structured knowledge taxonomy browser') }}</span>
+      </a>
+      <a class="explore-labs__card" href="{{ url_for('intelligence.public_intelligence') }}">
+        <span class="explore-labs__icon" aria-hidden="true">◎</span>
+        <span class="explore-labs__name">{{ _('Intelligence') }}</span>
+        <span class="explore-labs__desc">{{ _('Cross-family benchmark analytics') }}</span>
+      </a>
+    </div>
+  </section>
+
   {# ── Tab bar ─────────────────────────────────────────────────────────────── #}
   <nav class="tab-bar" aria-label="{{ _('Explore sections') }}">
     <a class="tab-link{% if tab == 'posts' %} tab-link--active{% endif %}"
