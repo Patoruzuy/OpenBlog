@@ -1,0 +1,82 @@
+{# ── Contributor Cards — Top Improvers ────────────────────────────────────── #}
+{#
+  Expected context variables:
+    contributor_cards  — list[ContributorCard] from ContributorCardService
+    section_title      — str  (e.g. "Top Contributors", "Top Improvers")
+    workspace          — Workspace | None  (for profile links)
+#}
+
+{% if contributor_cards %}
+<section class="contributor-cards" aria-label="{{ section_title | default('Top Contributors') }}">
+  <h2 class="contributor-cards__heading">{{ section_title | default('Top Contributors') }}</h2>
+
+  <div class="contributor-cards__grid">
+    {% for card in contributor_cards %}
+    <article class="contributor-card" aria-label="{{ card.display_name or card.username }}">
+
+      {# ── Avatar + identity ─────────────────────────────────────────── #}
+      <div class="contributor-card__header">
+        {% if card.avatar_url %}
+        <img src="{{ card.avatar_url }}"
+             alt="{{ card.display_name or card.username }}"
+             class="contributor-card__avatar"
+             width="40" height="40"
+             loading="lazy">
+        {% else %}
+        <span class="contributor-card__avatar contributor-card__avatar--placeholder"
+              aria-hidden="true">{{ (card.display_name or card.username)[:1] | upper }}</span>
+        {% endif %}
+
+        <div class="contributor-card__identity">
+          <a href="{{ url_for('users.profile', username=card.username) }}"
+             class="contributor-card__name">
+            {{ card.display_name or card.username }}
+          </a>
+          {% if card.display_name %}
+          <span class="contributor-card__handle">@{{ card.username }}</span>
+          {% endif %}
+        </div>
+
+        <span class="contributor-card__rank" aria-label="Rank {{ card.rank }}">#{{ card.rank }}</span>
+      </div>
+
+      {# ── Improver score bar ────────────────────────────────────────── #}
+      <div class="contributor-card__score-row">
+        <span class="contributor-card__score-label">Score</span>
+        <span class="contributor-card__score">{{ "%.2f"|format(card.improver_score) }}</span>
+        <div class="contributor-card__score-bar" role="presentation">
+          <div class="contributor-card__score-fill"
+               style="width:{{ (card.improver_score * 100) | round(1) }}%"></div>
+        </div>
+      </div>
+
+      {# ── Stats row ─────────────────────────────────────────────────── #}
+      <dl class="contributor-card__stats">
+        <div class="contributor-card__stat">
+          <dt class="contributor-card__stat-label" title="Accepted revisions">✏️</dt>
+          <dd class="contributor-card__stat-value">{{ card.accepted_revisions }}</dd>
+        </div>
+        <div class="contributor-card__stat">
+          <dt class="contributor-card__stat-label" title="A/B wins">🏆</dt>
+          <dd class="contributor-card__stat-value">{{ card.ab_wins }}</dd>
+        </div>
+        <div class="contributor-card__stat">
+          <dt class="contributor-card__stat-label" title="Topics covered">🗺️</dt>
+          <dd class="contributor-card__stat-value">{{ card.ontology_breadth }}</dd>
+        </div>
+      </dl>
+
+      {# ── Badges (public-safe; top 3) ───────────────────────────────── #}
+      {% if card.badge_keys %}
+      <div class="contributor-card__badges">
+        {% for key in card.badge_keys %}
+        <span class="badge-chip badge-chip--{{ key }}">{{ key | replace('_', ' ') | title }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

@@ -114,6 +114,7 @@ make format    # ruff format
 - **Roles** — reader, editor, admin
 - **JWT auth** — short-lived access tokens + refresh rotation with Redis revocation
 - **Reputation scores** — incremented on accepted revisions
+**Leaderboards** — public, workspace, and ontology leaderboards based on reputation totals (deterministic ranking, scope-safe)
 - **Badges** — awarded automatically (first revision, prolific author, etc.)
 - **Portals** — per-user identity modes (real name vs. handle) and privacy settings
 

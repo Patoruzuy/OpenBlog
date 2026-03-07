@@ -142,7 +142,7 @@
         <h2 class="profile-section-heading">Badges</h2>
         <div class="profile-badges__list">
           {% for ub in user_badges %}
-            <span class="badge-chip badge-chip--{{ loop.index0 % 7 }}" title="{{ ub.badge.description }}">{{ ub.badge.name }}</span>
+            <span class="badge-chip badge-chip--{{ ub.badge.key }}" title="{{ ub.badge.description }} (awarded {{ ub.awarded_at.strftime('%Y-%m-%d') if ub.awarded_at else '' }})">{{ ub.badge.name }}</span>
           {% endfor %}
         </div>
       </section>

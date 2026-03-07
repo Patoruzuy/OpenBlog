@@ -325,6 +325,14 @@ def create_run(
     db.session.add(run)
     db.session.flush()
 
+    # Evaluate contribution-threshold badges for the user who triggered the run.
+    try:
+        from backend.services.badge_service import BadgeService  # noqa: PLC0415
+
+        BadgeService.check_contribution_badges(user.id, workspace_id=suite.workspace_id)
+    except Exception:  # noqa: BLE001
+        pass
+
     # Enqueue Celery task (imported here to avoid circular import at module load).
     from backend.tasks.benchmark_runs import run_benchmark  # noqa: PLC0415
 

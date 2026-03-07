@@ -574,4 +574,16 @@ def compute_comparison(
         except Exception:  # noqa: BLE001  — reputation failure must not break comparison
             pass
 
+    # Re-evaluate contribution-threshold badges for the experiment creator.
+    if _just_completed:
+        try:
+            from backend.services.badge_service import BadgeService  # noqa: PLC0415
+
+            BadgeService.check_contribution_badges(
+                experiment.created_by_user_id,
+                workspace_id=experiment.workspace_id,
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
     return comparison

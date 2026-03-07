@@ -10,7 +10,7 @@
 <form method="get" class="adm-filter-bar">
   <input type="search" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search username or email…" class="adm-input adm-input--sm" />
 
-  <select name="role" class="adm-select adm-select--sm">
+  <select name="role" class="adm-select adm-select--sm" aria-label="Filter by user role">
     <option value="">All roles</option>
     {% for r in ['admin','editor','contributor','reader'] %}
       <option value="{{ r }}" {% if request.args.get('role') == r %}selected{% endif %}>{{ r | capitalize }}</option>
@@ -24,7 +24,7 @@
     <input type="checkbox" name="active" value="1" {% if request.args.get('active') == '1' %}checked{% endif %} /> Active
   </label>
 
-  <select name="sort" class="adm-select adm-select--sm">
+  <select name="sort" class="adm-select adm-select--sm" aria-label="Sort users by">
     <option value="newest" {% if request.args.get('sort', 'newest') == 'newest' %}selected{% endif %}>Newest</option>
     <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>Oldest</option>
     <option value="username" {% if request.args.get('sort') == 'username' %}selected{% endif %}>Username A-Z</option>

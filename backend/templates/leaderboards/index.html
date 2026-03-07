@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="leaderboard-page">
+
+  {# ── Header ─────────────────────────────────────────────────────────────── #}
+  <div class="leaderboard-header">
+    <h1 class="leaderboard-header__title">{{ title }}</h1>
+    <p class="leaderboard-header__scope">{{ scope_label }}</p>
+  </div>
+
+  {# ── Table ───────────────────────────────────────────────────────────────── #}
+  {% if rows %}
+  <section class="leaderboard-section" aria-label="{{ title }}">
+    <table class="reputation-table leaderboard-table">
+      <thead>
+        <tr>
+          <th scope="col" class="leaderboard-table__rank-col">Rank</th>
+          <th scope="col">User</th>
+          <th scope="col" class="leaderboard-table__points-col">Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr class="reputation-table__row leaderboard-table__row{% if row.rank == 1 %} leaderboard-table__row--gold{% elif row.rank == 2 %} leaderboard-table__row--silver{% elif row.rank == 3 %} leaderboard-table__row--bronze{% endif %}">
+          <td class="leaderboard-table__rank">
+            <span class="leaderboard-rank leaderboard-rank--{{ row.rank }}">{{ row.rank }}</span>
+          </td>
+          <td class="leaderboard-table__user">
+            {% if row.avatar_url %}
+            <img src="{{ row.avatar_url }}" alt="{{ row.display_name or row.username }}"
+                 class="leaderboard-table__avatar" width="28" height="28" loading="lazy">
+            {% endif %}
+            <span class="leaderboard-table__user-info">
+              <a href="{{ url_for('users.profile', username=row.username) }}"
+                 class="leaderboard-table__username">{{ row.display_name or row.username }}</a>
+              {% if row.display_name %}
+              <span class="leaderboard-table__handle">@{{ row.username }}</span>
+              {% endif %}
+            </span>
+          </td>
+          <td class="leaderboard-table__points">
+            <span class="reputation-points reputation-points--gain">{{ row.points_total }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% else %}
+  <p class="leaderboard-empty">No leaderboard data yet. Earn points through accepted revisions, upvotes, and A/B experiment wins.</p>
+  {% endif %}
+
+</div>
+{% endblock %}

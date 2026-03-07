@@ -60,7 +60,8 @@
     <section class="adm-section">
       <h2 class="adm-section-title">Change Role</h2>
       <form method="post" action="{{ url_for('admin.user_set_role', user_id=user.id) }}" class="adm-form-inline">
-        <select name="role" class="adm-select">
+        <label for="role-select">Role</label>
+        <select id="role-select" name="role" class="adm-select">
           {% for r in ['admin','editor','contributor','reader'] %}
             <option value="{{ r }}" {% if user.role.value == r %}selected{% endif %}>{{ r | capitalize }}</option>
           {% endfor %}

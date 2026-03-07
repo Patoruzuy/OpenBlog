@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Badge Catalogue{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="page-header">
+    <h1 class="page-title">Badge Catalogue</h1>
+    <p class="page-subtitle">Earn badges by contributing, experimenting, and engaging.</p>
+  </header>
+
+  {% for category, badges in groups.items() %}
+  <section class="badge-category" aria-label="{{ category | title }} badges">
+    <h2 class="badge-category__heading">{{ category | title }}</h2>
+    <div class="badge-category__list">
+      {% for badge in badges %}
+      <div class="badge-card">
+        {% if badge.icon_url %}
+        <span class="badge-card__icon" aria-hidden="true">{{ badge.icon_url }}</span>
+        {% endif %}
+        <div class="badge-card__body">
+          <h3 class="badge-card__name">{{ badge.name }}</h3>
+          <p class="badge-card__desc">{{ badge.description }}</p>
+          {% if badge.threshold %}
+          <span class="badge-card__threshold">Threshold: {{ badge.threshold }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <p>No badges defined yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

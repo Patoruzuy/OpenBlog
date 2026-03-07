@@ -42,11 +42,11 @@
       {% if trend_label is defined and trend_label %}
         <span class="post-meta-sep">&middot;</span>
         {% if trend_label == 'improving' %}
-          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:#d4edda;color:#155724">&#8593; improving</span>
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:var(--diff-add-bg);color:var(--success)">&#8593; improving</span>
         {% elif trend_label == 'regressing' %}
-          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:#f8d7da;color:#721c24">&#8595; regressing</span>
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:var(--diff-del-bg);color:var(--danger)">&#8595; regressing</span>
         {% elif trend_label == 'stable' %}
-          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:#fff3cd;color:#856404">&#8596; stable</span>
+          <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:rgba(210,153,34,.15);color:var(--warning)">&#8596; stable</span>
         {% else %}
           <span class="badge" style="font-size:.7rem;padding:.1rem .5rem;border-radius:var(--radius-sm);background:var(--surface-2);color:var(--text-muted)">insufficient data</span>
         {% endif %}
@@ -160,9 +160,9 @@
             </td>
             <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
               {% if snap.delta > 0 %}
-                <span style="color:#4caf50">+{{ snap.delta }}</span>
+                <span style="color:var(--success)">+{{ snap.delta }}</span>
               {% elif snap.delta < 0 %}
-                <span style="color:#f44336">{{ snap.delta }}</span>
+                <span style="color:var(--danger)">{{ snap.delta }}</span>
               {% else %}
                 <span style="color:var(--text-muted)">—</span>
               {% endif %}
@@ -309,9 +309,9 @@
               <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
                 {% if m.delta_benchmark is not none %}
                   {% if m.delta_benchmark > 0 %}
-                    <span style="color:#155724">+{{ "%.2f"|format(m.delta_benchmark) }}</span>
+                    <span style="color:var(--success)">+{{ "%.2f"|format(m.delta_benchmark) }}</span>
                   {% elif m.delta_benchmark < 0 %}
-                    <span style="color:#721c24">{{ "%.2f"|format(m.delta_benchmark) }}</span>
+                    <span style="color:var(--danger)">{{ "%.2f"|format(m.delta_benchmark) }}</span>
                   {% else %}
                     <span>0.00</span>
                   {% endif %}
@@ -320,12 +320,12 @@
               <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ m.execution_count }}</td>
               <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">{{ m.rating_count }}</td>
               <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
-                {% if m.rating_delta > 0 %}<span style="color:#155724">+{{ m.rating_delta }}</span>
-                {% elif m.rating_delta < 0 %}<span style="color:#721c24">{{ m.rating_delta }}</span>
+                {% if m.rating_delta > 0 %}<span style="color:var(--success)">+{{ m.rating_delta }}</span>
+                {% elif m.rating_delta < 0 %}<span style="color:var(--danger)">{{ m.rating_delta }}</span>
                 {% else %}<span>0</span>{% endif %}
               </td>
               <td style="padding:.6rem .75rem;text-align:right;font-variant-numeric:tabular-nums">
-                <span style="color:#155724">{{ m.ab_wins }}</span>&thinsp;/&thinsp;<span style="color:#721c24">{{ m.ab_losses }}</span>
+                <span style="color:var(--success)">{{ m.ab_wins }}</span>&thinsp;/&thinsp;<span style="color:var(--danger)">{{ m.ab_losses }}</span>
               </td>
             </tr>
             {% endfor %}
@@ -365,7 +365,7 @@
           </thead>
           <tbody>
             {% for e in fork_comparison.entries %}
-            <tr style="border-bottom:1px solid var(--border){% if e.is_origin %};background:var(--surface-2){% endif %}">
+            <tr style="border-bottom:1px solid var(--border){% if e.is_origin %};background:var(--surface-2);{% endif %}">
               <td style="padding:.6rem .75rem">
                 {% if workspace %}
                   <a href="{{ url_for('prompts.ws_prompt_detail', ws_slug=workspace.slug, slug=e.slug) }}" style="color:var(--link)">{{ e.title }}</a>
@@ -373,7 +373,7 @@
                   <a href="{{ url_for('prompts.public_prompt_detail', slug=e.slug) }}" style="color:var(--link)">{{ e.title }}</a>
                 {% endif %}
                 {% if e.is_origin %}
-                  <span class="badge" style="font-size:.65rem;margin-left:.4rem;padding:.1rem .35rem;background:var(--primary);color:#fff;border-radius:var(--radius-sm)">origin</span>
+                  <span class="badge" style="font-size:.65rem;margin-left:.4rem;padding:.1rem .35rem;background:var(--accent-dim);color:#fff;border-radius:var(--radius-sm)">origin</span>
                 {% endif %}
               </td>
               <td style="padding:.6rem .75rem">
@@ -433,7 +433,7 @@
             &#8987; generating&hellip;
           </span>
         {% elif expl and expl.status == 'completed' %}
-          <span class="badge" style="font-size:.7rem;padding:.15rem .5rem;border-radius:var(--radius-sm);background:#d4edda;color:#155724">&#10003; ready</span>
+          <span class="badge" style="font-size:.7rem;padding:.15rem .5rem;border-radius:var(--radius-sm);background:var(--diff-add-bg);color:var(--success)">&#10003; ready</span>
         {% endif %}
       </div>
 

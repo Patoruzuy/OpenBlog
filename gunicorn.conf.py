@@ -5,6 +5,7 @@ Revisit worker_class if SSE / WebSockets are added in a future phase.
 """
 
 import multiprocessing
+import os
 
 # ─── Server socket ────────────────────────────────────────────────────────────
 bind = "0.0.0.0:8000"
@@ -14,8 +15,9 @@ chdir = "/app"
 # ─── Workers ──────────────────────────────────────────────────────────────────
 # Cap at 9 — avoids spawning dozens of workers on WSL2/cloud hosts that report
 # many logical CPUs. Raise the ceiling via the WEB_CONCURRENCY env var if needed.
-import os
-workers = int(os.environ.get("WEB_CONCURRENCY", min(multiprocessing.cpu_count() * 2 + 1, 9)))
+workers = int(
+    os.environ.get("WEB_CONCURRENCY", min(multiprocessing.cpu_count() * 2 + 1, 9))
+)
 worker_class = "sync"
 threads = 1
 
@@ -28,7 +30,9 @@ keepalive = 5
 accesslog = "-"
 errorlog = "-"
 loglevel = "info"
-access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)sµs'
+access_log_format = (
+    '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)sµs'
+)
 
 # ─── Performance ──────────────────────────────────────────────────────────────
 # Preload app in master process before forking.

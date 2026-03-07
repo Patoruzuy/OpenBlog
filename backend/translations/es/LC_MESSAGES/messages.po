@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenBlog 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-26 12:30+0000\n"
+"POT-Creation-Date: 2026-03-04 23:10+0000\n"
 "PO-Revision-Date: 2026-02-26 12:30+0000\n"
 "Last-Translator: OpenBlog\n"
 "Language: es\n"
@@ -16,192 +16,505 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-msgid "Home"
-msgstr "Inicio"
+#: backend/routes/tags.py:24
+msgid "Routing, blueprints, deployment, and real-world patterns."
+msgstr "Enrutamiento, blueprints, despliegue y patrones del mundo real."
 
+#: backend/routes/tags.py:25
+msgid "Language features, tooling, packaging, and ecosystem notes."
+msgstr ""
+"Características del lenguaje, herramientas, empaquetado y notas del "
+"ecosistema."
+
+#: backend/routes/tags.py:26 backend/routes/tags.py:27
+msgid "Queries, indexing, full-text search, and migrations."
+msgstr "Consultas, indexación, búsqueda de texto completo y migraciones."
+
+#: backend/routes/tags.py:28
+msgid "Task queues, beat scheduling, and worker configuration."
+msgstr "Colas de tareas, programación beat y configuración de workers."
+
+#: backend/routes/tags.py:29
+msgid "Caching, queuing, pub/sub, and persistence patterns."
+msgstr "Caché, colas, pub/sub y patrones de persistencia."
+
+#: backend/routes/tags.py:30
+msgid "Containerisation, Compose, and production Dockerfiles."
+msgstr "Contenedores, Compose y Dockerfiles de producción."
+
+#: backend/routes/tags.py:31
+msgid "Shell scripting, system administration, and tooling."
+msgstr "Scripting de shell, administración de sistemas y herramientas."
+
+#: backend/routes/tags.py:32
+msgid "Branching, rebasing, workflows, and repo management."
+msgstr "Ramificación, rebase, flujos de trabajo y gestión de repositorios."
+
+#: backend/routes/tags.py:33
+msgid "Queries, schema design, indexing, and optimisation."
+msgstr "Consultas, diseño de esquemas, indexación y optimización."
+
+#: backend/routes/tags.py:34
+msgid "REST design, versioning, auth, and documentation."
+msgstr "Diseño REST, versionado, autenticación y documentación."
+
+#: backend/routes/tags.py:35
+msgid "Unit tests, integration tests, fixtures, and coverage."
+msgstr "Tests unitarios, tests de integración, fixtures y cobertura."
+
+#: backend/routes/tags.py:36
+msgid "CI/CD pipelines, infrastructure, and deployment automation."
+msgstr "Pipelines CI/CD, infraestructura y automatización del despliegue."
+
+#: backend/routes/tags.py:37
+msgid "Auth patterns, input validation, secrets management."
+msgstr "Patrones de autenticación, validación de entrada, gestión de secretos."
+
+#: backend/routes/tags.py:38
+msgid "Language models, embeddings, retrieval, and practical ML."
+msgstr "Modelos de lenguaje, embeddings, recuperación y ML práctico."
+
+#: backend/routes/tags.py:39
+msgid "Browser JS, tooling, and small scripting patterns."
+msgstr "JS de navegador, herramientas y patrones de scripting."
+
+#: backend/routes/tags.py:40
+msgid "Type safety, configuration, and real-world usage."
+msgstr "Seguridad de tipos, configuración y uso en el mundo real."
+
+#: backend/routes/tags.py:41
+msgid "System design, service boundaries, and trade-offs."
+msgstr "Diseño de sistemas, límites de servicios y compensaciones."
+
+#: backend/templates/base.html:41 backend/templates/explore/index.html:52
+#: backend/templates/search/results.html:51
+#, fuzzy
+msgid "Posts"
+msgstr "publicación"
+
+#: backend/templates/base.html:42 backend/templates/base.html:264
+#: backend/templates/explore/index.html:57 backend/templates/index.html:230
+#: backend/templates/search/results.html:56 backend/templates/tags/index.html:2
+#: backend/templates/tags/index.html:8
 msgid "Topics"
 msgstr "Temas"
 
-msgid "Writing"
-msgstr "Artículos"
+#: backend/templates/base.html:43 backend/templates/search/results.html:61
+msgid "People"
+msgstr ""
 
-msgid "Revisions"
-msgstr "Revisiones"
+#: backend/templates/base.html:44
+msgid "See all results"
+msgstr ""
 
-msgid "Write"
-msgstr "Escribir"
+#: backend/templates/base.html:66 backend/templates/base.html:77
+#: backend/templates/base.html:266 backend/templates/drafts/index.html:36
+#: backend/templates/search/results.html:3
+#: backend/templates/search/results.html:10
+msgid "Search"
+msgstr ""
 
+#: backend/templates/base.html:83
+msgid "Search posts, topics…"
+msgstr ""
+
+#: backend/templates/base.html:84 backend/templates/search/results.html:13
+msgid "Search posts, topics and people"
+msgstr ""
+
+#: backend/templates/base.html:90 backend/templates/search/results.html:25
+#, fuzzy
+msgid "Submit search"
+msgstr "Enviado"
+
+#: backend/templates/base.html:97
+msgid "Search suggestions"
+msgstr ""
+
+#: backend/templates/base.html:101
+msgid "Primary navigation"
+msgstr ""
+
+#: backend/templates/base.html:105 backend/templates/base.html:260
+#: backend/templates/base.html:261 backend/templates/explore/index.html:3
+#: backend/templates/explore/index.html:9
+msgid "Explore"
+msgstr ""
+
+#: backend/templates/base.html:114 backend/templates/base.html:269
+#: backend/templates/base.html:270 backend/templates/explore/index.html:17
+msgid "Labs"
+msgstr ""
+
+#: backend/templates/base.html:118 backend/templates/base.html:271
+#: backend/templates/explore/index.html:21
+msgid "Prompt Library"
+msgstr ""
+
+#: backend/templates/base.html:121 backend/templates/base.html:272
+#: backend/templates/explore/index.html:26
+msgid "Benchmarks"
+msgstr ""
+
+#: backend/templates/base.html:124 backend/templates/base.html:273
+#: backend/templates/explore/index.html:31
+msgid "A/B Experiments"
+msgstr ""
+
+#: backend/templates/base.html:127 backend/templates/base.html:274
+#: backend/templates/explore/index.html:36
+msgid "Ontology"
+msgstr ""
+
+#: backend/templates/base.html:130 backend/templates/base.html:275
+#: backend/templates/explore/index.html:41
+msgid "Intelligence"
+msgstr ""
+
+#: backend/templates/base.html:137 backend/templates/drafts/index.html:13
+#: backend/templates/drafts/index.html:20 backend/templates/posts/new.html:2
+#: backend/templates/posts/new.html:13
+#, fuzzy
+msgid "New post"
+msgstr "publicación"
+
+#: backend/templates/base.html:144
 msgid "Notifications"
 msgstr "Notificaciones"
 
-#, python-format
-msgid "%(count)s unread"
-msgid_plural "%(count)s unread"
-msgstr[0] "%(count)s sin leer"
-msgstr[1] "%(count)s sin leer"
-
-msgid "Sign out"
-msgstr "Cerrar sesión"
-
-msgid "Sign in"
-msgstr "Iniciar sesión"
-
+#: backend/templates/base.html:156
 msgid "Switch language"
 msgstr "Cambiar idioma"
 
+#: backend/templates/base.html:170
+msgid "Account menu"
+msgstr ""
+
+#: backend/templates/base.html:195
+msgid "My profile"
+msgstr ""
+
+#: backend/templates/base.html:198 backend/templates/drafts/index.html:2
+#: backend/templates/drafts/index.html:8
+msgid "Drafts"
+msgstr ""
+
+#: backend/templates/base.html:201
+msgid "Settings"
+msgstr ""
+
+#: backend/templates/base.html:205
+msgid "Sign out"
+msgstr "Cerrar sesión"
+
+#: backend/templates/base.html:210 backend/templates/posts/detail.html:158
+#: backend/templates/posts/detail.html:364
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+#: backend/templates/base.html:237
+msgid "Please verify your email address to unlock posting and commenting."
+msgstr ""
+
+#: backend/templates/base.html:238
+msgid "Resend email"
+msgstr ""
+
+#: backend/templates/base.html:256
 msgid "Engineering notes, open to improvement."
 msgstr "Notas de ingeniería, abiertas a mejora."
 
+#: backend/templates/base.html:262 backend/templates/index.html:3
+msgid "Home"
+msgstr "Inicio"
+
+#: backend/templates/base.html:263
+msgid "Writing"
+msgstr "Artículos"
+
+#: backend/templates/base.html:265 backend/templates/explore/index.html:62
+#: backend/templates/revisions/list.html:3
+msgid "Revisions"
+msgstr "Revisiones"
+
+#: backend/templates/base.html:278 backend/templates/base.html:280
+msgid "About"
+msgstr ""
+
+#: backend/templates/base.html:279
+#, fuzzy
+msgid "Company"
+msgstr "Comparar"
+
+#: backend/templates/base.html:281
+msgid "Contact"
+msgstr ""
+
+#: backend/templates/base.html:282
+msgid "Editorial Policy"
+msgstr ""
+
+#: backend/templates/base.html:283 backend/templates/posts/detail.html:170
+msgid "Changelog"
+msgstr ""
+
+#: backend/templates/base.html:284
+msgid "Privacy Policy"
+msgstr ""
+
+#: backend/templates/base.html:285
+msgid "Terms of Service"
+msgstr ""
+
+#: backend/templates/base.html:286
+msgid "Cookie Policy"
+msgstr ""
+
+#: backend/templates/base.html:291
+msgid "Stay updated"
+msgstr ""
+
+#: backend/templates/base.html:293
+msgid "New posts and features — no spam."
+msgstr ""
+
+#: backend/templates/base.html:303
+msgid "your@email.com"
+msgstr ""
+
+#: backend/templates/base.html:307
+msgid "Subscribe"
+msgstr ""
+
+#: backend/templates/index.html:10
 msgid "engineering notebook"
 msgstr "cuaderno de ingeniería"
 
+#: backend/templates/index.html:11
 msgid "Software notes"
 msgstr "Notas de software"
 
+#: backend/templates/index.html:11
 msgid "that get better over time."
 msgstr "que mejoran con el tiempo."
 
+#: backend/templates/index.html:13
 msgid ""
 "Practical writeups for developers who build real systems — architecture "
 "decisions, debugging logs, tooling guides, and the things that actually "
 "helped. Every article can be improved through reviewed community "
 "revisions."
 msgstr ""
-"Artículos prácticos para desarrolladores que construyen sistemas reales — "
-"decisiones de arquitectura, registros de depuración, guías de herramientas y "
-"todo lo que realmente ayuda. Cada artículo puede mejorarse mediante revisiones "
-"comunitarias supervisadas."
+"Artículos prácticos para desarrolladores que construyen sistemas reales —"
+" decisiones de arquitectura, registros de depuración, guías de "
+"herramientas y todo lo que realmente ayuda. Cada artículo puede mejorarse"
+" mediante revisiones comunitarias supervisadas."
 
+#: backend/templates/index.html:16
 msgid "Start reading"
 msgstr "Empezar a leer"
 
+#: backend/templates/index.html:17 backend/templates/index.html:246
 msgid "How it works"
 msgstr "Cómo funciona"
 
+#: backend/templates/index.html:25 backend/templates/macros/cards.html:75
+#: backend/templates/macros/cards.html:135 backend/templates/tags/index.html:29
 msgid "post"
 msgid_plural "posts"
 msgstr[0] "publicación"
 msgstr[1] "publicaciones"
 
+#: backend/templates/index.html:31
 msgid "revision accepted"
 msgid_plural "revisions accepted"
 msgstr[0] "revisión aceptada"
 msgstr[1] "revisiones aceptadas"
 
+#: backend/templates/index.html:37
 msgid "contributor"
 msgid_plural "contributors"
 msgstr[0] "colaborador"
 msgstr[1] "colaboradores"
 
+#: backend/templates/index.html:50 backend/templates/macros/cards.html:5
 msgid "Featured"
 msgstr "Destacado"
 
+#: backend/templates/index.html:51
 msgid "All writing"
 msgstr "Todo lo publicado"
 
+#: backend/templates/index.html:62
 msgid "Latest writing"
 msgstr "Últimas publicaciones"
 
+#: backend/templates/index.html:64 backend/templates/posts/compare.html:22
 msgid "All posts"
 msgstr "Todos los artículos"
 
+#: backend/templates/index.html:73
 msgid "Nothing published yet."
 msgstr "Nada publicado aún."
 
+#: backend/templates/index.html:75
 msgid "You have write access — start with a draft."
 msgstr "Tienes acceso de escritura — empieza con un borrador."
 
+#: backend/templates/index.html:77
 msgid "Sign up to contribute"
 msgstr "Regístrate para contribuir"
 
+#: backend/templates/index.html:88
 msgid "Recently revised"
 msgstr "Revisados recientemente"
 
+#: backend/templates/index.html:90
 msgid "Revision log"
 msgstr "Historial de revisiones"
 
+#: backend/templates/index.html:94
 msgid ""
 "Articles here are versioned. When a community improvement is accepted by "
 "an editor, the post version increments and the contributor is credited in"
 " the revision history."
 msgstr ""
-"Los artículos aquí son versionados. Cuando una mejora comunitaria es aceptada "
-"por un editor, la versión del artículo se incrementa y el colaborador queda "
-"acreditado en el historial de revisiones."
+"Los artículos aquí son versionados. Cuando una mejora comunitaria es "
+"aceptada por un editor, la versión del artículo se incrementa y el "
+"colaborador queda acreditado en el historial de revisiones."
 
+#: backend/templates/index.html:102
 msgid "No revised articles yet."
 msgstr "Aún no hay artículos revisados."
 
+#: backend/templates/index.html:103
 msgid "Pick a post, find something to improve, propose a change."
 msgstr "Elige un artículo, encuentra algo que mejorar, propón un cambio."
 
+#: backend/templates/improvements/index.html:86
+#: backend/templates/index.html:104 backend/templates/index.html:162
 msgid "Browse posts"
 msgstr "Explorar artículos"
 
+#: backend/templates/index.html:114
+msgid "Recently improved"
+msgstr "Recientemente mejorado"
+
+#: backend/templates/index.html:115
+msgid "All improvements"
+msgstr "Todas las mejoras"
+
+#: backend/templates/index.html:118
+msgid "Posts that got better through accepted community revisions."
+msgstr "Artículos que mejoraron gracias a revisiones comunitarias aceptadas."
+
+#: backend/templates/improvements/index.html:38
+#: backend/templates/index.html:127
+msgid "Improved"
+msgstr "Mejorado"
+
+#: backend/templates/improvements/index.html:50
+#: backend/templates/index.html:132
+#, python-format
+msgid "Accepted revisions: %(n)s"
+msgstr "Revisiones aceptadas: %(n)s"
+
+#: backend/templates/improvements/index.html:47
+#: backend/templates/index.html:134
+msgid "Last improved: "
+msgstr "Última mejora: "
+
+#: backend/templates/improvements/index.html:53
+#: backend/templates/index.html:141
+#, python-format
+msgid "by %(name)s"
+msgstr "por %(name)s"
+
+#: backend/templates/index.html:161
+msgid "No recently improved posts yet."
+msgstr "Aún no hay artículos mejorados recientemente."
+
+#: backend/templates/explore/index.html:126 backend/templates/index.html:172
 msgid "Open revisions"
 msgstr "Revisiones abiertas"
 
+#: backend/templates/index.html:174 backend/templates/revisions/detail.html:10
 msgid "Review queue"
 msgstr "Cola de revisión"
 
+#: backend/templates/index.html:183
 msgid "No pending revisions."
 msgstr "No hay revisiones pendientes."
 
+#: backend/templates/index.html:184
 msgid "Found a mistake or something to clarify?"
 msgstr "¿Encontraste un error o algo que clarificar?"
 
+#: backend/templates/index.html:186
 msgid "Find a post to improve"
 msgstr "Encuentra un artículo para mejorar"
 
+#: backend/templates/index.html:197
 msgid "Learning paths"
 msgstr "Rutas de aprendizaje"
 
+#: backend/templates/index.html:198 backend/templates/index.html:231
 msgid "All topics"
 msgstr "Todos los temas"
 
+#: backend/templates/index.html:203
 msgid "Flask & Backend"
 msgstr "Flask y Backend"
 
+#: backend/templates/index.html:204
 msgid ""
 "Routing, blueprints, extensions, and production deployment. Building web "
 "services with Python."
 msgstr ""
-"Enrutamiento, blueprints, extensiones y despliegue en producción. Construyendo "
-"servicios web con Python."
+"Enrutamiento, blueprints, extensiones y despliegue en producción. "
+"Construyendo servicios web con Python."
 
+#: backend/templates/index.html:208
 msgid "Python Tooling"
 msgstr "Herramientas Python"
 
+#: backend/templates/index.html:209
 msgid ""
 "Dependency management, linting, testing, and packaging. The ecosystem "
 "that makes Python production-ready."
 msgstr ""
-"Gestión de dependencias, linting, testing y empaquetado. El ecosistema que "
-"hace a Python apto para producción."
+"Gestión de dependencias, linting, testing y empaquetado. El ecosistema "
+"que hace a Python apto para producción."
 
+#: backend/templates/index.html:213
 msgid "AI & Automation"
 msgstr "IA y Automatización"
 
+#: backend/templates/index.html:214
 msgid ""
 "LLM integration, prompt engineering, and workflow automation. Practical "
 "notes from real implementation."
 msgstr ""
-"Integración con LLMs, ingeniería de prompts y automatización de flujos. Notas "
-"prácticas de implementaciones reales."
+"Integración con LLMs, ingeniería de prompts y automatización de flujos. "
+"Notas prácticas de implementaciones reales."
 
+#: backend/templates/index.html:218
 msgid "Dev Tools"
 msgstr "Herramientas Dev"
 
+#: backend/templates/index.html:219
 msgid ""
 "Editor setup, CLI utilities, shell scripts, and the smaller tools that "
 "compound over a career."
 msgstr ""
-"Configuración de editor, utilidades CLI, scripts de shell y las herramientas "
-"más pequeñas que se acumulan a lo largo de una carrera."
+"Configuración de editor, utilidades CLI, scripts de shell y las "
+"herramientas más pequeñas que se acumulan a lo largo de una carrera."
 
+#: backend/templates/index.html:251
 msgid "Read a post"
 msgstr "Lee un artículo"
 
+#: backend/templates/index.html:253
 msgid ""
 "Browse engineering notes written in Markdown. Each post carries a version"
 " number and a complete revision history."
@@ -209,9 +522,11 @@ msgstr ""
 "Explora notas de ingeniería escritas en Markdown. Cada artículo lleva un "
 "número de versión y un historial de revisiones completo."
 
+#: backend/templates/index.html:258
 msgid "Propose a change"
 msgstr "Propón un cambio"
 
+#: backend/templates/index.html:260
 msgid ""
 "Any signed-in reader can submit a targeted diff — correcting an error, "
 "clarifying a step, expanding on a topic."
@@ -219,303 +534,849 @@ msgstr ""
 "Cualquier lector autenticado puede enviar un diff concreto — corregir un "
 "error, aclarar un paso, ampliar un tema."
 
+#: backend/templates/index.html:265
 msgid "Get it merged"
 msgstr "Consigue que se integre"
 
+#: backend/templates/index.html:267
 msgid ""
 "Editors review the diff. If it improves the post, it is accepted: the "
 "version increments, the contributor is credited."
 msgstr ""
-"Los editores revisan el diff. Si mejora el artículo, se acepta: la versión se "
-"incrementa y el colaborador queda acreditado."
+"Los editores revisan el diff. Si mejora el artículo, se acepta: la "
+"versión se incrementa y el colaborador queda acreditado."
 
+#: backend/templates/drafts/index.html:10
+#: backend/templates/drafts/index.html:118
+#, fuzzy
+msgid "Sign in to post"
+msgstr "Iniciar sesión"
+
+#: backend/templates/drafts/index.html:15
+msgid "Verify your email to post."
+msgstr ""
+
+#: backend/templates/drafts/index.html:16
+msgid "Resend link"
+msgstr ""
+
+#: backend/templates/drafts/index.html:31
+msgid "Filter drafts…"
+msgstr ""
+
+#: backend/templates/drafts/index.html:34
+msgid "Search drafts by title"
+msgstr ""
+
+#: backend/templates/drafts/index.html:38
+msgid "Clear"
+msgstr ""
+
+#: backend/templates/drafts/index.html:52
+msgid "Untitled draft"
+msgstr ""
+
+#: backend/templates/drafts/index.html:56
+msgid "Autosaved"
+msgstr ""
+
+#: backend/templates/drafts/index.html:63
+msgid "Updated"
+msgstr ""
+
+#: backend/templates/drafts/index.html:70
+msgid "tag"
+msgid_plural "tags"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/drafts/index.html:73
+msgid "word"
+msgid_plural "words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/drafts/index.html:78
+msgid "Continue editing"
+msgstr ""
+
+#: backend/templates/drafts/index.html:82
+msgid "Delete this draft?"
+msgstr ""
+
+#: backend/templates/drafts/index.html:84
+#: backend/templates/posts/detail.html:233
+msgid "Delete"
+msgstr ""
+
+#: backend/templates/drafts/index.html:93
+msgid "Drafts pages"
+msgstr ""
+
+#: backend/templates/drafts/index.html:96
+#: backend/templates/improvements/index.html:72
+#: backend/templates/revisions/list.html:41
+#: backend/templates/search/results.html:98
+#: backend/templates/search/results.html:144
+#: backend/templates/search/results.html:183
+msgid "Prev"
+msgstr "Anterior"
+
+#: backend/templates/drafts/index.html:98
+#: backend/templates/search/results.html:100
+#: backend/templates/search/results.html:146
+#: backend/templates/search/results.html:185
+#, fuzzy, python-format
+msgid "Page %(p)s of %(t)s"
+msgstr "Página %(page)s de %(total)s"
+
+#: backend/templates/drafts/index.html:101
+#: backend/templates/explore/index.html:92
+#: backend/templates/improvements/index.html:76
+#: backend/templates/revisions/list.html:46
+#: backend/templates/search/results.html:102
+#: backend/templates/search/results.html:148
+#: backend/templates/search/results.html:187
+msgid "Next"
+msgstr "Siguiente"
+
+#: backend/templates/drafts/index.html:110
+msgid "No drafts matching"
+msgstr ""
+
+#: backend/templates/drafts/index.html:111
+msgid "Clear filter"
+msgstr ""
+
+#: backend/templates/drafts/index.html:113
+#, fuzzy
+msgid "No drafts yet."
+msgstr "Aún no hay temas."
+
+#: backend/templates/drafts/index.html:115
+msgid "Start writing and your drafts will appear here."
+msgstr ""
+
+#: backend/templates/drafts/index.html:120
+#: backend/templates/drafts/index.html:126
+msgid "Write your first post"
+msgstr ""
+
+#: backend/templates/drafts/index.html:122
+msgid "Verify your email address to start posting."
+msgstr ""
+
+#: backend/templates/drafts/index.html:123
+msgid "Resend verification link"
+msgstr ""
+
+#: backend/templates/explore/index.html:11
+#, fuzzy
+msgid "Discover posts, topics, and community revisions."
+msgstr "Publicaciones mejoradas a través de revisiones comunitarias aceptadas."
+
+#: backend/templates/explore/index.html:16
+#, fuzzy
+msgid "Labs features"
+msgstr "Destacado"
+
+#: backend/templates/explore/index.html:22
+msgid "Browse and improve versioned prompts"
+msgstr ""
+
+#: backend/templates/explore/index.html:27
+msgid "Run suites to score prompt quality"
+msgstr ""
+
+#: backend/templates/explore/index.html:32
+msgid "Compare prompt variants head-to-head"
+msgstr ""
+
+#: backend/templates/explore/index.html:37
+msgid "Structured knowledge taxonomy browser"
+msgstr ""
+
+#: backend/templates/explore/index.html:42
+msgid "Cross-family benchmark analytics"
+msgstr ""
+
+#: backend/templates/explore/index.html:48
+msgid "Explore sections"
+msgstr ""
+
+#: backend/templates/explore/index.html:83
+#, fuzzy
+msgid "Previous"
+msgstr "Anterior"
+
+#: backend/templates/explore/index.html:87
+msgid "Page"
+msgstr ""
+
+#: backend/templates/explore/index.html:99
+#, fuzzy
+msgid "No posts published yet. Be the first!"
+msgstr "Nada publicado aún."
+
+#: backend/templates/explore/index.html:115
+#: backend/templates/tags/index.html:69
+msgid "No topics yet."
+msgstr "Aún no hay temas."
+
+#: backend/templates/explore/index.html:141
+#, fuzzy
+msgid "View all open revisions"
+msgstr "Revisiones abiertas"
+
+#: backend/templates/explore/index.html:146
+#, fuzzy
+msgid "No open revisions right now."
+msgstr "No hay revisiones pendientes."
+
+#: backend/templates/explore/index.html:153
+#, fuzzy
+msgid "Recently accepted"
+msgstr "Revisados recientemente"
+
+#: backend/templates/explore/index.html:162
+#, fuzzy, python-format
+msgid "No accepted revisions yet."
+msgstr "Revisiones aceptadas: %(n)s"
+
+#: backend/templates/improvements/index.html:2
+#: backend/templates/improvements/index.html:9
+msgid "Improvements"
+msgstr "Mejoras"
+
+#: backend/templates/improvements/index.html:10
+msgid "Posts improved through accepted community revisions."
+msgstr "Publicaciones mejoradas a través de revisiones comunitarias aceptadas."
+
+#: backend/templates/improvements/index.html:14
+msgid "Time window filter"
+msgstr "Filtro de ventana de tiempo"
+
+#: backend/templates/improvements/index.html:16
+msgid "Last 7 days"
+msgstr "Últimos 7 días"
+
+#: backend/templates/improvements/index.html:17
+msgid "Last 30 days"
+msgstr "Últimos 30 días"
+
+#: backend/templates/improvements/index.html:18
+msgid "Last 90 days"
+msgstr "Últimos 90 días"
+
+#: backend/templates/improvements/index.html:19
+msgid "All time"
+msgstr "Todo el tiempo"
+
+#: backend/templates/improvements/index.html:70
+msgid "Improvements pagination"
+msgstr "Paginación de mejoras"
+
+#: backend/templates/improvements/index.html:74
+msgid "of"
+msgstr ""
+
+#: backend/templates/improvements/index.html:85
+msgid "No improvements yet for this window."
+msgstr "No hay mejoras aún para esta ventana."
+
+#: backend/templates/macros/cards.html:22
+#: backend/templates/search/results.html:80
 msgid "min read"
 msgstr "min de lectura"
 
-msgid "Proposed by"
-msgstr "Propuesto por"
+#: backend/templates/macros/cards.html:138
+msgid "View profile"
+msgstr ""
 
-msgid "Submitted"
-msgstr "Enviado"
-
-msgid "Based on"
-msgstr "Basado en"
-
-msgid "Revision summary"
-msgstr "Resumen de la revisión"
-
+#: backend/templates/partials/diff_viewer.html:27
 msgid "Unified"
 msgstr "Unificado"
 
+#: backend/templates/partials/diff_viewer.html:35
 msgid "Split view"
 msgstr "Vista dividida"
 
+#: backend/templates/partials/diff_viewer.html:35
 msgid "Split"
 msgstr "Dividido"
 
-msgid "No diff data available for this revision."
+#: backend/templates/partials/diff_viewer.html:70
+#, fuzzy
+msgid "No diff data available."
 msgstr "No hay datos de diff disponibles para esta revisión."
 
-msgid "Review this revision"
-msgstr "Revisar esta revisión"
-
-msgid "Your decision is final and the contributor will be notified."
-msgstr "Tu decisión es definitiva y el colaborador será notificado."
-
-msgid "Accept"
-msgstr "Aceptar"
-
-msgid ""
-"Applies the diff. Post version increments. Contributor is credited in "
-"revision history."
-msgstr ""
-"Aplica el diff. La versión del artículo se incrementa. El colaborador queda "
-"acreditado en el historial de revisiones."
-
-msgid "Accept revision"
-msgstr "Aceptar revisión"
-
-msgid "Reject"
-msgstr "Rechazar"
-
-msgid "Closes the revision without changes. Leave a note to explain the decision."
-msgstr "Cierra la revisión sin cambios. Deja una nota para explicar la decisión."
-
-msgid "Rejection note (optional)"
-msgstr "Nota de rechazo (opcional)"
-
-msgid "Rejection note"
-msgstr "Nota de rechazo"
-
-msgid "Reject revision"
-msgstr "Rechazar revisión"
-
+#: backend/templates/partials/diff_viewer.html:80
 #, python-format
 msgid "Show %(n)s unchanged line"
 msgstr "Mostrar %(n)s línea sin cambios"
 
+#: backend/templates/partials/diff_viewer.html:81
 #, python-format
 msgid "Show %(n)s unchanged lines"
 msgstr "Mostrar %(n)s líneas sin cambios"
 
+#: backend/templates/partials/diff_viewer.html:82
 msgid "Collapse unchanged lines"
 msgstr "Contraer líneas sin cambios"
 
+#: backend/templates/posts/compare.html:2
+#: backend/templates/posts/compare.html:26
+msgid "Compare"
+msgstr "Comparar"
+
+#: backend/templates/posts/compare.html:10
+#: backend/templates/posts/compare.html:34
+#, fuzzy, python-format
+msgid "Compare v%(from)s → v%(to)s"
+msgstr "Comparar v%(from)s \\u2192 v%(to)s"
+
+#: backend/templates/posts/compare.html:40
+#, fuzzy
+msgid "Post"
+msgstr "publicación"
+
+#: backend/templates/posts/compare.html:54
+msgid "Copy link"
+msgstr "Copiar enlace"
+
+#: backend/templates/posts/compare.html:61
+#, fuzzy, python-format
+msgid "Showing v%(from)s → v%(to)s (inputs were swapped)"
+msgstr "Mostrando v%(from)s -> v%(to)s (los valores fueron intercambiados)"
+
+#: backend/templates/posts/compare.html:73
+msgid "Context lines"
+msgstr "L\\u00edneas de contexto"
+
+#: backend/templates/posts/compare.html:87
+msgid "Version snapshot not available for:"
+msgstr "Instant\\u00e1nea de versi\\u00f3n no disponible para:"
+
+#: backend/templates/posts/compare.html:93
+msgid ""
+"Snapshots are created when a post revision is accepted. The initial "
+"version (v1) may not have a snapshot."
+msgstr ""
+"Las instant\\u00e1neas se crean cuando se acepta una revisi\\u00f3n. Es "
+"posible que la versi\\u00f3n inicial (v1) no tenga instant\\u00e1nea."
+
+#: backend/templates/posts/compare.html:96
+msgid "View revision history"
+msgstr "Ver historial de revisiones"
+
+#: backend/templates/posts/compare.html:101
+#, fuzzy, python-format
+msgid "Compare v%(from)s → v%(to)s for %(title)s"
+msgstr "Comparar v%(from)s \\u2192 v%(to)s de %(title)s"
+
+#: backend/templates/posts/compare.html:121
+msgid "Copied!"
+msgstr "\\u00a1Copiado!"
+
+#: backend/templates/posts/detail.html:54
+msgid "Updated since you last read"
+msgstr ""
+
+#: backend/templates/posts/detail.html:61
+msgid "Compare changes"
+msgstr "Ver cambios"
+
+#: backend/templates/posts/detail.html:98
+#, fuzzy
+msgid "Post actions"
+msgstr "Notificaciones"
+
+#: backend/templates/posts/detail.html:99
+msgid "Comment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:103
+#: backend/templates/posts/detail.html:107
+msgid "Suggest edit"
+msgstr ""
+
+#: backend/templates/posts/detail.html:106
+msgid "Verify your email to suggest edits"
+msgstr ""
+
+#: backend/templates/posts/detail.html:114
+msgid "Bookmark"
+msgstr ""
+
+#: backend/templates/posts/detail.html:121
+msgid "Unwatch"
+msgstr ""
+
+#: backend/templates/posts/detail.html:126
+msgid "Watch"
+msgstr ""
+
+#: backend/templates/posts/detail.html:132
+msgid "Share"
+msgstr ""
+
+#: backend/templates/posts/detail.html:136
+#, fuzzy
+msgid "Edit post"
+msgstr "Lee un artículo"
+
+#: backend/templates/posts/detail.html:142
+#: backend/templates/posts/detail.html:231
+#: backend/templates/posts/detail.html:378
+#, fuzzy
+msgid "Report"
+msgstr "publicación"
+
+#: backend/templates/posts/detail.html:156
+msgid "Think this could be improved?"
+msgstr ""
+
+#: backend/templates/posts/detail.html:159
+msgid "to suggest a revision. Accepted contributions are credited to you."
+msgstr ""
+
+#: backend/templates/posts/detail.html:182
+msgid "View diff"
+msgstr ""
+
+#: backend/templates/posts/detail.html:196
+#, fuzzy
+msgid "Comments"
+msgstr "Mejoras"
+
+#: backend/templates/posts/detail.html:205
+msgid "Follow thread"
+msgstr ""
+
+#: backend/templates/posts/detail.html:217
+msgid "[deleted]"
+msgstr ""
+
+#: backend/templates/posts/detail.html:227
+msgid "Comment options"
+msgstr ""
+
+#: backend/templates/posts/detail.html:240
+msgid "[This comment has been deleted.]"
+msgstr ""
+
+#: backend/templates/posts/detail.html:286
+msgid "No comments yet. Be the first!"
+msgstr ""
+
+#: backend/templates/posts/detail.html:298
+msgid "Leave a comment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:305
+msgid "Please verify your email address to post comments."
+msgstr ""
+
+#: backend/templates/posts/detail.html:306
+msgid "Resend verification email"
+msgstr ""
+
+#: backend/templates/posts/detail.html:316 backend/templates/posts/new.html:53
+msgid "Write"
+msgstr "Escribir"
+
+#: backend/templates/posts/detail.html:319 backend/templates/posts/new.html:61
+#, fuzzy
+msgid "Preview"
+msgstr "Anterior"
+
+#: backend/templates/posts/detail.html:332
+msgid "Write a comment in Markdown…"
+msgstr ""
+
+#: backend/templates/posts/detail.html:339
+msgid "Preview will appear here…"
+msgstr ""
+
+#: backend/templates/posts/detail.html:346
+msgid "Attach"
+msgstr ""
+
+#: backend/templates/posts/detail.html:353
+msgid "Post comment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:365
+msgid "to join the discussion."
+msgstr ""
+
+#: backend/templates/posts/detail.html:381
+msgid "Spam"
+msgstr ""
+
+#: backend/templates/posts/detail.html:382
+msgid "Harassment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:383
+msgid "Misinformation"
+msgstr ""
+
+#: backend/templates/posts/detail.html:384
+#, fuzzy
+msgid "Off-topic"
+msgstr "tema"
+
+#: backend/templates/posts/detail.html:385
+msgid "Other"
+msgstr ""
+
+#: backend/templates/posts/detail.html:388
+#, fuzzy
+msgid "Additional context (optional)…"
+msgstr "Nota de rechazo (opcional)"
+
+#: backend/templates/posts/detail.html:394
+msgid "Cancel"
+msgstr ""
+
+#: backend/templates/posts/detail.html:396
+#, fuzzy
+msgid "Submit report"
+msgstr "Enviado"
+
+#: backend/templates/posts/new.html:34
+msgid "Post title…"
+msgstr ""
+
+#: backend/templates/posts/new.html:45
+msgid "Editor mode"
+msgstr ""
+
+#: backend/templates/posts/new.html:66
+msgid "Formatting"
+msgstr ""
+
+#: backend/templates/posts/new.html:67
+msgid "Bold"
+msgstr ""
+
+#: backend/templates/posts/new.html:68
+msgid "Italic"
+msgstr ""
+
+#: backend/templates/posts/new.html:69
+msgid "Inline code"
+msgstr ""
+
+#: backend/templates/posts/new.html:71
+#, fuzzy
+msgid "Heading 2"
+msgstr "Pendiente"
+
+#: backend/templates/posts/new.html:72
+#, fuzzy
+msgid "Heading 3"
+msgstr "Pendiente"
+
+#: backend/templates/posts/new.html:74
+msgid "Unordered list"
+msgstr ""
+
+#: backend/templates/posts/new.html:75
+msgid "Ordered list"
+msgstr ""
+
+#: backend/templates/posts/new.html:76
+msgid "Blockquote"
+msgstr ""
+
+#: backend/templates/posts/new.html:78
+msgid "Code block"
+msgstr ""
+
+#: backend/templates/posts/new.html:79
+#, fuzzy
+msgid "Link"
+msgstr "Copiar enlace"
+
+#: backend/templates/posts/new.html:80
+msgid "Horizontal rule"
+msgstr ""
+
+#: backend/templates/posts/new.html:90
+msgid "Write in Markdown…"
+msgstr ""
+
+#: backend/templates/posts/new.html:91
+#, fuzzy
+msgid "Post body"
+msgstr "publicación"
+
+#: backend/templates/posts/new.html:98
+msgid "Preview will appear here after you click Preview…"
+msgstr ""
+
+#: backend/templates/posts/new.html:108
+msgid "Slug"
+msgstr ""
+
+#: backend/templates/posts/new.html:113
+msgid "auto-generated"
+msgstr ""
+
+#: backend/templates/posts/new.html:117
+msgid "Lowercase letters, numbers, and hyphens only."
+msgstr ""
+
+#: backend/templates/posts/new.html:125
+msgid "Tags"
+msgstr ""
+
+#: backend/templates/posts/new.html:130
+msgid "flask, python, devops"
+msgstr ""
+
+#: backend/templates/posts/new.html:134
+msgid "Comma-separated. New tags are created automatically."
+msgstr ""
+
+#: backend/templates/posts/new.html:139
+#, fuzzy
+msgid "Excerpt"
+msgstr "Aceptar"
+
+#: backend/templates/posts/new.html:144
+msgid "Brief description for search engines and social previews…"
+msgstr ""
+
+#: backend/templates/posts/new.html:154
+msgid "Save draft"
+msgstr ""
+
+#: backend/templates/posts/new.html:160
+msgid "Publish"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:33
+msgid "Proposed by"
+msgstr "Propuesto por"
+
+#: backend/templates/revisions/detail.html:38
+msgid "Submitted"
+msgstr "Enviado"
+
+#: backend/templates/revisions/detail.html:43
+msgid "Based on"
+msgstr "Basado en"
+
+#: backend/templates/revisions/detail.html:71
+msgid "Revision summary"
+msgstr "Resumen de la revisión"
+
+#: backend/templates/revisions/detail.html:77
+msgid "Content diff for revision #"
+msgstr ""
+
+#: backend/templates/revisions/detail.html:84
+msgid "Review this revision"
+msgstr "Revisar esta revisión"
+
+#: backend/templates/revisions/detail.html:85
+msgid "Your decision is final and the contributor will be notified."
+msgstr "Tu decisión es definitiva y el colaborador será notificado."
+
+#: backend/templates/revisions/detail.html:93
+msgid "Accept"
+msgstr "Aceptar"
+
+#: backend/templates/revisions/detail.html:95
+msgid ""
+"Applies the diff. Post version increments. Contributor is credited in "
+"revision history."
+msgstr ""
+"Aplica el diff. La versión del artículo se incrementa. El colaborador "
+"queda acreditado en el historial de revisiones."
+
+#: backend/templates/revisions/detail.html:102
+msgid "Accept revision"
+msgstr "Aceptar revisión"
+
+#: backend/templates/revisions/detail.html:110
+msgid "Reject"
+msgstr "Rechazar"
+
+#: backend/templates/revisions/detail.html:112
+msgid "Closes the revision without changes. Leave a note to explain the decision."
+msgstr "Cierra la revisión sin cambios. Deja una nota para explicar la decisión."
+
+#: backend/templates/revisions/detail.html:121
+msgid "Rejection note (optional)"
+msgstr "Nota de rechazo (opcional)"
+
+#: backend/templates/revisions/detail.html:123
+msgid "Rejection note"
+msgstr "Nota de rechazo"
+
+#: backend/templates/revisions/detail.html:126
+msgid "Reject revision"
+msgstr "Rechazar revisión"
+
+#: backend/templates/revisions/list.html:9
 msgid "Revision queue"
 msgstr "Cola de revisión"
 
+#: backend/templates/revisions/list.html:11
 msgid "Community-proposed improvements to published posts."
 msgstr "Mejoras propuestas por la comunidad a artículos publicados."
 
+#: backend/templates/revisions/list.html:12
 msgid "revision"
 msgid_plural "revisions"
 msgstr[0] "revisión"
 msgstr[1] "revisiones"
 
+#: backend/templates/revisions/list.html:19
 msgid "Pending"
 msgstr "Pendiente"
 
+#: backend/templates/revisions/list.html:21
 msgid "Accepted"
 msgstr "Aceptado"
 
+#: backend/templates/revisions/list.html:23
 msgid "Rejected"
 msgstr "Rechazado"
 
+#: backend/templates/revisions/list.html:25
 msgid "All"
 msgstr "Todos"
 
-msgid "Prev"
-msgstr "Anterior"
-
+#: backend/templates/revisions/list.html:43
 #, python-format
 msgid "Page %(page)s of %(total)s"
 msgstr "Página %(page)s de %(total)s"
 
-msgid "Next"
-msgstr "Siguiente"
-
+#: backend/templates/revisions/list.html:54
 #, python-format
 msgid "No %(status)s revisions."
 msgstr "No hay revisiones %(status)s."
 
+#: backend/templates/revisions/list.html:56
 msgid "The queue is clear — all caught up."
 msgstr "La cola está vacía — todo al día."
 
+#: backend/templates/search/results.html:3
+#, python-format
+msgid "Search: %(q)s"
+msgstr ""
+
+#: backend/templates/search/results.html:20
+msgid "Search posts, topics, people…"
+msgstr ""
+
+#: backend/templates/search/results.html:23
+msgid "Search query"
+msgstr ""
+
+#: backend/templates/search/results.html:37
+#: backend/templates/search/results.html:211
+msgid "Recent searches"
+msgstr ""
+
+#: backend/templates/search/results.html:48
+msgid "Search result types"
+msgstr ""
+
+#: backend/templates/search/results.html:76
+msgid "by"
+msgstr ""
+
+#: backend/templates/search/results.html:96
+#: backend/templates/search/results.html:142
+#: backend/templates/search/results.html:181
+msgid "Search result pages"
+msgstr ""
+
+#: backend/templates/search/results.html:110
+#: backend/templates/search/results.html:156
+#: backend/templates/search/results.html:195
+msgid "No results for"
+msgstr ""
+
+#: backend/templates/search/results.html:112
+#: backend/templates/search/results.html:158
+#: backend/templates/search/results.html:197
+msgid "Check your spelling"
+msgstr ""
+
+#: backend/templates/search/results.html:113
+#: backend/templates/search/results.html:159
+msgid "Try broader or different terms"
+msgstr ""
+
+#: backend/templates/search/results.html:116
+#, python-format
+msgid "View %(n)s matching topic%(s)s"
+msgstr ""
+
+#: backend/templates/search/results.html:118
+#, python-format
+msgid "View %(n)s matching profile%(s)s"
+msgstr ""
+
+#: backend/templates/search/results.html:120
+msgid "Try different keywords or"
+msgstr ""
+
+#: backend/templates/search/results.html:120
+#, fuzzy
+msgid "browse all posts"
+msgstr "Explorar artículos"
+
+#: backend/templates/search/results.html:162
+#: backend/templates/search/results.html:201
+#, python-format
+msgid "View %(n)s matching post%(s)s"
+msgstr ""
+
+#: backend/templates/search/results.html:164
+#, fuzzy
+msgid "Explore all topics:"
+msgstr "Todos los temas"
+
+#: backend/templates/search/results.html:164
+#, fuzzy
+msgid "browse topics"
+msgstr "Explorar artículos"
+
+#: backend/templates/search/results.html:198
+msgid "Only public profiles appear in search"
+msgstr ""
+
+#: backend/templates/search/results.html:227
+msgid "Type in the box above to search posts, topics and people."
+msgstr ""
+
+#: backend/templates/tags/index.html:10
 msgid "topic"
 msgid_plural "topics"
 msgstr[0] "tema"
 msgstr[1] "temas"
 
+#: backend/templates/tags/index.html:10
 msgid "browse by subject area"
 msgstr "explorar por área temática"
 
-msgid "No topics yet."
-msgstr "Aún no hay temas."
-
+#: backend/templates/tags/index.html:70
 msgid "Start writing posts and add tags to create topics."
 msgstr "Empieza a escribir artículos y añade etiquetas para crear temas."
 
-msgid "Routing, blueprints, deployment, and real-world patterns."
-msgstr "Enrutamiento, blueprints, despliegue y patrones del mundo real."
+#~ msgid "%(count)s unread"
+#~ msgid_plural "%(count)s unread"
+#~ msgstr[0] "%(count)s sin leer"
+#~ msgstr[1] "%(count)s sin leer"
 
-msgid "Language features, tooling, packaging, and ecosystem notes."
-msgstr "Características del lenguaje, herramientas, empaquetado y notas del ecosistema."
+#~ msgid "Showing v%(from)s \\u2192 v%(to)s (inputs were swapped)"
+#~ msgstr "Mostrando v%(from)s \\u2192 v%(to)s (los valores fueron intercambiados)"
 
-msgid "Queries, indexing, full-text search, and migrations."
-msgstr "Consultas, indexación, búsqueda de texto completo y migraciones."
-
-msgid "Task queues, beat scheduling, and worker configuration."
-msgstr "Colas de tareas, programación beat y configuración de workers."
-
-msgid "Caching, queuing, pub/sub, and persistence patterns."
-msgstr "Caché, colas, pub/sub y patrones de persistencia."
-
-msgid "Containerisation, Compose, and production Dockerfiles."
-msgstr "Contenedores, Compose y Dockerfiles de producción."
-
-msgid "Shell scripting, system administration, and tooling."
-msgstr "Scripting de shell, administración de sistemas y herramientas."
-
-msgid "Branching, rebasing, workflows, and repo management."
-msgstr "Ramificación, rebase, flujos de trabajo y gestión de repositorios."
-
-msgid "Queries, schema design, indexing, and optimisation."
-msgstr "Consultas, diseño de esquemas, indexación y optimización."
-
-msgid "REST design, versioning, auth, and documentation."
-msgstr "Diseño REST, versionado, autenticación y documentación."
-
-msgid "Unit tests, integration tests, fixtures, and coverage."
-msgstr "Tests unitarios, tests de integración, fixtures y cobertura."
-
-msgid "CI/CD pipelines, infrastructure, and deployment automation."
-msgstr "Pipelines CI/CD, infraestructura y automatización del despliegue."
-
-msgid "Auth patterns, input validation, secrets management."
-msgstr "Patrones de autenticación, validación de entrada, gestión de secretos."
-
-msgid "Language models, embeddings, retrieval, and practical ML."
-msgstr "Modelos de lenguaje, embeddings, recuperación y ML práctico."
-
-msgid "Browser JS, tooling, and small scripting patterns."
-msgstr "JS de navegador, herramientas y patrones de scripting."
-
-msgid "Type safety, configuration, and real-world usage."
-msgstr "Seguridad de tipos, configuración y uso en el mundo real."
-
-msgid "System design, service boundaries, and trade-offs."
-msgstr "Diseño de sistemas, límites de servicios y compensaciones."
-
-msgid "Recently improved"
-msgstr "Recientemente mejorado"
-
-msgid "Posts that got better through accepted community revisions."
-msgstr "Artículos que mejoraron gracias a revisiones comunitarias aceptadas."
-
-msgid "Improved"
-msgstr "Mejorado"
-
-#, python-format
-msgid "Accepted revisions: %(n)s"
-msgstr "Revisiones aceptadas: %(n)s"
-
-msgid "Last improved: "
-msgstr "Última mejora: "
-
-#, python-format
-msgid "by %(name)s"
-msgstr "por %(name)s"
-
-msgid "No recently improved posts yet."
-msgstr "Aún no hay artículos mejorados recientemente."
-
-msgid "All improvements"
-msgstr "Todas las mejoras"
-
-msgid "Improvements"
-msgstr "Mejoras"
-
-msgid "Posts improved through accepted community revisions."
-msgstr "Publicaciones mejoradas a través de revisiones comunitarias aceptadas."
-
-msgid "Time window filter"
-msgstr "Filtro de ventana de tiempo"
-
-msgid "Last 7 days"
-msgstr "Últimos 7 días"
-
-msgid "Last 30 days"
-msgstr "Últimos 30 días"
-
-msgid "Last 90 days"
-msgstr "Últimos 90 días"
-
-msgid "All time"
-msgstr "Todo el tiempo"
-
-msgid "Improvements pagination"
-msgstr "Paginación de mejoras"
-
-msgid "No improvements yet for this window."
-msgstr "No hay mejoras aún para esta ventana."
-
-
-#: backend/templates/posts/detail.html
-msgid "Compare changes"
-msgstr "Ver cambios"
-
-#: backend/templates/posts/compare.html
-msgid "Compare"
-msgstr "Comparar"
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Compare v%(from)s \u2192 v%(to)s"
-msgstr "Comparar v%(from)s \u2192 v%(to)s"
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Compare v%(from)s \u2192 v%(to)s for %(title)s"
-msgstr "Comparar v%(from)s \u2192 v%(to)s de %(title)s"
-
-#: backend/templates/posts/compare.html
-msgid "Context lines"
-msgstr "L\u00edneas de contexto"
-
-#: backend/templates/posts/compare.html
-msgid "Version snapshot not available for:"
-msgstr "Instant\u00e1nea de versi\u00f3n no disponible para:"
-
-#: backend/templates/posts/compare.html
-msgid "Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot."
-msgstr "Las instant\u00e1neas se crean cuando se acepta una revisi\u00f3n. Es posible que la versi\u00f3n inicial (v1) no tenga instant\u00e1nea."
-
-#: backend/templates/posts/compare.html
-msgid "View revision history"
-msgstr "Ver historial de revisiones"
-
-#: backend/templates/posts/compare.html
-msgid "Copy link"
-msgstr "Copiar enlace"
-
-#: backend/templates/posts/compare.html
-msgid "Copied!"
-msgstr "\u00a1Copiado!"
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Showing v%(from)s \u2192 v%(to)s (inputs were swapped)"
-msgstr "Mostrando v%(from)s \u2192 v%(to)s (los valores fueron intercambiados)"
-
-#: backend/templates/posts/compare.html
-msgid "Copy link"
-msgstr "Copiar enlace"
-
-#: backend/templates/posts/compare.html
-msgid "Copied!"
-msgstr "Copiado!"
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Showing v%(from)s -> v%(to)s (inputs were swapped)"
-msgstr "Mostrando v%(from)s -> v%(to)s (los valores fueron intercambiados)"

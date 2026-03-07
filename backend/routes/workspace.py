@@ -49,6 +49,7 @@ from backend.security.permissions import PermissionService
 from backend.services import invite_service as inv_svc
 from backend.services import playbook_service as pb_svc
 from backend.services import workspace_service as ws_svc
+from backend.services.workspace_health_service import WorkspaceHealthService
 from backend.utils.auth import get_current_user, require_auth
 from backend.utils.diff import compute_diff, parse_diff_lines
 
@@ -706,4 +707,44 @@ def playbook_detail(workspace_slug: str, playbook_slug: str):
         revisions=revisions,
         release_notes=release_notes,
         member=member,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Workspace Knowledge Health Dashboard
+# ---------------------------------------------------------------------------
+
+
+@workspace_bp.get("/<workspace_slug>/health")
+@require_auth
+def workspace_health(workspace_slug: str):
+    """Render the knowledge health dashboard for a workspace.
+
+    Access: workspace members only (get_workspace_for_user aborts 404
+    for non-members and require_auth redirects unauthenticated users).
+    Cache-Control: set to private, no-store by the blueprint after_request hook.
+    """
+    user = get_current_user()
+    ws = ws_svc.get_workspace_for_user(workspace_slug, user)
+    member = _current_member_role(ws, user)
+
+    summary = WorkspaceHealthService.get_health_summary(ws)
+    coverage = WorkspaceHealthService.get_ontology_coverage(ws)
+    unbenchmarked = WorkspaceHealthService.get_unbenchmarked_prompts(ws)
+    stale = WorkspaceHealthService.get_stale_content(ws)
+    unimproved = WorkspaceHealthService.get_unimproved_content(ws)
+    gaps = WorkspaceHealthService.get_contributor_gaps(ws)
+    actions = WorkspaceHealthService.get_recommended_actions(ws)
+
+    return render_template(
+        "workspace/health.html",
+        workspace=ws,
+        member=member,
+        summary=summary,
+        coverage=coverage,
+        unbenchmarked=unbenchmarked,
+        stale=stale,
+        unimproved=unimproved,
+        gaps=gaps,
+        actions=actions,
     )

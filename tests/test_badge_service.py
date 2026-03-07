@@ -252,7 +252,18 @@ class TestRevisionBadgeIntegration:
         )
         RevisionService.accept(rev2.id, reviewer_id=editor.id)
 
-        count = db.session.scalar(
-            select(func.count()).where(UserBadge.user_id == contrib.id)
+        # check_contribution_badges now fires on every acceptance and may award
+        # additional threshold badges (e.g. first_revision).  The important
+        # invariant is that ``first_accepted_revision`` is not duplicated.
+        from backend.models.badge import Badge  # noqa: PLC0415
+
+        badge = db.session.scalar(
+            select(Badge).where(Badge.key == "first_accepted_revision")
         )
-        assert count == 1
+        dup_count = db.session.scalar(
+            select(func.count()).where(
+                UserBadge.user_id == contrib.id,
+                UserBadge.badge_id == badge.id,
+            )
+        )
+        assert dup_count == 1

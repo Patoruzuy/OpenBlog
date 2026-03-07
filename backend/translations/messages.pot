@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-02-26 12:30+0000\n"
+"POT-Creation-Date: 2026-03-04 23:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,120 +17,268 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: backend/routes/tags.py:23
+#: backend/routes/tags.py:24
 msgid "Routing, blueprints, deployment, and real-world patterns."
 msgstr ""
 
-#: backend/routes/tags.py:24
+#: backend/routes/tags.py:25
 msgid "Language features, tooling, packaging, and ecosystem notes."
 msgstr ""
 
-#: backend/routes/tags.py:25 backend/routes/tags.py:26
+#: backend/routes/tags.py:26 backend/routes/tags.py:27
 msgid "Queries, indexing, full-text search, and migrations."
 msgstr ""
 
-#: backend/routes/tags.py:27
+#: backend/routes/tags.py:28
 msgid "Task queues, beat scheduling, and worker configuration."
 msgstr ""
 
-#: backend/routes/tags.py:28
+#: backend/routes/tags.py:29
 msgid "Caching, queuing, pub/sub, and persistence patterns."
 msgstr ""
 
-#: backend/routes/tags.py:29
+#: backend/routes/tags.py:30
 msgid "Containerisation, Compose, and production Dockerfiles."
 msgstr ""
 
-#: backend/routes/tags.py:30
+#: backend/routes/tags.py:31
 msgid "Shell scripting, system administration, and tooling."
 msgstr ""
 
-#: backend/routes/tags.py:31
+#: backend/routes/tags.py:32
 msgid "Branching, rebasing, workflows, and repo management."
 msgstr ""
 
-#: backend/routes/tags.py:32
+#: backend/routes/tags.py:33
 msgid "Queries, schema design, indexing, and optimisation."
 msgstr ""
 
-#: backend/routes/tags.py:33
+#: backend/routes/tags.py:34
 msgid "REST design, versioning, auth, and documentation."
 msgstr ""
 
-#: backend/routes/tags.py:34
+#: backend/routes/tags.py:35
 msgid "Unit tests, integration tests, fixtures, and coverage."
 msgstr ""
 
-#: backend/routes/tags.py:35
+#: backend/routes/tags.py:36
 msgid "CI/CD pipelines, infrastructure, and deployment automation."
 msgstr ""
 
-#: backend/routes/tags.py:36
+#: backend/routes/tags.py:37
 msgid "Auth patterns, input validation, secrets management."
 msgstr ""
 
-#: backend/routes/tags.py:37
+#: backend/routes/tags.py:38
 msgid "Language models, embeddings, retrieval, and practical ML."
 msgstr ""
 
-#: backend/routes/tags.py:38
+#: backend/routes/tags.py:39
 msgid "Browser JS, tooling, and small scripting patterns."
 msgstr ""
 
-#: backend/routes/tags.py:39
+#: backend/routes/tags.py:40
 msgid "Type safety, configuration, and real-world usage."
 msgstr ""
 
-#: backend/routes/tags.py:40
+#: backend/routes/tags.py:41
 msgid "System design, service boundaries, and trade-offs."
 msgstr ""
 
-#: backend/templates/base.html:34 backend/templates/index.html:3
-msgid "Home"
+#: backend/templates/base.html:41 backend/templates/explore/index.html:52
+#: backend/templates/search/results.html:51
+msgid "Posts"
 msgstr ""
 
-#: backend/templates/base.html:36 backend/templates/index.html:172
-#: backend/templates/tags/index.html:2 backend/templates/tags/index.html:8
+#: backend/templates/base.html:42 backend/templates/base.html:264
+#: backend/templates/explore/index.html:57 backend/templates/index.html:230
+#: backend/templates/search/results.html:56 backend/templates/tags/index.html:2
+#: backend/templates/tags/index.html:8
 msgid "Topics"
 msgstr ""
 
-#: backend/templates/base.html:38
-msgid "Writing"
+#: backend/templates/base.html:43 backend/templates/search/results.html:61
+msgid "People"
 msgstr ""
 
-#: backend/templates/base.html:40 backend/templates/revisions/list.html:3
-msgid "Revisions"
+#: backend/templates/base.html:44
+msgid "See all results"
 msgstr ""
 
-#: backend/templates/base.html:43
-msgid "Write"
+#: backend/templates/base.html:66 backend/templates/base.html:77
+#: backend/templates/base.html:266 backend/templates/drafts/index.html:36
+#: backend/templates/search/results.html:3
+#: backend/templates/search/results.html:10
+msgid "Search"
 msgstr ""
 
-#: backend/templates/base.html:46
+#: backend/templates/base.html:83
+msgid "Search posts, topics…"
+msgstr ""
+
+#: backend/templates/base.html:84 backend/templates/search/results.html:13
+msgid "Search posts, topics and people"
+msgstr ""
+
+#: backend/templates/base.html:90 backend/templates/search/results.html:25
+msgid "Submit search"
+msgstr ""
+
+#: backend/templates/base.html:97
+msgid "Search suggestions"
+msgstr ""
+
+#: backend/templates/base.html:101
+msgid "Primary navigation"
+msgstr ""
+
+#: backend/templates/base.html:105 backend/templates/base.html:260
+#: backend/templates/base.html:261 backend/templates/explore/index.html:3
+#: backend/templates/explore/index.html:9
+msgid "Explore"
+msgstr ""
+
+#: backend/templates/base.html:114 backend/templates/base.html:269
+#: backend/templates/base.html:270 backend/templates/explore/index.html:17
+msgid "Labs"
+msgstr ""
+
+#: backend/templates/base.html:118 backend/templates/base.html:271
+#: backend/templates/explore/index.html:21
+msgid "Prompt Library"
+msgstr ""
+
+#: backend/templates/base.html:121 backend/templates/base.html:272
+#: backend/templates/explore/index.html:26
+msgid "Benchmarks"
+msgstr ""
+
+#: backend/templates/base.html:124 backend/templates/base.html:273
+#: backend/templates/explore/index.html:31
+msgid "A/B Experiments"
+msgstr ""
+
+#: backend/templates/base.html:127 backend/templates/base.html:274
+#: backend/templates/explore/index.html:36
+msgid "Ontology"
+msgstr ""
+
+#: backend/templates/base.html:130 backend/templates/base.html:275
+#: backend/templates/explore/index.html:41
+msgid "Intelligence"
+msgstr ""
+
+#: backend/templates/base.html:137 backend/templates/drafts/index.html:13
+#: backend/templates/drafts/index.html:20 backend/templates/posts/new.html:2
+#: backend/templates/posts/new.html:13
+msgid "New post"
+msgstr ""
+
+#: backend/templates/base.html:144
 msgid "Notifications"
 msgstr ""
 
-#: backend/templates/base.html:48
-#, python-format
-msgid "%(count)s unread"
-msgid_plural "%(count)s unread"
-msgstr[0] ""
-msgstr[1] ""
-
-#: backend/templates/base.html:51
-msgid "Sign out"
-msgstr ""
-
-#: backend/templates/base.html:53
-msgid "Sign in"
-msgstr ""
-
-#: backend/templates/base.html:57
+#: backend/templates/base.html:156
 msgid "Switch language"
 msgstr ""
 
-#: backend/templates/base.html:96
+#: backend/templates/base.html:170
+msgid "Account menu"
+msgstr ""
+
+#: backend/templates/base.html:195
+msgid "My profile"
+msgstr ""
+
+#: backend/templates/base.html:198 backend/templates/drafts/index.html:2
+#: backend/templates/drafts/index.html:8
+msgid "Drafts"
+msgstr ""
+
+#: backend/templates/base.html:201
+msgid "Settings"
+msgstr ""
+
+#: backend/templates/base.html:205
+msgid "Sign out"
+msgstr ""
+
+#: backend/templates/base.html:210 backend/templates/posts/detail.html:158
+#: backend/templates/posts/detail.html:364
+msgid "Sign in"
+msgstr ""
+
+#: backend/templates/base.html:237
+msgid "Please verify your email address to unlock posting and commenting."
+msgstr ""
+
+#: backend/templates/base.html:238
+msgid "Resend email"
+msgstr ""
+
+#: backend/templates/base.html:256
 msgid "Engineering notes, open to improvement."
+msgstr ""
+
+#: backend/templates/base.html:262 backend/templates/index.html:3
+msgid "Home"
+msgstr ""
+
+#: backend/templates/base.html:263
+msgid "Writing"
+msgstr ""
+
+#: backend/templates/base.html:265 backend/templates/explore/index.html:62
+#: backend/templates/revisions/list.html:3
+msgid "Revisions"
+msgstr ""
+
+#: backend/templates/base.html:278 backend/templates/base.html:280
+msgid "About"
+msgstr ""
+
+#: backend/templates/base.html:279
+msgid "Company"
+msgstr ""
+
+#: backend/templates/base.html:281
+msgid "Contact"
+msgstr ""
+
+#: backend/templates/base.html:282
+msgid "Editorial Policy"
+msgstr ""
+
+#: backend/templates/base.html:283 backend/templates/posts/detail.html:170
+msgid "Changelog"
+msgstr ""
+
+#: backend/templates/base.html:284
+msgid "Privacy Policy"
+msgstr ""
+
+#: backend/templates/base.html:285
+msgid "Terms of Service"
+msgstr ""
+
+#: backend/templates/base.html:286
+msgid "Cookie Policy"
+msgstr ""
+
+#: backend/templates/base.html:291
+msgid "Stay updated"
+msgstr ""
+
+#: backend/templates/base.html:293
+msgid "New posts and features — no spam."
+msgstr ""
+
+#: backend/templates/base.html:303
+msgid "your@email.com"
+msgstr ""
+
+#: backend/templates/base.html:307
+msgid "Subscribe"
 msgstr ""
 
 #: backend/templates/index.html:10
@@ -157,12 +305,12 @@ msgstr ""
 msgid "Start reading"
 msgstr ""
 
-#: backend/templates/index.html:17 backend/templates/index.html:188
+#: backend/templates/index.html:17 backend/templates/index.html:246
 msgid "How it works"
 msgstr ""
 
 #: backend/templates/index.html:25 backend/templates/macros/cards.html:75
-#: backend/templates/tags/index.html:28
+#: backend/templates/macros/cards.html:135 backend/templates/tags/index.html:29
 msgid "post"
 msgid_plural "posts"
 msgstr[0] ""
@@ -192,7 +340,7 @@ msgstr ""
 msgid "Latest writing"
 msgstr ""
 
-#: backend/templates/index.html:64
+#: backend/templates/index.html:64 backend/templates/posts/compare.html:22
 msgid "All posts"
 msgstr ""
 
@@ -231,110 +379,730 @@ msgstr ""
 msgid "Pick a post, find something to improve, propose a change."
 msgstr ""
 
-#: backend/templates/index.html:104
+#: backend/templates/improvements/index.html:86
+#: backend/templates/index.html:104 backend/templates/index.html:162
 msgid "Browse posts"
 msgstr ""
 
 #: backend/templates/index.html:114
+msgid "Recently improved"
+msgstr ""
+
+#: backend/templates/index.html:115
+msgid "All improvements"
+msgstr ""
+
+#: backend/templates/index.html:118
+msgid "Posts that got better through accepted community revisions."
+msgstr ""
+
+#: backend/templates/improvements/index.html:38
+#: backend/templates/index.html:127
+msgid "Improved"
+msgstr ""
+
+#: backend/templates/improvements/index.html:50
+#: backend/templates/index.html:132
+#, python-format
+msgid "Accepted revisions: %(n)s"
+msgstr ""
+
+#: backend/templates/improvements/index.html:47
+#: backend/templates/index.html:134
+msgid "Last improved: "
+msgstr ""
+
+#: backend/templates/improvements/index.html:53
+#: backend/templates/index.html:141
+#, python-format
+msgid "by %(name)s"
+msgstr ""
+
+#: backend/templates/index.html:161
+msgid "No recently improved posts yet."
+msgstr ""
+
+#: backend/templates/explore/index.html:126 backend/templates/index.html:172
 msgid "Open revisions"
 msgstr ""
 
-#: backend/templates/index.html:116 backend/templates/revisions/detail.html:10
+#: backend/templates/index.html:174 backend/templates/revisions/detail.html:10
 msgid "Review queue"
 msgstr ""
 
-#: backend/templates/index.html:125
+#: backend/templates/index.html:183
 msgid "No pending revisions."
 msgstr ""
 
-#: backend/templates/index.html:126
+#: backend/templates/index.html:184
 msgid "Found a mistake or something to clarify?"
 msgstr ""
 
-#: backend/templates/index.html:128
+#: backend/templates/index.html:186
 msgid "Find a post to improve"
 msgstr ""
 
-#: backend/templates/index.html:139
+#: backend/templates/index.html:197
 msgid "Learning paths"
 msgstr ""
 
-#: backend/templates/index.html:140 backend/templates/index.html:173
+#: backend/templates/index.html:198 backend/templates/index.html:231
 msgid "All topics"
 msgstr ""
 
-#: backend/templates/index.html:145
+#: backend/templates/index.html:203
 msgid "Flask & Backend"
 msgstr ""
 
-#: backend/templates/index.html:146
+#: backend/templates/index.html:204
 msgid ""
 "Routing, blueprints, extensions, and production deployment. Building web "
 "services with Python."
 msgstr ""
 
-#: backend/templates/index.html:150
+#: backend/templates/index.html:208
 msgid "Python Tooling"
 msgstr ""
 
-#: backend/templates/index.html:151
+#: backend/templates/index.html:209
 msgid ""
 "Dependency management, linting, testing, and packaging. The ecosystem "
 "that makes Python production-ready."
 msgstr ""
 
-#: backend/templates/index.html:155
+#: backend/templates/index.html:213
 msgid "AI & Automation"
 msgstr ""
 
-#: backend/templates/index.html:156
+#: backend/templates/index.html:214
 msgid ""
 "LLM integration, prompt engineering, and workflow automation. Practical "
 "notes from real implementation."
 msgstr ""
 
-#: backend/templates/index.html:160
+#: backend/templates/index.html:218
 msgid "Dev Tools"
 msgstr ""
 
-#: backend/templates/index.html:161
+#: backend/templates/index.html:219
 msgid ""
 "Editor setup, CLI utilities, shell scripts, and the smaller tools that "
 "compound over a career."
 msgstr ""
 
-#: backend/templates/index.html:193
+#: backend/templates/index.html:251
 msgid "Read a post"
 msgstr ""
 
-#: backend/templates/index.html:195
+#: backend/templates/index.html:253
 msgid ""
 "Browse engineering notes written in Markdown. Each post carries a version"
 " number and a complete revision history."
 msgstr ""
 
-#: backend/templates/index.html:200
+#: backend/templates/index.html:258
 msgid "Propose a change"
 msgstr ""
 
-#: backend/templates/index.html:202
+#: backend/templates/index.html:260
 msgid ""
 "Any signed-in reader can submit a targeted diff — correcting an error, "
 "clarifying a step, expanding on a topic."
 msgstr ""
 
-#: backend/templates/index.html:207
+#: backend/templates/index.html:265
 msgid "Get it merged"
 msgstr ""
 
-#: backend/templates/index.html:209
+#: backend/templates/index.html:267
 msgid ""
 "Editors review the diff. If it improves the post, it is accepted: the "
 "version increments, the contributor is credited."
 msgstr ""
 
+#: backend/templates/drafts/index.html:10
+#: backend/templates/drafts/index.html:118
+msgid "Sign in to post"
+msgstr ""
+
+#: backend/templates/drafts/index.html:15
+msgid "Verify your email to post."
+msgstr ""
+
+#: backend/templates/drafts/index.html:16
+msgid "Resend link"
+msgstr ""
+
+#: backend/templates/drafts/index.html:31
+msgid "Filter drafts…"
+msgstr ""
+
+#: backend/templates/drafts/index.html:34
+msgid "Search drafts by title"
+msgstr ""
+
+#: backend/templates/drafts/index.html:38
+msgid "Clear"
+msgstr ""
+
+#: backend/templates/drafts/index.html:52
+msgid "Untitled draft"
+msgstr ""
+
+#: backend/templates/drafts/index.html:56
+msgid "Autosaved"
+msgstr ""
+
+#: backend/templates/drafts/index.html:63
+msgid "Updated"
+msgstr ""
+
+#: backend/templates/drafts/index.html:70
+msgid "tag"
+msgid_plural "tags"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/drafts/index.html:73
+msgid "word"
+msgid_plural "words"
+msgstr[0] ""
+msgstr[1] ""
+
+#: backend/templates/drafts/index.html:78
+msgid "Continue editing"
+msgstr ""
+
+#: backend/templates/drafts/index.html:82
+msgid "Delete this draft?"
+msgstr ""
+
+#: backend/templates/drafts/index.html:84
+#: backend/templates/posts/detail.html:233
+msgid "Delete"
+msgstr ""
+
+#: backend/templates/drafts/index.html:93
+msgid "Drafts pages"
+msgstr ""
+
+#: backend/templates/drafts/index.html:96
+#: backend/templates/improvements/index.html:72
+#: backend/templates/revisions/list.html:41
+#: backend/templates/search/results.html:98
+#: backend/templates/search/results.html:144
+#: backend/templates/search/results.html:183
+msgid "Prev"
+msgstr ""
+
+#: backend/templates/drafts/index.html:98
+#: backend/templates/search/results.html:100
+#: backend/templates/search/results.html:146
+#: backend/templates/search/results.html:185
+#, python-format
+msgid "Page %(p)s of %(t)s"
+msgstr ""
+
+#: backend/templates/drafts/index.html:101
+#: backend/templates/explore/index.html:92
+#: backend/templates/improvements/index.html:76
+#: backend/templates/revisions/list.html:46
+#: backend/templates/search/results.html:102
+#: backend/templates/search/results.html:148
+#: backend/templates/search/results.html:187
+msgid "Next"
+msgstr ""
+
+#: backend/templates/drafts/index.html:110
+msgid "No drafts matching"
+msgstr ""
+
+#: backend/templates/drafts/index.html:111
+msgid "Clear filter"
+msgstr ""
+
+#: backend/templates/drafts/index.html:113
+msgid "No drafts yet."
+msgstr ""
+
+#: backend/templates/drafts/index.html:115
+msgid "Start writing and your drafts will appear here."
+msgstr ""
+
+#: backend/templates/drafts/index.html:120
+#: backend/templates/drafts/index.html:126
+msgid "Write your first post"
+msgstr ""
+
+#: backend/templates/drafts/index.html:122
+msgid "Verify your email address to start posting."
+msgstr ""
+
+#: backend/templates/drafts/index.html:123
+msgid "Resend verification link"
+msgstr ""
+
+#: backend/templates/explore/index.html:11
+msgid "Discover posts, topics, and community revisions."
+msgstr ""
+
+#: backend/templates/explore/index.html:16
+msgid "Labs features"
+msgstr ""
+
+#: backend/templates/explore/index.html:22
+msgid "Browse and improve versioned prompts"
+msgstr ""
+
+#: backend/templates/explore/index.html:27
+msgid "Run suites to score prompt quality"
+msgstr ""
+
+#: backend/templates/explore/index.html:32
+msgid "Compare prompt variants head-to-head"
+msgstr ""
+
+#: backend/templates/explore/index.html:37
+msgid "Structured knowledge taxonomy browser"
+msgstr ""
+
+#: backend/templates/explore/index.html:42
+msgid "Cross-family benchmark analytics"
+msgstr ""
+
+#: backend/templates/explore/index.html:48
+msgid "Explore sections"
+msgstr ""
+
+#: backend/templates/explore/index.html:83
+msgid "Previous"
+msgstr ""
+
+#: backend/templates/explore/index.html:87
+msgid "Page"
+msgstr ""
+
+#: backend/templates/explore/index.html:99
+msgid "No posts published yet. Be the first!"
+msgstr ""
+
+#: backend/templates/explore/index.html:115
+#: backend/templates/tags/index.html:69
+msgid "No topics yet."
+msgstr ""
+
+#: backend/templates/explore/index.html:141
+msgid "View all open revisions"
+msgstr ""
+
+#: backend/templates/explore/index.html:146
+msgid "No open revisions right now."
+msgstr ""
+
+#: backend/templates/explore/index.html:153
+msgid "Recently accepted"
+msgstr ""
+
+#: backend/templates/explore/index.html:162
+msgid "No accepted revisions yet."
+msgstr ""
+
+#: backend/templates/improvements/index.html:2
+#: backend/templates/improvements/index.html:9
+msgid "Improvements"
+msgstr ""
+
+#: backend/templates/improvements/index.html:10
+msgid "Posts improved through accepted community revisions."
+msgstr ""
+
+#: backend/templates/improvements/index.html:14
+msgid "Time window filter"
+msgstr ""
+
+#: backend/templates/improvements/index.html:16
+msgid "Last 7 days"
+msgstr ""
+
+#: backend/templates/improvements/index.html:17
+msgid "Last 30 days"
+msgstr ""
+
+#: backend/templates/improvements/index.html:18
+msgid "Last 90 days"
+msgstr ""
+
+#: backend/templates/improvements/index.html:19
+msgid "All time"
+msgstr ""
+
+#: backend/templates/improvements/index.html:70
+msgid "Improvements pagination"
+msgstr ""
+
+#: backend/templates/improvements/index.html:74
+msgid "of"
+msgstr ""
+
+#: backend/templates/improvements/index.html:85
+msgid "No improvements yet for this window."
+msgstr ""
+
 #: backend/templates/macros/cards.html:22
+#: backend/templates/search/results.html:80
 msgid "min read"
+msgstr ""
+
+#: backend/templates/macros/cards.html:138
+msgid "View profile"
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:27
+msgid "Unified"
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:35
+msgid "Split view"
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:35
+msgid "Split"
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:70
+msgid "No diff data available."
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:80
+#, python-format
+msgid "Show %(n)s unchanged line"
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:81
+#, python-format
+msgid "Show %(n)s unchanged lines"
+msgstr ""
+
+#: backend/templates/partials/diff_viewer.html:82
+msgid "Collapse unchanged lines"
+msgstr ""
+
+#: backend/templates/posts/compare.html:2
+#: backend/templates/posts/compare.html:26
+msgid "Compare"
+msgstr ""
+
+#: backend/templates/posts/compare.html:10
+#: backend/templates/posts/compare.html:34
+#, python-format
+msgid "Compare v%(from)s → v%(to)s"
+msgstr ""
+
+#: backend/templates/posts/compare.html:40
+msgid "Post"
+msgstr ""
+
+#: backend/templates/posts/compare.html:54
+msgid "Copy link"
+msgstr ""
+
+#: backend/templates/posts/compare.html:61
+#, python-format
+msgid "Showing v%(from)s → v%(to)s (inputs were swapped)"
+msgstr ""
+
+#: backend/templates/posts/compare.html:73
+msgid "Context lines"
+msgstr ""
+
+#: backend/templates/posts/compare.html:87
+msgid "Version snapshot not available for:"
+msgstr ""
+
+#: backend/templates/posts/compare.html:93
+msgid ""
+"Snapshots are created when a post revision is accepted. The initial "
+"version (v1) may not have a snapshot."
+msgstr ""
+
+#: backend/templates/posts/compare.html:96
+msgid "View revision history"
+msgstr ""
+
+#: backend/templates/posts/compare.html:101
+#, python-format
+msgid "Compare v%(from)s → v%(to)s for %(title)s"
+msgstr ""
+
+#: backend/templates/posts/compare.html:121
+msgid "Copied!"
+msgstr ""
+
+#: backend/templates/posts/detail.html:54
+msgid "Updated since you last read"
+msgstr ""
+
+#: backend/templates/posts/detail.html:61
+msgid "Compare changes"
+msgstr ""
+
+#: backend/templates/posts/detail.html:98
+msgid "Post actions"
+msgstr ""
+
+#: backend/templates/posts/detail.html:99
+msgid "Comment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:103
+#: backend/templates/posts/detail.html:107
+msgid "Suggest edit"
+msgstr ""
+
+#: backend/templates/posts/detail.html:106
+msgid "Verify your email to suggest edits"
+msgstr ""
+
+#: backend/templates/posts/detail.html:114
+msgid "Bookmark"
+msgstr ""
+
+#: backend/templates/posts/detail.html:121
+msgid "Unwatch"
+msgstr ""
+
+#: backend/templates/posts/detail.html:126
+msgid "Watch"
+msgstr ""
+
+#: backend/templates/posts/detail.html:132
+msgid "Share"
+msgstr ""
+
+#: backend/templates/posts/detail.html:136
+msgid "Edit post"
+msgstr ""
+
+#: backend/templates/posts/detail.html:142
+#: backend/templates/posts/detail.html:231
+#: backend/templates/posts/detail.html:378
+msgid "Report"
+msgstr ""
+
+#: backend/templates/posts/detail.html:156
+msgid "Think this could be improved?"
+msgstr ""
+
+#: backend/templates/posts/detail.html:159
+msgid "to suggest a revision. Accepted contributions are credited to you."
+msgstr ""
+
+#: backend/templates/posts/detail.html:182
+msgid "View diff"
+msgstr ""
+
+#: backend/templates/posts/detail.html:196
+msgid "Comments"
+msgstr ""
+
+#: backend/templates/posts/detail.html:205
+msgid "Follow thread"
+msgstr ""
+
+#: backend/templates/posts/detail.html:217
+msgid "[deleted]"
+msgstr ""
+
+#: backend/templates/posts/detail.html:227
+msgid "Comment options"
+msgstr ""
+
+#: backend/templates/posts/detail.html:240
+msgid "[This comment has been deleted.]"
+msgstr ""
+
+#: backend/templates/posts/detail.html:286
+msgid "No comments yet. Be the first!"
+msgstr ""
+
+#: backend/templates/posts/detail.html:298
+msgid "Leave a comment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:305
+msgid "Please verify your email address to post comments."
+msgstr ""
+
+#: backend/templates/posts/detail.html:306
+msgid "Resend verification email"
+msgstr ""
+
+#: backend/templates/posts/detail.html:316 backend/templates/posts/new.html:53
+msgid "Write"
+msgstr ""
+
+#: backend/templates/posts/detail.html:319 backend/templates/posts/new.html:61
+msgid "Preview"
+msgstr ""
+
+#: backend/templates/posts/detail.html:332
+msgid "Write a comment in Markdown…"
+msgstr ""
+
+#: backend/templates/posts/detail.html:339
+msgid "Preview will appear here…"
+msgstr ""
+
+#: backend/templates/posts/detail.html:346
+msgid "Attach"
+msgstr ""
+
+#: backend/templates/posts/detail.html:353
+msgid "Post comment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:365
+msgid "to join the discussion."
+msgstr ""
+
+#: backend/templates/posts/detail.html:381
+msgid "Spam"
+msgstr ""
+
+#: backend/templates/posts/detail.html:382
+msgid "Harassment"
+msgstr ""
+
+#: backend/templates/posts/detail.html:383
+msgid "Misinformation"
+msgstr ""
+
+#: backend/templates/posts/detail.html:384
+msgid "Off-topic"
+msgstr ""
+
+#: backend/templates/posts/detail.html:385
+msgid "Other"
+msgstr ""
+
+#: backend/templates/posts/detail.html:388
+msgid "Additional context (optional)…"
+msgstr ""
+
+#: backend/templates/posts/detail.html:394
+msgid "Cancel"
+msgstr ""
+
+#: backend/templates/posts/detail.html:396
+msgid "Submit report"
+msgstr ""
+
+#: backend/templates/posts/new.html:34
+msgid "Post title…"
+msgstr ""
+
+#: backend/templates/posts/new.html:45
+msgid "Editor mode"
+msgstr ""
+
+#: backend/templates/posts/new.html:66
+msgid "Formatting"
+msgstr ""
+
+#: backend/templates/posts/new.html:67
+msgid "Bold"
+msgstr ""
+
+#: backend/templates/posts/new.html:68
+msgid "Italic"
+msgstr ""
+
+#: backend/templates/posts/new.html:69
+msgid "Inline code"
+msgstr ""
+
+#: backend/templates/posts/new.html:71
+msgid "Heading 2"
+msgstr ""
+
+#: backend/templates/posts/new.html:72
+msgid "Heading 3"
+msgstr ""
+
+#: backend/templates/posts/new.html:74
+msgid "Unordered list"
+msgstr ""
+
+#: backend/templates/posts/new.html:75
+msgid "Ordered list"
+msgstr ""
+
+#: backend/templates/posts/new.html:76
+msgid "Blockquote"
+msgstr ""
+
+#: backend/templates/posts/new.html:78
+msgid "Code block"
+msgstr ""
+
+#: backend/templates/posts/new.html:79
+msgid "Link"
+msgstr ""
+
+#: backend/templates/posts/new.html:80
+msgid "Horizontal rule"
+msgstr ""
+
+#: backend/templates/posts/new.html:90
+msgid "Write in Markdown…"
+msgstr ""
+
+#: backend/templates/posts/new.html:91
+msgid "Post body"
+msgstr ""
+
+#: backend/templates/posts/new.html:98
+msgid "Preview will appear here after you click Preview…"
+msgstr ""
+
+#: backend/templates/posts/new.html:108
+msgid "Slug"
+msgstr ""
+
+#: backend/templates/posts/new.html:113
+msgid "auto-generated"
+msgstr ""
+
+#: backend/templates/posts/new.html:117
+msgid "Lowercase letters, numbers, and hyphens only."
+msgstr ""
+
+#: backend/templates/posts/new.html:125
+msgid "Tags"
+msgstr ""
+
+#: backend/templates/posts/new.html:130
+msgid "flask, python, devops"
+msgstr ""
+
+#: backend/templates/posts/new.html:134
+msgid "Comma-separated. New tags are created automatically."
+msgstr ""
+
+#: backend/templates/posts/new.html:139
+msgid "Excerpt"
+msgstr ""
+
+#: backend/templates/posts/new.html:144
+msgid "Brief description for search engines and social previews…"
+msgstr ""
+
+#: backend/templates/posts/new.html:154
+msgid "Save draft"
+msgstr ""
+
+#: backend/templates/posts/new.html:160
+msgid "Publish"
 msgstr ""
 
 #: backend/templates/revisions/detail.html:33
@@ -353,76 +1121,50 @@ msgstr ""
 msgid "Revision summary"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:94
-msgid "Unified"
+#: backend/templates/revisions/detail.html:77
+msgid "Content diff for revision #"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:102
-msgid "Split view"
-msgstr ""
-
-#: backend/templates/revisions/detail.html:102
-msgid "Split"
-msgstr ""
-
-#: backend/templates/revisions/detail.html:137
-msgid "No diff data available for this revision."
-msgstr ""
-
-#: backend/templates/revisions/detail.html:149
+#: backend/templates/revisions/detail.html:84
 msgid "Review this revision"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:150
+#: backend/templates/revisions/detail.html:85
 msgid "Your decision is final and the contributor will be notified."
 msgstr ""
 
-#: backend/templates/revisions/detail.html:158
+#: backend/templates/revisions/detail.html:93
 msgid "Accept"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:160
+#: backend/templates/revisions/detail.html:95
 msgid ""
 "Applies the diff. Post version increments. Contributor is credited in "
 "revision history."
 msgstr ""
 
-#: backend/templates/revisions/detail.html:167
+#: backend/templates/revisions/detail.html:102
 msgid "Accept revision"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:175
+#: backend/templates/revisions/detail.html:110
 msgid "Reject"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:177
+#: backend/templates/revisions/detail.html:112
 msgid "Closes the revision without changes. Leave a note to explain the decision."
 msgstr ""
 
-#: backend/templates/revisions/detail.html:186
+#: backend/templates/revisions/detail.html:121
 msgid "Rejection note (optional)"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:188
+#: backend/templates/revisions/detail.html:123
 msgid "Rejection note"
 msgstr ""
 
-#: backend/templates/revisions/detail.html:191
+#: backend/templates/revisions/detail.html:126
 msgid "Reject revision"
-msgstr ""
-
-#: backend/templates/revisions/detail.html:227
-#, python-format
-msgid "Show %(n)s unchanged line"
-msgstr ""
-
-#: backend/templates/revisions/detail.html:228
-#, python-format
-msgid "Show %(n)s unchanged lines"
-msgstr ""
-
-#: backend/templates/revisions/detail.html:229
-msgid "Collapse unchanged lines"
 msgstr ""
 
 #: backend/templates/revisions/list.html:9
@@ -455,17 +1197,9 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-#: backend/templates/revisions/list.html:41
-msgid "Prev"
-msgstr ""
-
 #: backend/templates/revisions/list.html:43
 #, python-format
 msgid "Page %(page)s of %(total)s"
-msgstr ""
-
-#: backend/templates/revisions/list.html:46
-msgid "Next"
 msgstr ""
 
 #: backend/templates/revisions/list.html:54
@@ -475,6 +1209,95 @@ msgstr ""
 
 #: backend/templates/revisions/list.html:56
 msgid "The queue is clear — all caught up."
+msgstr ""
+
+#: backend/templates/search/results.html:3
+#, python-format
+msgid "Search: %(q)s"
+msgstr ""
+
+#: backend/templates/search/results.html:20
+msgid "Search posts, topics, people…"
+msgstr ""
+
+#: backend/templates/search/results.html:23
+msgid "Search query"
+msgstr ""
+
+#: backend/templates/search/results.html:37
+#: backend/templates/search/results.html:211
+msgid "Recent searches"
+msgstr ""
+
+#: backend/templates/search/results.html:48
+msgid "Search result types"
+msgstr ""
+
+#: backend/templates/search/results.html:76
+msgid "by"
+msgstr ""
+
+#: backend/templates/search/results.html:96
+#: backend/templates/search/results.html:142
+#: backend/templates/search/results.html:181
+msgid "Search result pages"
+msgstr ""
+
+#: backend/templates/search/results.html:110
+#: backend/templates/search/results.html:156
+#: backend/templates/search/results.html:195
+msgid "No results for"
+msgstr ""
+
+#: backend/templates/search/results.html:112
+#: backend/templates/search/results.html:158
+#: backend/templates/search/results.html:197
+msgid "Check your spelling"
+msgstr ""
+
+#: backend/templates/search/results.html:113
+#: backend/templates/search/results.html:159
+msgid "Try broader or different terms"
+msgstr ""
+
+#: backend/templates/search/results.html:116
+#, python-format
+msgid "View %(n)s matching topic%(s)s"
+msgstr ""
+
+#: backend/templates/search/results.html:118
+#, python-format
+msgid "View %(n)s matching profile%(s)s"
+msgstr ""
+
+#: backend/templates/search/results.html:120
+msgid "Try different keywords or"
+msgstr ""
+
+#: backend/templates/search/results.html:120
+msgid "browse all posts"
+msgstr ""
+
+#: backend/templates/search/results.html:162
+#: backend/templates/search/results.html:201
+#, python-format
+msgid "View %(n)s matching post%(s)s"
+msgstr ""
+
+#: backend/templates/search/results.html:164
+msgid "Explore all topics:"
+msgstr ""
+
+#: backend/templates/search/results.html:164
+msgid "browse topics"
+msgstr ""
+
+#: backend/templates/search/results.html:198
+msgid "Only public profiles appear in search"
+msgstr ""
+
+#: backend/templates/search/results.html:227
+msgid "Type in the box above to search posts, topics and people."
 msgstr ""
 
 #: backend/templates/tags/index.html:10
@@ -487,175 +1310,7 @@ msgstr[1] ""
 msgid "browse by subject area"
 msgstr ""
 
-#: backend/templates/tags/index.html:36
-msgid "No topics yet."
-msgstr ""
-
-#: backend/templates/tags/index.html:37
+#: backend/templates/tags/index.html:70
 msgid "Start writing posts and add tags to create topics."
 msgstr ""
 
-#: backend/templates/index.html
-msgid "Recently improved"
-msgstr ""
-
-#: backend/templates/index.html
-msgid "Posts that got better through accepted community revisions."
-msgstr ""
-
-#: backend/templates/index.html
-msgid "Improved"
-msgstr ""
-
-#: backend/templates/index.html
-#, python-format
-msgid "Accepted revisions: %(n)s"
-msgstr ""
-
-#: backend/templates/index.html
-msgid "Last improved: "
-msgstr ""
-
-#: backend/templates/index.html
-#, python-format
-msgid "by %(name)s"
-msgstr ""
-
-#: backend/templates/index.html
-msgid "No recently improved posts yet."
-msgstr ""
-
-#: backend/templates/index.html
-msgid "All improvements"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Improvements"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Posts improved through accepted community revisions."
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Time window filter"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Last 7 days"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Last 30 days"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Last 90 days"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "All time"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "Improvements pagination"
-msgstr ""
-
-#: backend/templates/improvements/index.html
-msgid "No improvements yet for this window."
-msgstr ""
-
-
-#: backend/templates/posts/detail.html
-msgid "Compare changes"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Compare"
-msgstr ""
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Compare v%(from)s \u2192 v%(to)s"
-msgstr ""
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Compare v%(from)s \u2192 v%(to)s for %(title)s"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Context lines"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Version snapshot not available for:"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot."
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "View revision history"
-msgstr ""
-
-#: backend/templates/posts/detail.html
-msgid "Compare changes"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Compare"
-msgstr ""
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Compare v%(from)s \u2192 v%(to)s"
-msgstr ""
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Compare v%(from)s \u2192 v%(to)s for %(title)s"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Context lines"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Version snapshot not available for:"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Snapshots are created when a post revision is accepted. The initial version (v1) may not have a snapshot."
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "View revision history"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Copy link"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Copied!"
-msgstr ""
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Showing v%(from)s \u2192 v%(to)s (inputs were swapped)"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Copy link"
-msgstr ""
-
-#: backend/templates/posts/compare.html
-msgid "Copied!"
-msgstr ""
-
-#, python-format
-#: backend/templates/posts/compare.html
-msgid "Showing v%(from)s -> v%(to)s (inputs were swapped)"
-msgstr ""

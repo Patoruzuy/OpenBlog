@@ -97,8 +97,8 @@ def profile(username: str):
         contrib_ontology = []
         contrib_streak = {"current_streak": 0, "longest_streak": 0}
 
-    # Badges
-    user_badges = BadgeService.list_for_user(user.id)
+    # Badges — public visitors see only public-scoped badges
+    user_badges = BadgeService.list_for_user(user.id, public_only=not viewer_is_self)
 
     # Recent activity — last 10 published posts (simple activity feed)
     from backend.models.comment import Comment

@@ -291,6 +291,14 @@ class RevisionService:
         except Exception:  # noqa: BLE001
             pass
 
+        # Re-evaluate all contribution thresholds for the author.
+        try:
+            BadgeService.check_contribution_badges(
+                revision.author_id, workspace_id=post.workspace_id
+            )
+        except Exception:  # noqa: BLE001
+            pass
+
         db.session.commit()
 
         # Fanout in-app notification via subscription system.

@@ -14,7 +14,7 @@
 {% set suggestions = link_suggestions | default([]) %}
 
 {% if has_links or can_manage_links or suggestions %}
-<section class="related-section" style="margin-top:var(--space-xl);border-top:1px solid var(--border-color);padding-top:var(--space-lg)">
+<section class="related-section" style="margin-top:var(--space-xl);border-top:1px solid var(--border);padding-top:var(--space-lg)">
   <h2 style="font-size:1rem;font-weight:700;margin-bottom:var(--space-md)">Relationships</h2>
 
   {# ── Outgoing links ─────────────────────────────────────────────────── #}
@@ -48,9 +48,9 @@
           <span class="badge badge--kind" style="font-size:.65rem">{{ target.kind }}</span>
           <span class="version-badge" style="font-size:.65rem">v{{ target.version }}</span>
           {% if target.workspace_id is not none %}
-            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3,#e8e8e8);border-radius:.3rem;color:var(--text-muted)">ws</span>
+            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3);border-radius:.3rem;color:var(--text-muted)">ws</span>
           {% else %}
-            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3,#e8e8e8);border-radius:.3rem;color:var(--text-muted)">public</span>
+            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3);border-radius:.3rem;color:var(--text-muted)">public</span>
           {% endif %}
           {% if can_manage_links %}
           <form method="POST" action="{{ url_for('content_links.delete_content_link', link_id=link.id) }}" style="margin:0">
@@ -93,9 +93,9 @@
           <span class="badge badge--kind" style="font-size:.65rem">{{ source.kind }}</span>
           <span class="version-badge" style="font-size:.65rem">v{{ source.version }}</span>
           {% if source.workspace_id is not none %}
-            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3,#e8e8e8);border-radius:.3rem;color:var(--text-muted)">ws</span>
+            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3);border-radius:.3rem;color:var(--text-muted)">ws</span>
           {% else %}
-            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3,#e8e8e8);border-radius:.3rem;color:var(--text-muted)">public</span>
+            <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3);border-radius:.3rem;color:var(--text-muted)">public</span>
           {% endif %}
         </li>
         {% endfor %}
@@ -118,13 +118,13 @@
         <label style="font-size:.75rem;color:var(--text-muted)">Target post slug</label>
         <input type="text" name="to_post_slug" placeholder="post-or-prompt-slug"
                required
-               style="padding:.35rem .6rem;border:1px solid var(--border-color);border-radius:var(--radius);font-size:.9rem;min-width:220px">
+               style="padding:.35rem .6rem;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem;min-width:220px">
       </div>
 
       <div style="display:flex;flex-direction:column;gap:.25rem">
         <label style="font-size:.75rem;color:var(--text-muted)">Relationship type</label>
         <select name="link_type"
-                style="padding:.35rem .6rem;border:1px solid var(--border-color);border-radius:var(--radius);font-size:.9rem">
+                style="padding:.35rem .6rem;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem">
           <option value="related">related</option>
           <option value="derived_from">derived from</option>
           <option value="implements">implements</option>
@@ -141,7 +141,7 @@
 
   {# ── Suggested links ────────────────────────────────────────────────── #}
   {% if suggestions %}
-  <div class="suggested-links" style="margin-top:var(--space-lg);padding-top:var(--space-md);border-top:1px solid var(--border-color)">
+  <div class="suggested-links" style="margin-top:var(--space-lg);padding-top:var(--space-md);border-top:1px solid var(--border)">
     <p style="font-size:.8rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">Suggested links</p>
     <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.45rem">
       {% for sug in suggestions %}
@@ -167,7 +167,7 @@
           <p style="font-size:.75rem;color:var(--text-muted);margin:.15rem 0 0">{{ sug.reason }}</p>
         </div>
         <span class="badge badge--kind" style="font-size:.65rem;white-space:nowrap">{{ sug.kind }}</span>
-        <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3,#e8e8e8);border-radius:.3rem;color:var(--text-muted);white-space:nowrap">{{ sug.scope }}</span>
+        <span style="font-size:.65rem;padding:.1rem .35rem;background:var(--surface-3);border-radius:.3rem;color:var(--text-muted);white-space:nowrap">{{ sug.scope }}</span>
         {% if can_manage_links %}
         <form method="POST" action="{{ url_for('content_links.add_content_link') }}" style="margin:0;flex-shrink:0">
           <input type="hidden" name="from_post_id" value="{{ from_post.id }}">

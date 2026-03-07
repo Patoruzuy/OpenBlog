@@ -9,13 +9,13 @@
 
 {# ── Filter bar ───────────────────────────────────────────────────────────── #}
 <form method="get" class="adm-filter-bar">
-  <select name="status" class="adm-input adm-input--sm">
+  <select name="status" class="adm-input adm-input--sm" title="Filter reports by status">
     <option value="open"      {% if status == 'open'      %}selected{% endif %}>Open</option>
     <option value="resolved"  {% if status == 'resolved'  %}selected{% endif %}>Resolved</option>
     <option value="dismissed" {% if status == 'dismissed' %}selected{% endif %}>Dismissed</option>
     <option value="all"       {% if status == 'all'       %}selected{% endif %}>All</option>
   </select>
-  <select name="target_type" class="adm-input adm-input--sm">
+  <select name="target_type" class="adm-input adm-input--sm" title="Filter reports by target type">
     <option value="">All types</option>
     <option value="post"    {% if target_type == 'post'    %}selected{% endif %}>Posts</option>
     <option value="comment" {% if target_type == 'comment' %}selected{% endif %}>Comments</option>

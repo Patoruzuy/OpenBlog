@@ -183,6 +183,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.api.votes import api_votes_bp
     from backend.routes.attachments import api_attachments_bp, attachments_bp
     from backend.routes.auth import ssr_auth_bp
+    from backend.routes.badges import ssr_badges_bp
     from backend.routes.benchmarks import benchmarks_bp
     from backend.routes.bookmarks import ssr_bookmarks_bp
     from backend.routes.content_links import content_links_bp
@@ -197,6 +198,7 @@ def _register_blueprints(app: Flask) -> None:
     from backend.routes.intelligence import intelligence_bp
     from backend.routes.invites import invite_bp
     from backend.routes.json_feed import json_feed_bp
+    from backend.routes.leaderboards import leaderboard_bp
     from backend.routes.newsletter import newsletter_bp
     from backend.routes.notifications import ssr_notifications_bp
     from backend.routes.ontology import ontology_bp
@@ -231,6 +233,8 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(api_search_bp)
     app.register_blueprint(ssr_users_bp)
     app.register_blueprint(ssr_reputation_bp)
+    app.register_blueprint(ssr_badges_bp)
+    app.register_blueprint(leaderboard_bp)
     app.register_blueprint(api_users_bp)
     app.register_blueprint(ssr_tags_bp)
     app.register_blueprint(ssr_bookmarks_bp)

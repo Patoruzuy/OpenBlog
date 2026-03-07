@@ -214,5 +214,10 @@
   </section>
   {% endif %}
 
+  {# ── Top Improvers ─────────────────────────────────────────────────── #}
+  {% with cards=contributor_cards, section_title=contributor_section_title %}
+    {% include '_partials/contributor_cards.html' %}
+  {% endwith %}
+
 </div>
 {% endblock %}

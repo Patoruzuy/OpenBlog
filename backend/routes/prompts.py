@@ -51,6 +51,7 @@ from backend.extensions import db
 from backend.models.post import PostStatus
 from backend.models.workspace import WorkspaceMemberRole
 from backend.services import workspace_service as ws_svc
+from backend.services.contributor_card_service import ContributorCardService
 from backend.services.prompt_service import (
     PromptError,
     create_prompt,
@@ -133,8 +134,12 @@ def public_prompt_new():
                 seo_description=seo_description,
             )
             db.session.commit()
-            flash("Prompt created.", "success")
-            return redirect(url_for("prompts.public_prompt_detail", slug=post.slug))
+            if status == PostStatus.published:
+                flash("Prompt published.", "success")
+                return redirect(url_for("prompts.public_prompt_detail", slug=post.slug))
+            else:
+                flash("Prompt saved as draft.", "success")
+                return redirect(url_for("prompts.public_prompt_list"))
         except PromptError as exc:
             flash(str(exc), "error")
             return render_template(
@@ -186,6 +191,10 @@ def public_prompt_detail(slug: str):
     can_manage_ontology = user is not None and user.role.value in UserRole.EDITOR_SET
     mapping_node_ids = _get_ont_ids(prompt, workspace=None)
 
+    top_improvers = ContributorCardService.get_top_improvers_for_prompt(
+        prompt, workspace=None, limit=8
+    )
+
     return render_template(
         "prompts/detail.html",
         prompt=prompt,
@@ -201,6 +210,8 @@ def public_prompt_detail(slug: str):
         ontology_all_nodes=ontology_all_nodes,
         can_manage_ontology=can_manage_ontology,
         mapping_node_ids=mapping_node_ids,
+        contributor_cards=top_improvers,
+        contributor_section_title="Top Improvers",
     )
 
 
@@ -532,6 +543,10 @@ def ws_prompt_detail(ws_slug: str, slug: str):
     can_manage_ontology = user is not None and user.role.value in UserRole.EDITOR_SET
     mapping_node_ids = _get_ont_ids(prompt, workspace=ws)
 
+    top_improvers = ContributorCardService.get_top_improvers_for_prompt(
+        prompt, workspace=ws, limit=8
+    )
+
     resp = make_response(
         render_template(
             "prompts/detail.html",
@@ -548,6 +563,8 @@ def ws_prompt_detail(ws_slug: str, slug: str):
             ontology_all_nodes=ontology_all_nodes,
             can_manage_ontology=can_manage_ontology,
             mapping_node_ids=mapping_node_ids,
+            contributor_cards=top_improvers,
+            contributor_section_title="Top Improvers",
         )
     )
     return _ws_no_store(resp)

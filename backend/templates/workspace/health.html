@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Health — {{ workspace.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  {# ── Page header ── #}
+  <div class="page-header">
+    <div class="page-header__meta">
+      <span class="badge badge--private" title="Private workspace">Private</span>
+    </div>
+    <h1 class="page-header__title">Knowledge Health</h1>
+    <p class="page-header__description">
+      <a href="{{ url_for('workspace.dashboard', workspace_slug=workspace.slug) }}">&larr; {{ workspace.name }}</a>
+    </p>
+  </div>
+
+  {# ── Summary cards ── #}
+  <section class="health-summary">
+    <div class="health-stat-cards">
+
+      <div class="health-stat-card">
+        <span class="health-stat-card__value">{{ summary.total_prompts }}</span>
+        <span class="health-stat-card__label">Total Prompts</span>
+      </div>
+
+      <div class="health-stat-card{% if summary.benchmarked_prompts == 0 %} health-stat-card--warn{% endif %}">
+        <span class="health-stat-card__value">{{ summary.benchmarked_prompts }}</span>
+        <span class="health-stat-card__label">Benchmarked Prompts</span>
+      </div>
+
+      <div class="health-stat-card{% if summary.stale_items > 0 %} health-stat-card--warn{% endif %}">
+        <span class="health-stat-card__value">{{ summary.stale_items }}</span>
+        <span class="health-stat-card__label">Stale Items (&gt;90 days)</span>
+      </div>
+
+      <div class="health-stat-card">
+        <span class="health-stat-card__value">{{ summary.active_contributors }}</span>
+        <span class="health-stat-card__label">Active Contributors</span>
+      </div>
+
+    </div>
+  </section>
+
+  {# ── Recommended actions ── #}
+  {% if actions %}
+  <section class="health-section" id="recommendations">
+    <h2 class="health-section__title">Recommended Actions</h2>
+    <ol class="health-recommendations">
+      {% for action in actions %}
+        <li class="health-recommendation health-recommendation--p{{ action.priority }}">
+          <span class="health-recommendation__type badge badge--status">{{ action.action_type | replace('_', ' ') | title }}</span>
+          <span class="health-recommendation__title">
+            {% if action.post_slug %}
+              <a href="{{ url_for('prompts.detail', slug=action.post_slug) }}">{{ action.title }}</a>
+            {% elif action.node_slug %}
+              <a href="{{ url_for('ontology.detail', node_slug=action.node_slug) }}">{{ action.title }}</a>
+            {% else %}
+              {{ action.title }}
+            {% endif %}
+          </span>
+          <span class="health-recommendation__detail">{{ action.detail }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+  </section>
+  {% else %}
+  <section class="health-section" id="recommendations">
+    <h2 class="health-section__title">Recommended Actions</h2>
+    <div class="empty-state"><p>No recommendations at this time. Great work!</p></div>
+  </section>
+  {% endif %}
+
+  {# ── Ontology coverage ── #}
+  <section class="health-section" id="ontology-coverage">
+    <h2 class="health-section__title">Ontology Coverage</h2>
+    {% if coverage %}
+      <table class="health-table">
+        <thead>
+          <tr>
+            <th>Node</th>
+            <th class="health-table__num">Posts</th>
+            <th class="health-table__num">Benchmarked</th>
+            <th class="health-table__num">Revised</th>
+            <th class="health-table__num">Contributors</th>
+            <th>Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in coverage %}
+            <tr class="{% if row.is_low_coverage %}health-table-row--low{% endif %}">
+              <td>
+                <a href="{{ url_for('ontology.detail', node_slug=row.node_slug) }}">{{ row.node_name }}</a>
+              </td>
+              <td class="health-table__num">{{ row.post_count }}</td>
+              <td class="health-table__num">{{ row.benchmarked_count }}</td>
+              <td class="health-table__num">{{ row.revised_count }}</td>
+              <td class="health-table__num">{{ row.contributor_count }}</td>
+              <td>
+                {% if row.is_low_coverage %}
+                  <span class="badge badge--status badge--draft">Low</span>
+                {% else %}
+                  <span class="badge badge--status badge--published">OK</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state"><p>No ontology-mapped content found in this workspace.</p></div>
+    {% endif %}
+  </section>
+
+  {# ── Unbenchmarked prompts ── #}
+  <section class="health-section" id="unbenchmarked">
+    <h2 class="health-section__title">Unbenchmarked Prompts</h2>
+    {% if unbenchmarked %}
+      <div class="post-cards-list">
+        {% for p in unbenchmarked %}
+          <article class="post-card">
+            <span class="post-card-title">
+              <a href="{{ url_for('prompts.detail', slug=p.slug) }}">{{ p.title }}</a>
+              <span class="version-badge">v{{ p.version }}</span>
+            </span>
+            <div class="post-card-meta">
+              <time datetime="{{ p.updated_at.isoformat() }}">
+                Updated {{ p.updated_at.strftime('%b %d, %Y') }}
+              </time>
+              {% if p.ontology_node_names %}
+                <span class="post-meta-sep">&middot;</span>
+                <span>{{ p.ontology_node_names | join(', ') }}</span>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><p>All published prompts have been benchmarked.</p></div>
+    {% endif %}
+  </section>
+
+  {# ── Stale content ── #}
+  <section class="health-section" id="stale">
+    <h2 class="health-section__title">Stale Content <small>(&gt;90 days without update)</small></h2>
+    {% if stale %}
+      <div class="post-cards-list">
+        {% for s in stale %}
+          <article class="post-card">
+            <span class="post-card-title">
+              <a href="{{ url_for('prompts.detail', slug=s.slug) if s.kind == 'prompt' else url_for('posts.detail', slug=s.slug) }}">{{ s.title }}</a>
+              <span class="badge badge--status badge--{{ s.kind }}">{{ s.kind }}</span>
+            </span>
+            <div class="post-card-meta">
+              <time datetime="{{ s.updated_at.isoformat() }}">Last updated {{ s.updated_at.strftime('%b %d, %Y') }}</time>
+              <span class="post-meta-sep">&middot;</span>
+              <span>{{ s.days_stale }} days stale</span>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><p>No stale content found.</p></div>
+    {% endif %}
+  </section>
+
+  {# ── No Accepted Revisions ── #}
+  <section class="health-section" id="no-accepted-revisions">
+    <h2 class="health-section__title">No Accepted Revisions</h2>
+    {% if unimproved %}
+      <div class="post-cards-list">
+        {% for u in unimproved %}
+          <article class="post-card">
+            <span class="post-card-title">
+              <a href="{{ url_for('prompts.detail', slug=u.slug) if u.kind == 'prompt' else url_for('posts.detail', slug=u.slug) }}">{{ u.title }}</a>
+              <span class="badge badge--status badge--{{ u.kind }}">{{ u.kind }}</span>
+            </span>
+            <div class="post-card-meta">
+              <time datetime="{{ u.created_at.isoformat() }}">Created {{ u.created_at.strftime('%b %d, %Y') }}</time>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state"><p>All published content has at least one accepted revision.</p></div>
+    {% endif %}
+  </section>
+
+  {# ── Contributor gaps ── #}
+  <section class="health-section" id="contributor-gaps">
+    <h2 class="health-section__title">Contributor Gaps</h2>
+    {% if gaps %}
+      <table class="health-table">
+        <thead>
+          <tr>
+            <th>Node</th>
+            <th class="health-table__num">Contributors</th>
+            <th>Top Contributor</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in gaps %}
+            <tr class="{% if g.is_single_point %}health-table-row--single-point{% endif %}">
+              <td>
+                <a href="{{ url_for('ontology.detail', node_slug=g.node_slug) }}">{{ g.node_name }}</a>
+              </td>
+              <td class="health-table__num">{{ g.contributor_count }}</td>
+              <td>
+                {% if g.top_contributor_username %}
+                  <span class="post-card-meta">{{ g.top_contributor_username }}</span>
+                {% else %}
+                  <span class="post-card-meta">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if g.is_single_point %}
+                  <span class="badge badge--status badge--draft">Single Point</span>
+                {% else %}
+                  <span class="badge badge--status badge--published">OK</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state"><p>No contributor gap data available.</p></div>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

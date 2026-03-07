@@ -40,6 +40,7 @@ from backend.services.content_ontology_service import (
     ContentOntologyError,
     set_mappings,
 )
+from backend.services.contributor_card_service import ContributorCardService
 from backend.services.fork_recommendation_service import recommend
 from backend.services.ontology_service import (
     get_node_by_slug,
@@ -88,12 +89,17 @@ def public_node_detail(slug: str):
     prompts = list_prompts_for_node(
         user, node, workspace=None, include_descendants=True
     )
+    contributor_cards = ContributorCardService.get_top_improvers_for_ontology(
+        node, workspace=None, limit=8
+    )
     return render_template(
         "ontology/detail.html",
         node=node,
         prompts=prompts,
         workspace=None,
         current_user=user,
+        contributor_cards=contributor_cards,
+        contributor_section_title="Top Contributors",
     )
 
 
@@ -130,6 +136,9 @@ def ws_node_detail(ws_slug: str, slug: str):
         abort(404)
 
     prompts = list_prompts_for_node(user, node, workspace=ws, include_descendants=True)
+    contributor_cards = ContributorCardService.get_top_improvers_for_ontology(
+        node, workspace=ws, limit=8
+    )
     resp = make_response(
         render_template(
             "ontology/detail.html",
@@ -137,6 +146,8 @@ def ws_node_detail(ws_slug: str, slug: str):
             prompts=prompts,
             workspace=ws,
             current_user=user,
+            contributor_cards=contributor_cards,
+            contributor_section_title="Top Contributors",
         )
     )
     resp.headers["Cache-Control"] = "private, no-store"

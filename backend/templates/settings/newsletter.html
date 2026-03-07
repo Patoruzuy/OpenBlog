@@ -9,9 +9,9 @@
       <p class="form-label">Status</p>
       <p>
         {% if subscription.status == 'active' %}
-          <span style="color:#4ade80;font-weight:600">Active</span> — you're subscribed.
+          <span style="color:var(--success);font-weight:600">Active</span> — you're subscribed.
         {% elif subscription.status == 'pending' %}
-          <span style="color:#facc15;font-weight:600">Pending</span> — check your inbox to confirm.
+          <span style="color:var(--warning);font-weight:600">Pending</span> — check your inbox to confirm.
         {% elif subscription.status == 'unsubscribed' %}
           <span style="color:var(--text-muted)">Unsubscribed</span>
         {% else %}
@@ -23,7 +23,7 @@
     {% if subscription.status in ('active', 'pending') %}
       <form method="post" action="{{ url_for('settings.newsletter_unsubscribe') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <button class="btn btn--danger--outline" type="submit">Unsubscribe</button>
+        <button class="btn btn--danger" type="submit">Unsubscribe</button>
       </form>
     {% else %}
       <form method="post" action="{{ url_for('settings.newsletter_subscribe') }}">

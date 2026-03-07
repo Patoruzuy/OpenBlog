@@ -11,7 +11,7 @@
 <form method="get" class="adm-filter-bar">
   <input type="search" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search title…" class="adm-input adm-input--sm" />
 
-  <select name="status" class="adm-select adm-select--sm">
+  <select name="status" class="adm-select adm-select--sm" aria-label="Filter by post status">
     <option value="">All statuses</option>
     {% for s in ['published','draft','scheduled','archived'] %}
       <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s | capitalize }}</option>
@@ -22,7 +22,7 @@
     <input type="checkbox" name="featured" value="1" {% if request.args.get('featured') == '1' %}checked{% endif %} /> Featured
   </label>
 
-  <select name="sort" class="adm-select adm-select--sm">
+  <select name="sort" class="adm-select adm-select--sm" aria-label="Sort posts by">
     <option value="newest" {% if request.args.get('sort','newest') == 'newest' %}selected{% endif %}>Newest</option>
     <option value="oldest" {% if request.args.get('sort') == 'oldest' %}selected{% endif %}>Oldest</option>
     <option value="views" {% if request.args.get('sort') == 'views' %}selected{% endif %}>Most viewed</option>
